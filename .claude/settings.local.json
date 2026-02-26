@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s http://localhost:3000/api/test-connection)"
+      "Bash(curl -s http://localhost:3000/api/test-connection)",
+      "WebFetch(domain:cyclesync-five.vercel.app)",
+      "WebFetch(domain:www.trycyclesync.com)"
     ]
   }
 }

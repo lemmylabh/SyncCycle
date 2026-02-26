@@ -1,65 +1,107 @@
-import Image from "next/image";
+"use client";
+
+import { AuthForm } from "@/components/AuthForm";
+
+const features = [
+  {
+    icon: "🌙",
+    title: "Track your phases",
+    desc: "Log your cycle and understand each hormonal phase in real time.",
+  },
+  {
+    icon: "✨",
+    title: "Predict symptoms",
+    desc: "Know what's coming — mood shifts, energy dips, and more.",
+  },
+  {
+    icon: "⚡",
+    title: "Optimize your energy",
+    desc: "Align workouts, nutrition, and rest with how your body actually works.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-2 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600">
+
+      {/* ── LEFT HERO PANEL (desktop only) ── */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600 text-white relative overflow-hidden">
+        {/* Decorative background circles */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white opacity-10" />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-white opacity-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-white opacity-5" />
+
+        {/* Logo */}
+        <div className="relative z-10">
+          <span className="text-2xl font-bold tracking-tight">SyncCycle</span>
+        </div>
+
+        {/* Hero copy */}
+        <div className="relative z-10 space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-4xl font-bold leading-tight">
+              Know your cycle.
+              <br />
+              Own your life.
+            </h2>
+            <p className="text-rose-100 text-lg leading-relaxed max-w-sm">
+              Personalized insights that help you predict how you&apos;ll feel,
+              perform at your peak, and live in rhythm with your body.
+            </p>
+          </div>
+
+          {/* Feature list */}
+          <ul className="space-y-4">
+            {features.map((f) => (
+              <li key={f.title} className="flex items-start gap-3">
+                <span className="text-xl">{f.icon}</span>
+                <div>
+                  <p className="font-semibold text-sm">{f.title}</p>
+                  <p className="text-rose-100 text-sm">{f.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Trust badge */}
+        <div className="relative z-10">
+          <p className="text-rose-200 text-sm">
+            Helping thousands of people live in sync with their bodies.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      {/* ── MOBILE HERO BANNER (mobile only) ── */}
+      <div className="lg:hidden flex flex-col items-center justify-center pt-14 pb-16 px-8 text-white text-center relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white opacity-10" />
+        <div className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full bg-white opacity-10" />
+        <span className="text-3xl font-bold tracking-tight relative z-10">SyncCycle</span>
+        <p className="text-rose-100 text-sm mt-2 relative z-10">
+          Know your cycle. Own your life.
+        </p>
+      </div>
+
+      {/* ── FORM PANEL ── */}
+      {/* Mobile: white rounded card floating over gradient */}
+      {/* Desktop: full-height right panel */}
+      <div className="
+        bg-white rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)]
+        flex-1 px-8 pt-8 pb-12 sm:px-10
+        lg:rounded-none lg:shadow-none
+        lg:flex lg:flex-col lg:justify-center lg:px-16
+      ">
+        <AuthForm />
+
+        {/* Terms note */}
+        <p className="mt-8 text-center text-xs text-gray-400">
+          By creating an account you agree to our{" "}
+          <span className="underline cursor-pointer hover:text-gray-600">Terms of Service</span>{" "}
+          and{" "}
+          <span className="underline cursor-pointer hover:text-gray-600">Privacy Policy</span>.
+        </p>
+      </div>
+
     </div>
   );
 }
