@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import {
+  type LucideIcon,
+  Activity, AlertCircle, BatteryLow, Brain, Check,
+  Cloud, CloudRain, Cookie, Droplet, Flame, Frown,
+  Heart, Moon, Shuffle, Sparkles, Waves, Wind, Zap,
+} from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -29,6 +35,33 @@ interface TrendEntry {
   log_date: string;
   symptom_type_id: string;
   severity: Severity;
+}
+
+// ── Icon map ────────────────────────────────────────────────────────────────
+
+const SYMPTOM_ICON_MAP: Record<string, LucideIcon> = {
+  cramps:            Waves,
+  bloating:          Wind,
+  headache:          Brain,
+  breast_tenderness: Heart,
+  backache:          Activity,
+  nausea:            Frown,
+  acne:              Sparkles,
+  spotting:          Droplet,
+  mood_swings:       Shuffle,
+  anxiety:           AlertCircle,
+  irritability:      Flame,
+  brain_fog:         Cloud,
+  low_mood:          CloudRain,
+  cravings:          Cookie,
+  fatigue:           BatteryLow,
+  high_energy:       Zap,
+  insomnia:          Moon,
+};
+
+function SymptomIcon({ name, size = 20 }: { name: string; size?: number }) {
+  const Icon = SYMPTOM_ICON_MAP[name] ?? Activity;
+  return <Icon size={size} />;
 }
 
 // ── Demo data ──────────────────────────────────────────────────────────────
@@ -345,7 +378,7 @@ export default function SymptomsPage() {
                         : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.07]",
                     ].join(" ")}
                   >
-                    <span className="text-2xl leading-none">{st.icon}</span>
+                    <SymptomIcon name={st.name} size={24} />
                     <span className={`text-xs font-medium text-center leading-tight ${isSelected ? cfg.color : "text-gray-400"}`}>
                       {st.label}
                     </span>
@@ -390,7 +423,7 @@ export default function SymptomsPage() {
           {selected.size === 0 ? (
             <div className="flex-1 flex items-center justify-center py-8 text-center">
               <div>
-                <p className="text-3xl mb-2">♡</p>
+                <Heart size={28} className="text-gray-700 mx-auto mb-2" />
                 <p className="text-gray-600 text-sm">Select symptoms from the grid to start logging</p>
               </div>
             </div>
@@ -402,7 +435,7 @@ export default function SymptomsPage() {
                 return (
                   <div key={sid} className="flex items-center justify-between py-2 border-b border-white/5">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{st.icon}</span>
+                      <SymptomIcon name={st.name} size={16} />
                       <span className="text-gray-300 text-sm">{st.label}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -450,7 +483,7 @@ export default function SymptomsPage() {
               isDemo || saving || selected.size === 0 ? "opacity-40 cursor-not-allowed" : "",
             ].join(" ")}
           >
-            {saved ? "✓  Saved" : saving ? "Saving…" : isDemo ? "Demo — Sign in to Save" : "Save Symptoms"}
+            {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo — Sign in to Save" : "Save Symptoms"}
           </button>
         </div>
       </div>
@@ -488,7 +521,7 @@ export default function SymptomsPage() {
                   <tr key={st.id}>
                     <td className="py-2 pr-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{st.icon}</span>
+                        <SymptomIcon name={st.name} size={14} />
                         <span className="text-gray-400 text-xs">{st.label}</span>
                       </div>
                     </td>

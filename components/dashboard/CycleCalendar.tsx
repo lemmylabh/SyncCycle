@@ -1,12 +1,15 @@
-// Phase colors by day offset from cycle start (mock: cycle started 14 days ago)
-const CYCLE_START_OFFSET = 14; // today = cycle day 14
+"use client";
 
-function getPhaseForDay(cycleDay: number): string {
-  if (cycleDay < 1) return "future";
-  if (cycleDay <= 5) return "menstrual";
-  if (cycleDay <= 13) return "follicular";
-  if (cycleDay <= 16) return "ovulatory";
-  if (cycleDay <= 28) return "luteal";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { cycleDay as computeCycleDay } from "@/lib/cycleUtils";
+
+function getPhaseForDay(day: number): string {
+  if (day < 1)  return "future";
+  if (day <= 5)  return "menstrual";
+  if (day <= 13) return "follicular";
+  if (day <= 16) return "ovulatory";
+  if (day <= 35) return "luteal";
   return "future";
 }
 
@@ -26,36 +29,6 @@ const phaseTextColors: Record<string, string> = {
   future:     "text-gray-600",
 };
 
-// Days with symptoms logged (mock: day indices 0-6)
-const symptomsLogged = new Set([0, 1, 2, 4]);
-
-function getWeekDays() {
-  const today = new Date();
-  const monday = new Date(today);
-  const day = today.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  monday.setDate(today.getDate() + diff);
-
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    const offset = Math.round((d.getTime() - today.getTime()) / 86400000);
-    const cycleDay = CYCLE_START_OFFSET + offset;
-    const phase = getPhaseForDay(cycleDay);
-    const isToday = offset === 0;
-    return {
-      weekday: d.toLocaleDateString("en", { weekday: "short" }),
-      date: d.getDate(),
-      cycleDay,
-      phase,
-      isToday,
-      idx: i,
-    };
-  });
-}
-
-const weekDays = getWeekDays();
-
 const phaseLegend = [
   { label: "Menstrual",  color: "bg-rose-500" },
   { label: "Follicular", color: "bg-purple-500" },
@@ -63,9 +36,100 @@ const phaseLegend = [
   { label: "Luteal",     color: "bg-violet-500" },
 ];
 
+function getWeekDays(cycleStartDate: string | null) {
+  const today = new Date();
+  const monday = new Date(today);
+  const dow = today.getDay();
+  monday.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = d.toISOString().split("T")[0];
+    const offset = Math.round((d.getTime() - today.getTime()) / 86400000);
+    let day = 0;
+    if (cycleStartDate) {
+      const startOffset = computeCycleDay(cycleStartDate) - 1;
+      day = startOffset + offset + 1;
+    }
+    return {
+      weekday: d.toLocaleDateString("en", { weekday: "short" }),
+      date: d.getDate(),
+      iso,
+      cycleDay: day,
+      phase: cycleStartDate ? getPhaseForDay(day) : "future",
+      isToday: offset === 0,
+      idx: i,
+    };
+  });
+}
+
 export function CycleCalendar() {
+  const [loading, setLoading] = useState(true);
+  const [cycleStartDate, setCycleStartDate] = useState<string | null>(null);
+  const [symptomDates, setSymptomDates] = useState<Set<string>>(new Set());
+  const [periodDates, setPeriodDates] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const today = new Date();
+      const todayIso = today.toISOString().split("T")[0];
+
+      // Get monday of current week
+      const monday = new Date(today);
+      const dow = today.getDay();
+      monday.setDate(today.getDate() + (dow === 0 ? -6 : 1 - dow));
+      const mondayIso = monday.toISOString().split("T")[0];
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const sundayIso = sunday.toISOString().split("T")[0];
+
+      const [{ data: cycle }, { data: symLogs }, { data: perLogs }] = await Promise.all([
+        supabase.from("cycles").select("start_date")
+          .eq("user_id", user.id).lte("start_date", todayIso)
+          .order("start_date", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("symptom_logs").select("log_date")
+          .eq("user_id", user.id).gte("log_date", mondayIso).lte("log_date", sundayIso),
+        supabase.from("period_logs").select("log_date")
+          .eq("user_id", user.id).gte("log_date", mondayIso).lte("log_date", sundayIso),
+      ]);
+
+      if (cycle) setCycleStartDate(cycle.start_date);
+      setSymptomDates(new Set((symLogs ?? []).map(l => l.log_date as string)));
+      setPeriodDates(new Set((perLogs ?? []).map(l => l.log_date as string)));
+      setLoading(false);
+    })();
+  }, []);
+
   const now = new Date();
   const monthYear = now.toLocaleDateString("en", { month: "long", year: "numeric" });
+  const weekDays = getWeekDays(cycleStartDate);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 animate-pulse">
+        <div className="flex justify-between mb-5">
+          <div className="space-y-2">
+            <div className="h-2.5 w-24 bg-white/10 rounded" />
+            <div className="h-5 w-36 bg-white/10 rounded" />
+          </div>
+          <div className="h-4 w-28 bg-white/10 rounded" />
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {Array(7).fill(0).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5">
+              <div className="h-3 w-6 bg-white/10 rounded" />
+              <div className="w-9 h-9 rounded-full bg-white/10" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6">
@@ -77,36 +141,35 @@ export function CycleCalendar() {
         <span className="text-gray-500 text-sm">{monthYear}</span>
       </div>
 
-      {/* Day columns */}
       <div className="grid grid-cols-7 gap-2">
-        {weekDays.map((d) => (
-          <div key={d.idx} className="flex flex-col items-center gap-1.5">
-            <span className={`text-[10px] uppercase font-medium ${d.isToday ? "text-white" : "text-gray-500"}`}>
-              {d.weekday}
-            </span>
-
-            {/* Phase circle */}
-            <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold
-                ${phaseColors[d.phase]}
-                ${d.isToday ? "ring-2 ring-white ring-offset-2 ring-offset-[#1e1e2a]" : ""}
-                ${d.phase === "future" ? phaseTextColors[d.phase] : "text-white"}
-              `}
-            >
-              {d.date}
+        {weekDays.map((d) => {
+          const hasPeriod = periodDates.has(d.iso);
+          const hasSymptom = symptomDates.has(d.iso);
+          const phaseColor = hasPeriod ? "bg-rose-500" : phaseColors[d.phase];
+          return (
+            <div key={d.idx} className="flex flex-col items-center gap-1.5">
+              <span className={`text-[10px] uppercase font-medium ${d.isToday ? "text-white" : "text-gray-500"}`}>
+                {d.weekday}
+              </span>
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold
+                  ${phaseColor}
+                  ${d.isToday ? "ring-2 ring-white ring-offset-2 ring-offset-[#1e1e2a]" : ""}
+                  ${d.phase === "future" && !hasPeriod ? phaseTextColors[d.phase] : "text-white"}
+                `}
+              >
+                {d.date}
+              </div>
+              {hasSymptom ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+              ) : (
+                <span className="w-1.5 h-1.5" />
+              )}
             </div>
-
-            {/* Symptom dot */}
-            {symptomsLogged.has(d.idx) ? (
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-            ) : (
-              <span className="w-1.5 h-1.5" />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Phase legend */}
       <div className="flex flex-wrap gap-3 mt-5">
         {phaseLegend.map((p) => (
           <div key={p.label} className="flex items-center gap-1.5">

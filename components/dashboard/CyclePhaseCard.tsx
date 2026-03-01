@@ -1,13 +1,8 @@
-// Mock data — replace with Supabase data later
-const PHASE_DATA = {
-  menstrual:  { label: "Menstrual Phase",   tagline: "Rest & restore your body",          color: "from-rose-900/40 to-rose-800/20",  ring: "#f43f5e", day: 3,  daysLeft: 25 },
-  follicular: { label: "Follicular Phase",  tagline: "Rising energy & creativity",         color: "from-rose-900/30 to-purple-900/30", ring: "#a855f7", day: 14, daysLeft: 14 },
-  ovulatory:  { label: "Ovulatory Phase",   tagline: "Peak energy & confidence",           color: "from-pink-900/40 to-purple-900/30", ring: "#f472b6", day: 15, daysLeft: 13 },
-  luteal:     { label: "Luteal Phase",      tagline: "Wind down & reflect",                color: "from-violet-900/40 to-purple-900/30",ring: "#8b5cf6", day: 22, daysLeft: 6  },
-};
+"use client";
 
-const CYCLE_LENGTH = 28;
-const CURRENT_PHASE = "follicular" as keyof typeof PHASE_DATA;
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { cycleDay, computePhase, PHASE_CONFIG, type Phase } from "@/lib/cycleUtils";
 
 const SIZE = 140;
 const STROKE = 10;
@@ -15,54 +10,98 @@ const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function CyclePhaseCard() {
-  const phase = PHASE_DATA[CURRENT_PHASE];
-  const progress = phase.day / CYCLE_LENGTH;
+  const [loading, setLoading] = useState(true);
+  const [day, setDay] = useState(1);
+  const [cycleLen, setCycleLen] = useState(28);
+  const [phase, setPhase] = useState<Phase>("follicular");
+  const [daysLeft, setDaysLeft] = useState(14);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const today = new Date().toISOString().split("T")[0];
+      const [{ data: cycle }, { data: profile }] = await Promise.all([
+        supabase.from("cycles").select("start_date,cycle_length")
+          .eq("user_id", user.id).lte("start_date", today)
+          .order("start_date", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("user_profiles")
+          .select("average_cycle_length,average_period_length")
+          .eq("id", user.id).maybeSingle(),
+      ]);
+
+      if (cycle) {
+        const d = cycleDay(cycle.start_date);
+        const cl = profile?.average_cycle_length ?? cycle.cycle_length ?? 28;
+        const pl = profile?.average_period_length ?? 5;
+        const ph = computePhase(d, pl, cl);
+        setDay(d);
+        setCycleLen(cl);
+        setPhase(ph);
+        setDaysLeft(Math.max(0, cl - d));
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 animate-pulse space-y-5">
+        <div className="space-y-2">
+          <div className="h-2.5 w-20 bg-white/10 rounded" />
+          <div className="h-5 w-36 bg-white/10 rounded" />
+          <div className="h-3 w-48 bg-white/10 rounded" />
+        </div>
+        <div className="flex justify-center">
+          <div className="w-[140px] h-[140px] rounded-full bg-white/5" />
+        </div>
+        <div className="flex gap-2">
+          <div className="h-6 w-24 bg-white/10 rounded-full" />
+          <div className="h-6 w-32 bg-white/10 rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
+  const cfg = PHASE_CONFIG[phase];
+  const progress = Math.min(day / cycleLen, 1);
   const dashOffset = CIRCUMFERENCE * (1 - progress);
 
   return (
-    <div className={`rounded-2xl border border-white/5 p-6 bg-gradient-to-br ${phase.color} bg-[#1e1e2a] flex flex-col gap-5`}>
+    <div className={`rounded-2xl border border-white/5 p-6 bg-gradient-to-br ${cfg.gradient} bg-[#1e1e2a] flex flex-col gap-5`}>
       <div>
         <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Phase</p>
-        <h2 className="text-white text-xl font-semibold">{phase.label}</h2>
-        <p className="text-gray-400 text-sm mt-0.5">{phase.tagline}</p>
+        <h2 className="text-white text-xl font-semibold">{cfg.label}</h2>
+        <p className="text-gray-400 text-sm mt-0.5">{cfg.tagline}</p>
       </div>
 
-      {/* Ring */}
       <div className="flex justify-center">
         <div className="relative" style={{ width: SIZE, height: SIZE }}>
           <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90">
-            {/* Track */}
+            <circle cx={SIZE/2} cy={SIZE/2} r={RADIUS} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE} />
             <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={RADIUS}
-              fill="none" stroke="rgba(255,255,255,0.08)"
-              strokeWidth={STROKE}
-            />
-            {/* Progress */}
-            <circle
-              cx={SIZE / 2} cy={SIZE / 2} r={RADIUS}
-              fill="none" stroke={phase.ring}
-              strokeWidth={STROKE}
+              cx={SIZE/2} cy={SIZE/2} r={RADIUS}
+              fill="none" stroke={cfg.ring} strokeWidth={STROKE}
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={dashOffset}
               style={{ transition: "stroke-dashoffset 0.6s ease" }}
             />
           </svg>
-          {/* Center label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-white text-2xl font-bold">{phase.day}</span>
-            <span className="text-gray-400 text-xs">of {CYCLE_LENGTH}</span>
+            <span className="text-white text-2xl font-bold">{day}</span>
+            <span className="text-gray-400 text-xs">of {cycleLen}</span>
           </div>
         </div>
       </div>
 
-      {/* Pills */}
       <div className="flex gap-2 flex-wrap">
         <span className="px-3 py-1 rounded-full bg-white/5 text-gray-300 text-xs">
-          {CYCLE_LENGTH}-day cycle
+          {cycleLen}-day cycle
         </span>
         <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-xs">
-          {phase.daysLeft} days to next period
+          {daysLeft} days to next period
         </span>
       </div>
     </div>

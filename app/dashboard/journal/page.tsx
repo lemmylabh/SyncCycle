@@ -3,6 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import {
+  type LucideIcon,
+  BookOpen, Check, Moon, PenLine, Sparkles, Sprout, Waves,
+} from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -19,11 +23,11 @@ interface CycleInfo {
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-const PHASE_CONFIG = {
-  menstrual:  { label: "Menstrual Phase",  emoji: "🌊", color: "text-rose-400",   bg: "bg-rose-500/10",   border: "border-rose-500/20"   },
-  follicular: { label: "Follicular Phase", emoji: "🌱", color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
-  ovulatory:  { label: "Ovulatory Phase",  emoji: "✨", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" },
-  luteal:     { label: "Luteal Phase",     emoji: "🌙", color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+const PHASE_CONFIG: Record<string, { label: string; Icon: LucideIcon; color: string; bg: string; border: string }> = {
+  menstrual:  { label: "Menstrual Phase",  Icon: Waves,    color: "text-rose-400",   bg: "bg-rose-500/10",   border: "border-rose-500/20"   },
+  follicular: { label: "Follicular Phase", Icon: Sprout,   color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
+  ovulatory:  { label: "Ovulatory Phase",  Icon: Sparkles, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" },
+  luteal:     { label: "Luteal Phase",     Icon: Moon,     color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
 };
 
 const PROMPTS = [
@@ -269,7 +273,7 @@ export default function JournalPage() {
       <aside className="w-full lg:w-64 xl:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 bg-[#0f0f13] lg:h-full lg:overflow-y-auto">
         <div className="p-4 border-b border-white/5">
           <div className="flex items-center gap-2">
-            <span className="text-lg">✦</span>
+            <BookOpen size={16} className="text-amber-400" />
             <h1 className="text-white font-bold text-sm tracking-tight">Daily Journal</h1>
             {isDemo && (
               <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full ml-auto">
@@ -365,7 +369,7 @@ export default function JournalPage() {
               <div className="flex items-center gap-3 flex-wrap">
                 {phase && cycleInfo && (
                   <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${phase.bg} ${phase.border} ${phase.color}`}>
-                    <span>{phase.emoji}</span>
+                    <phase.Icon size={12} />
                     <span>Day {cycleInfo.cycle_day} · {phase.label}</span>
                   </div>
                 )}
@@ -381,7 +385,9 @@ export default function JournalPage() {
                     </span>
                   )}
                   {saveStatus === "saved" && (
-                    <span className="text-green-400 text-xs">✓ Saved</span>
+                    <span className="text-green-400 text-xs flex items-center gap-1">
+                      <Check size={12} />Saved
+                    </span>
                   )}
                   {saveStatus === "error" && (
                     <span className="text-red-400 text-xs">Save failed</span>
@@ -405,8 +411,8 @@ export default function JournalPage() {
             {/* Textarea */}
             <div className="flex-1 overflow-y-auto p-6">
               {content === "" && !loading && (
-                <p className="text-gray-600 text-sm mb-3 italic">
-                  ✦ {PROMPTS[promptIdx]}
+                <p className="text-gray-600 text-sm mb-3 italic flex items-center gap-1.5">
+                  <PenLine size={14} />{PROMPTS[promptIdx]}
                 </p>
               )}
               <textarea

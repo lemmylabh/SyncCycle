@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import {
+  type LucideIcon,
+  Activity, BatteryLow, Check, Flame, Frown,
+  Heart, Laugh, Meh, Moon, Smile, Snowflake,
+  Sparkles, Star, TrendingUp, Waves, Wind, Zap,
+} from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,20 +41,33 @@ const LIBIDO_LABELS: Record<Score, string> = {
   1: "Very Low", 2: "Low", 3: "Neutral", 4: "High", 5: "Very High",
 };
 
-const MOOD_EMOJIS: Record<Score, string> = {
-  1: "😶", 2: "😕", 3: "🙂", 4: "😊", 5: "😄",
+const MOOD_ICONS: Record<Score, LucideIcon> = {
+  1: Frown, 2: Frown, 3: Meh, 4: Smile, 5: Laugh,
 };
-const ENERGY_EMOJIS: Record<Score, string> = {
-  1: "🪫", 2: "😴", 3: "⚡", 4: "🔋", 5: "🚀",
+const ENERGY_ICONS: Record<Score, LucideIcon> = {
+  1: BatteryLow, 2: Moon, 3: Activity, 4: Zap, 5: Flame,
 };
-const LIBIDO_EMOJIS: Record<Score, string> = {
-  1: "❄️", 2: "💤", 3: "💫", 4: "🔥", 5: "✨",
+const LIBIDO_ICONS: Record<Score, LucideIcon> = {
+  1: Snowflake, 2: Wind, 3: Star, 4: Heart, 5: Sparkles,
 };
+
+// Fallback icons for empty state header
+const MOOD_DEFAULT   = Meh;
+const ENERGY_DEFAULT = Zap;
+const LIBIDO_DEFAULT = Star;
 
 // Ring colours
 const RING_MOOD    = { track: "#6d28d9", fill: "#a78bfa", label: "Mood",   text: "text-violet-400"  };
 const RING_ENERGY  = { track: "#0e7490", fill: "#22d3ee", label: "Energy", text: "text-cyan-400"    };
 const RING_LIBIDO  = { track: "#be185d", fill: "#f472b6", label: "Libido", text: "text-pink-400"    };
+
+// Phase insight tags
+const PHASE_TAGS: { label: string; Icon: LucideIcon }[] = [
+  { label: "Menstrual: rest",   Icon: Waves    },
+  { label: "Follicular: rise",  Icon: Zap      },
+  { label: "Ovulatory: peak",   Icon: Sparkles },
+  { label: "Luteal: reflect",   Icon: Moon     },
+];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -92,13 +111,7 @@ function ScoreRing({
 
   return (
     <svg width={size} height={size} className="-rotate-90" style={{ display: "block" }}>
-      <circle
-        cx={cx} cy={cx} r={r}
-        fill="none"
-        stroke={ring.track}
-        strokeWidth={stroke}
-        opacity={0.25}
-      />
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={ring.track} strokeWidth={stroke} opacity={0.25} />
       <circle
         cx={cx} cy={cx} r={r}
         fill="none"
@@ -117,13 +130,13 @@ function ScoreRing({
 function ScorePicker({
   value,
   onChange,
-  emojis,
+  icons,
   labels,
   ring,
 }: {
   value: Score | null;
   onChange: (v: Score) => void;
-  emojis: Record<Score, string>;
+  icons: Record<Score, LucideIcon>;
   labels: Record<Score, string>;
   ring: typeof RING_MOOD;
 }) {
@@ -132,6 +145,7 @@ function ScorePicker({
     <div className="flex gap-2 flex-wrap">
       {scores.map((s) => {
         const active = value === s;
+        const Icon = icons[s];
         return (
           <button
             key={s}
@@ -144,10 +158,8 @@ function ScorePicker({
             }`}
             style={active ? { background: `${ring.track}55`, borderColor: ring.fill } : undefined}
           >
-            <span className="text-xl leading-none">{emojis[s]}</span>
-            <span
-              className={`text-[10px] font-semibold tracking-wide ${active ? "text-white" : "text-gray-500"}`}
-            >
+            <Icon size={20} />
+            <span className={`text-[10px] font-semibold tracking-wide ${active ? "text-white" : "text-gray-500"}`}>
               {s}
             </span>
           </button>
@@ -189,7 +201,6 @@ function TrendChart({ data }: { data: TrendEntry[] }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-      {/* Grid lines */}
       {[1, 2, 3, 4, 5].map(v => {
         const y = PAD.top + chartH - ((v / 5) * chartH);
         return (
@@ -199,32 +210,20 @@ function TrendChart({ data }: { data: TrendEntry[] }) {
           </g>
         );
       })}
-
-      {/* Mood line */}
       <polyline points={points("mood_score")} fill="none" stroke="#a78bfa" strokeWidth={2} strokeLinejoin="round" />
       {dots("mood_score", "#a78bfa")}
-
-      {/* Energy line */}
       <polyline points={points("energy_score")} fill="none" stroke="#22d3ee" strokeWidth={2} strokeLinejoin="round" />
       {dots("energy_score", "#22d3ee")}
-
-      {/* Libido line (optional) */}
       {hasLibido && (
         <>
           <polyline points={points("libido_score")} fill="none" stroke="#f472b6" strokeWidth={2} strokeLinejoin="round" strokeDasharray="4 2" />
           {dots("libido_score", "#f472b6")}
         </>
       )}
-
-      {/* X-axis labels */}
       {data.map((d, i) => {
         const x = PAD.left + (i / Math.max(data.length - 1, 1)) * chartW;
         const label = new Date(d.log_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short" });
-        return (
-          <text key={i} x={x} y={H - 4} fontSize={8} fill="#6b7280" textAnchor="middle">
-            {label}
-          </text>
-        );
+        return <text key={i} x={x} y={H - 4} fontSize={8} fill="#6b7280" textAnchor="middle">{label}</text>;
       })}
     </svg>
   );
@@ -264,44 +263,31 @@ export default function VibeCheckPage() {
     searchParams.get("demo") === "true" ||
     (typeof window !== "undefined" && sessionStorage.getItem("demo") === "true");
 
-  // Selected date
   const [selectedDate, setSelectedDate] = useState(localDateStr(new Date()));
-
-  // Form state
   const [moodScore,   setMoodScore]   = useState<Score | null>(null);
   const [energyScore, setEnergyScore] = useState<Score | null>(null);
   const [libidoScore, setLibidoScore] = useState<Score | null>(null);
   const [notes, setNotes]             = useState("");
-
-  // Trend data (7 days)
   const [trend, setTrend]     = useState<TrendEntry[]>([]);
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // ── Load data for selected date ────────────────────────────────────────────
+  // ── Load ───────────────────────────────────────────────────────────────────
 
   const loadDay = useCallback(async (dateStr: string) => {
     if (isDemo) return;
     setLoading(true);
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
     const [logRes, trendRes] = await Promise.all([
-      supabase
-        .from("mood_logs")
-        .select("mood_score,energy_score,libido_score,notes")
-        .eq("user_id", user.id)
-        .eq("log_date", dateStr)
-        .maybeSingle(),
-      supabase
-        .from("mood_logs")
-        .select("log_date,mood_score,energy_score,libido_score")
+      supabase.from("mood_logs").select("mood_score,energy_score,libido_score,notes")
+        .eq("user_id", user.id).eq("log_date", dateStr).maybeSingle(),
+      supabase.from("mood_logs").select("log_date,mood_score,energy_score,libido_score")
         .eq("user_id", user.id)
         .gte("log_date", localDateStr(addDays(new Date(dateStr + "T00:00:00"), -6)))
-        .lte("log_date", dateStr)
-        .order("log_date"),
+        .lte("log_date", dateStr).order("log_date"),
     ]);
 
     if (logRes.data) {
@@ -310,12 +296,8 @@ export default function VibeCheckPage() {
       setLibidoScore((logRes.data.libido_score ?? null) as Score | null);
       setNotes(logRes.data.notes ?? "");
     } else {
-      setMoodScore(null);
-      setEnergyScore(null);
-      setLibidoScore(null);
-      setNotes("");
+      setMoodScore(null); setEnergyScore(null); setLibidoScore(null); setNotes("");
     }
-
     setTrend((trendRes.data ?? []) as TrendEntry[]);
     setLoading(false);
   }, [isDemo]);
@@ -344,31 +326,18 @@ export default function VibeCheckPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
 
-    // Resolve cycle_id (best-effort)
-    const { data: cycleData } = await supabase
-      .from("cycles")
-      .select("id")
-      .eq("user_id", user.id)
-      .lte("start_date", selectedDate)
-      .order("start_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: cycleData } = await supabase.from("cycles").select("id")
+      .eq("user_id", user.id).lte("start_date", selectedDate)
+      .order("start_date", { ascending: false }).limit(1).maybeSingle();
 
     await supabase.from("mood_logs").upsert(
-      {
-        user_id:      user.id,
-        cycle_id:     cycleData?.id ?? null,
-        log_date:     selectedDate,
-        mood_score:   moodScore,
-        energy_score: energyScore,
-        libido_score: libidoScore ?? null,
-        notes:        notes.trim() || null,
-      },
+      { user_id: user.id, cycle_id: cycleData?.id ?? null, log_date: selectedDate,
+        mood_score: moodScore, energy_score: energyScore,
+        libido_score: libidoScore ?? null, notes: notes.trim() || null },
       { onConflict: "user_id,log_date" },
     );
 
-    setSaving(false);
-    setSaved(true);
+    setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     await loadDay(selectedDate);
   };
@@ -385,12 +354,17 @@ export default function VibeCheckPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  // Derive current icons for header display
+  const MoodHeaderIcon   = moodScore   ? MOOD_ICONS[moodScore]   : MOOD_DEFAULT;
+  const EnergyHeaderIcon = energyScore ? ENERGY_ICONS[energyScore] : ENERGY_DEFAULT;
+  const LibidoHeaderIcon = libidoScore ? LIBIDO_ICONS[libidoScore] : LIBIDO_DEFAULT;
+
   return (
     <div className="min-h-full bg-[#0f0f13] p-4 lg:p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
-          <span className="text-2xl">✦</span>
+          <Sparkles size={20} className="text-violet-400" />
           <h1 className="text-xl font-bold text-white tracking-tight">Vibe Check</h1>
           {isDemo && (
             <span className="text-xs bg-violet-500/20 text-violet-400 border border-violet-500/30 px-2 py-0.5 rounded-full">
@@ -408,29 +382,20 @@ export default function VibeCheckPage() {
         <button
           onClick={() => setSelectedDate(localDateStr(addDays(new Date(selectedDate + "T00:00:00"), -1)))}
           className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all"
-        >
-          ‹
-        </button>
+        >‹</button>
         <div className="flex-1 text-center">
           <p className="text-white font-semibold text-sm">{formatDay(selectedDate)}</p>
           {isToday && <p className="text-violet-400 text-xs mt-0.5">Today</p>}
         </div>
         <button
-          onClick={() => {
-            const next = addDays(new Date(selectedDate + "T00:00:00"), 1);
-            if (next <= new Date()) setSelectedDate(localDateStr(next));
-          }}
+          onClick={() => { const next = addDays(new Date(selectedDate + "T00:00:00"), 1); if (next <= new Date()) setSelectedDate(localDateStr(next)); }}
           disabled={isToday}
           className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          ›
-        </button>
+        >›</button>
         <button
           onClick={() => setSelectedDate(localDateStr(new Date()))}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white transition-all"
-        >
-          Today
-        </button>
+        >Today</button>
       </div>
 
       {loading ? (
@@ -439,6 +404,7 @@ export default function VibeCheckPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
+
           {/* ── Left: Score inputs ──────────────────────────────────────────── */}
           <div className="space-y-4">
 
@@ -446,55 +412,44 @@ export default function VibeCheckPage() {
             <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-5">Today&apos;s Scores</p>
               <div className="flex items-center justify-around gap-4 flex-wrap">
+
                 {/* Mood ring */}
                 <div className="flex flex-col items-center gap-2">
                   <div className="relative">
                     <ScoreRing score={moodScore} ring={RING_MOOD} size={100} stroke={9} />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl">{moodScore ? MOOD_EMOJIS[moodScore] : "—"}</span>
-                      {moodScore && (
-                        <span className="text-white font-bold text-sm leading-none">{moodScore}</span>
-                      )}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                      <MoodHeaderIcon size={20} className="text-violet-300" />
+                      {moodScore && <span className="text-white font-bold text-sm leading-none">{moodScore}</span>}
                     </div>
                   </div>
                   <span className={`text-xs font-semibold ${RING_MOOD.text}`}>Mood</span>
-                  {moodScore && (
-                    <span className="text-gray-400 text-[10px] -mt-1">{MOOD_LABELS[moodScore]}</span>
-                  )}
+                  {moodScore && <span className="text-gray-400 text-[10px] -mt-1">{MOOD_LABELS[moodScore]}</span>}
                 </div>
 
                 {/* Energy ring */}
                 <div className="flex flex-col items-center gap-2">
                   <div className="relative">
                     <ScoreRing score={energyScore} ring={RING_ENERGY} size={100} stroke={9} />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl">{energyScore ? ENERGY_EMOJIS[energyScore] : "—"}</span>
-                      {energyScore && (
-                        <span className="text-white font-bold text-sm leading-none">{energyScore}</span>
-                      )}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                      <EnergyHeaderIcon size={20} className="text-cyan-300" />
+                      {energyScore && <span className="text-white font-bold text-sm leading-none">{energyScore}</span>}
                     </div>
                   </div>
                   <span className={`text-xs font-semibold ${RING_ENERGY.text}`}>Energy</span>
-                  {energyScore && (
-                    <span className="text-gray-400 text-[10px] -mt-1">{ENERGY_LABELS[energyScore]}</span>
-                  )}
+                  {energyScore && <span className="text-gray-400 text-[10px] -mt-1">{ENERGY_LABELS[energyScore]}</span>}
                 </div>
 
                 {/* Libido ring */}
                 <div className="flex flex-col items-center gap-2">
                   <div className="relative">
                     <ScoreRing score={libidoScore} ring={RING_LIBIDO} size={100} stroke={9} />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl">{libidoScore ? LIBIDO_EMOJIS[libidoScore] : "—"}</span>
-                      {libidoScore && (
-                        <span className="text-white font-bold text-sm leading-none">{libidoScore}</span>
-                      )}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                      <LibidoHeaderIcon size={20} className="text-pink-300" />
+                      {libidoScore && <span className="text-white font-bold text-sm leading-none">{libidoScore}</span>}
                     </div>
                   </div>
                   <span className={`text-xs font-semibold ${RING_LIBIDO.text}`}>Libido</span>
-                  {libidoScore && (
-                    <span className="text-gray-400 text-[10px] -mt-1">{LIBIDO_LABELS[libidoScore]}</span>
-                  )}
+                  {libidoScore && <span className="text-gray-400 text-[10px] -mt-1">{LIBIDO_LABELS[libidoScore]}</span>}
                 </div>
               </div>
             </div>
@@ -502,70 +457,43 @@ export default function VibeCheckPage() {
             {/* Mood picker */}
             <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">{moodScore ? MOOD_EMOJIS[moodScore] : "😶"}</span>
+                <MoodHeaderIcon size={20} className="text-violet-400 flex-shrink-0" />
                 <div>
                   <p className="text-white text-sm font-semibold">Mood</p>
                   <p className="text-gray-500 text-xs">How are you feeling emotionally?</p>
                 </div>
-                {moodScore && (
-                  <span className="ml-auto text-violet-300 text-sm font-bold">{MOOD_LABELS[moodScore]}</span>
-                )}
+                {moodScore && <span className="ml-auto text-violet-300 text-sm font-bold">{MOOD_LABELS[moodScore]}</span>}
               </div>
-              <ScorePicker
-                value={moodScore}
-                onChange={setMoodScore}
-                emojis={MOOD_EMOJIS}
-                labels={MOOD_LABELS}
-                ring={RING_MOOD}
-              />
+              <ScorePicker value={moodScore} onChange={setMoodScore} icons={MOOD_ICONS} labels={MOOD_LABELS} ring={RING_MOOD} />
             </div>
 
             {/* Energy picker */}
             <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">{energyScore ? ENERGY_EMOJIS[energyScore] : "⚡"}</span>
+                <EnergyHeaderIcon size={20} className="text-cyan-400 flex-shrink-0" />
                 <div>
                   <p className="text-white text-sm font-semibold">Energy</p>
                   <p className="text-gray-500 text-xs">What&apos;s your physical energy level?</p>
                 </div>
-                {energyScore && (
-                  <span className="ml-auto text-cyan-300 text-sm font-bold">{ENERGY_LABELS[energyScore]}</span>
-                )}
+                {energyScore && <span className="ml-auto text-cyan-300 text-sm font-bold">{ENERGY_LABELS[energyScore]}</span>}
               </div>
-              <ScorePicker
-                value={energyScore}
-                onChange={setEnergyScore}
-                emojis={ENERGY_EMOJIS}
-                labels={ENERGY_LABELS}
-                ring={RING_ENERGY}
-              />
+              <ScorePicker value={energyScore} onChange={setEnergyScore} icons={ENERGY_ICONS} labels={ENERGY_LABELS} ring={RING_ENERGY} />
             </div>
 
             {/* Libido picker */}
             <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">{libidoScore ? LIBIDO_EMOJIS[libidoScore] : "💫"}</span>
+                <LibidoHeaderIcon size={20} className="text-pink-400 flex-shrink-0" />
                 <div>
                   <p className="text-white text-sm font-semibold">Libido <span className="text-gray-500 font-normal">(optional)</span></p>
                   <p className="text-gray-500 text-xs">Understand your hormonal drive patterns</p>
                 </div>
-                {libidoScore && (
-                  <span className="ml-auto text-pink-300 text-sm font-bold">{LIBIDO_LABELS[libidoScore]}</span>
-                )}
+                {libidoScore && <span className="ml-auto text-pink-300 text-sm font-bold">{LIBIDO_LABELS[libidoScore]}</span>}
               </div>
               <div className="flex items-center gap-2">
-                <ScorePicker
-                  value={libidoScore}
-                  onChange={setLibidoScore}
-                  emojis={LIBIDO_EMOJIS}
-                  labels={LIBIDO_LABELS}
-                  ring={RING_LIBIDO}
-                />
+                <ScorePicker value={libidoScore} onChange={setLibidoScore} icons={LIBIDO_ICONS} labels={LIBIDO_LABELS} ring={RING_LIBIDO} />
                 {libidoScore && (
-                  <button
-                    onClick={() => setLibidoScore(null)}
-                    className="ml-auto text-gray-600 hover:text-gray-400 text-xs transition-colors whitespace-nowrap"
-                  >
+                  <button onClick={() => setLibidoScore(null)} className="ml-auto text-gray-600 hover:text-gray-400 text-xs transition-colors whitespace-nowrap">
                     Clear
                   </button>
                 )}
@@ -597,7 +525,11 @@ export default function VibeCheckPage() {
                   : "bg-gradient-to-r from-violet-600 to-pink-500 text-white hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-violet-500/25"
               }`}
             >
-              {saved ? "✓ Saved!" : saving ? "Saving…" : isDemo ? "Demo Mode — Sign in to Save" : "Save Vibe Check"}
+              {saved
+                ? <><Check size={14} className="inline mr-1" />Saved!</>
+                : saving ? "Saving…"
+                : isDemo ? "Demo Mode — Sign in to Save"
+                : "Save Vibe Check"}
             </button>
           </div>
 
@@ -607,7 +539,6 @@ export default function VibeCheckPage() {
             {/* 7-day trend chart */}
             <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-4">7-Day Trend</p>
-
               {trend.length > 1 ? (
                 <>
                   <TrendChart data={trend} />
@@ -630,7 +561,7 @@ export default function VibeCheckPage() {
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <span className="text-3xl mb-2">📈</span>
+                  <TrendingUp size={32} className="text-gray-600 mx-auto mb-2" />
                   <p className="text-gray-500 text-sm">Log a few days to see your trend</p>
                 </div>
               )}
@@ -641,9 +572,9 @@ export default function VibeCheckPage() {
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-4">7-Day Averages</p>
               <div className="space-y-3">
                 {[
-                  { key: "mood_score" as const,   label: "Mood",   ring: RING_MOOD,   emojis: MOOD_EMOJIS   },
-                  { key: "energy_score" as const,  label: "Energy", ring: RING_ENERGY, emojis: ENERGY_EMOJIS },
-                  { key: "libido_score" as const,  label: "Libido", ring: RING_LIBIDO, emojis: LIBIDO_EMOJIS },
+                  { key: "mood_score"   as const, label: "Mood",   ring: RING_MOOD   },
+                  { key: "energy_score" as const, label: "Energy", ring: RING_ENERGY },
+                  { key: "libido_score" as const, label: "Libido", ring: RING_LIBIDO },
                 ].map(({ key, label, ring }) => {
                   const a = avg(key);
                   const score = a ? Math.round(parseFloat(a)) as Score : null;
@@ -660,11 +591,8 @@ export default function VibeCheckPage() {
                         {a ? (
                           <div className="flex items-center gap-1 mt-0.5">
                             {[1,2,3,4,5].map(i => (
-                              <div
-                                key={i}
-                                className="h-1 flex-1 rounded-full"
-                                style={{ background: i <= Math.round(parseFloat(a)) ? ring.fill : "#ffffff15" }}
-                              />
+                              <div key={i} className="h-1 flex-1 rounded-full"
+                                style={{ background: i <= Math.round(parseFloat(a)) ? ring.fill : "#ffffff15" }} />
                             ))}
                           </div>
                         ) : (
@@ -685,8 +613,11 @@ export default function VibeCheckPage() {
                 Track daily to reveal your unique pattern and predict your best days.
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {["Menstrual: rest 🌊", "Follicular: rise ⚡", "Ovulatory: peak ✨", "Luteal: reflect 🌙"].map(t => (
-                  <span key={t} className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{t}</span>
+                {PHASE_TAGS.map(({ label, Icon }) => (
+                  <span key={label} className="flex items-center gap-1 text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+                    <Icon size={10} />
+                    {label}
+                  </span>
                 ))}
               </div>
             </div>
@@ -696,26 +627,31 @@ export default function VibeCheckPage() {
               <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5">
                 <p className="text-gray-400 text-xs uppercase tracking-widest mb-3">Recent Entries</p>
                 <div className="space-y-2">
-                  {[...trend].reverse().slice(0, 5).map(entry => (
-                    <div key={entry.log_date} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
-                      <span className="text-gray-500 text-xs">
-                        {new Date(entry.log_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span title="Mood" className="text-xs text-violet-400 font-semibold">
-                          {MOOD_EMOJIS[entry.mood_score]}&nbsp;{entry.mood_score}
+                  {[...trend].reverse().slice(0, 5).map(entry => {
+                    const MIcon = MOOD_ICONS[entry.mood_score];
+                    const EIcon = ENERGY_ICONS[entry.energy_score];
+                    const LIcon = entry.libido_score ? LIBIDO_ICONS[entry.libido_score] : null;
+                    return (
+                      <div key={entry.log_date} className="flex items-center justify-between py-1.5 border-b border-white/[0.04] last:border-0">
+                        <span className="text-gray-500 text-xs">
+                          {new Date(entry.log_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
                         </span>
-                        <span title="Energy" className="text-xs text-cyan-400 font-semibold">
-                          {ENERGY_EMOJIS[entry.energy_score]}&nbsp;{entry.energy_score}
-                        </span>
-                        {entry.libido_score && (
-                          <span title="Libido" className="text-xs text-pink-400 font-semibold">
-                            {LIBIDO_EMOJIS[entry.libido_score]}&nbsp;{entry.libido_score}
+                        <div className="flex items-center gap-2">
+                          <span title="Mood" className="flex items-center gap-0.5 text-xs text-violet-400 font-semibold">
+                            <MIcon size={12} />&nbsp;{entry.mood_score}
                           </span>
-                        )}
+                          <span title="Energy" className="flex items-center gap-0.5 text-xs text-cyan-400 font-semibold">
+                            <EIcon size={12} />&nbsp;{entry.energy_score}
+                          </span>
+                          {LIcon && entry.libido_score && (
+                            <span title="Libido" className="flex items-center gap-0.5 text-xs text-pink-400 font-semibold">
+                              <LIcon size={12} />&nbsp;{entry.libido_score}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

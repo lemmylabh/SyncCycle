@@ -6,6 +6,10 @@ import { MoodEnergy } from "@/components/dashboard/MoodEnergy";
 import { CycleCalendar } from "@/components/dashboard/CycleCalendar";
 import { QuickInsights } from "@/components/dashboard/QuickInsights";
 import { AnimatedCard } from "@/components/dashboard/AnimatedCard";
+import { SleepCard } from "@/components/dashboard/SleepCard";
+import { FitnessCard } from "@/components/dashboard/FitnessCard";
+import { NutritionCard } from "@/components/dashboard/NutritionCard";
+import { JournalCard } from "@/components/dashboard/JournalCard";
 
 export default function DashboardPage() {
   return (
@@ -40,6 +44,22 @@ export default function DashboardPage() {
         </AnimatedCard>
         <AnimatedCard delay={0.3}>
           <QuickInsights />
+        </AnimatedCard>
+      </div>
+
+      {/* Row 4: Tracker summaries — Sleep, Fitness, Nutrition, Journal */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <AnimatedCard delay={0.35}>
+          <SleepCard />
+        </AnimatedCard>
+        <AnimatedCard delay={0.4}>
+          <FitnessCard />
+        </AnimatedCard>
+        <AnimatedCard delay={0.45}>
+          <NutritionCard />
+        </AnimatedCard>
+        <AnimatedCard delay={0.5}>
+          <JournalCard />
         </AnimatedCard>
       </div>
     </div>

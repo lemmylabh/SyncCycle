@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { Waves, Check } from "lucide-react";
 
 // ── Demo data ──────────────────────────────────────────────────────────────
 
@@ -734,7 +735,7 @@ export default function PeriodTrackerPage() {
               isDemo || saving || flowLevel === null ? "opacity-40 cursor-not-allowed" : "",
             ].join(" ")}
           >
-            {saved ? "✓  Saved" : saving ? "Saving…" : isDemo ? "Demo Mode — Sign in to Save" : "Save Log"}
+            {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo Mode — Sign in to Save" : "Save Log"}
           </button>
 
           {!isDemo && flowLevel === null && (
@@ -752,7 +753,7 @@ export default function PeriodTrackerPage() {
           {history.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-center py-10 px-4">
               <div>
-                <p className="text-3xl mb-3">🌊</p>
+                <Waves size={36} className="text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">No history yet.</p>
                 <p className="text-gray-600 text-xs mt-1">Log your first cycle to see patterns here.</p>
               </div>
