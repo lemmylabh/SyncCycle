@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthForm } from "@/components/AuthForm";
+import { DemoLoginButton } from "@/components/DemoLoginButton";
 
 const features = [
   {
@@ -22,7 +23,7 @@ const features = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-2 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600">
+    <div className="h-screen overflow-hidden flex flex-col lg:grid lg:grid-cols-2 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600">
 
       {/* ── LEFT HERO PANEL (desktop only) ── */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600 text-white relative overflow-hidden">
@@ -73,7 +74,7 @@ export default function Home() {
       </div>
 
       {/* ── MOBILE HERO BANNER (mobile only) ── */}
-      <div className="lg:hidden flex flex-col items-center justify-center pt-14 pb-16 px-8 text-white text-center relative overflow-hidden">
+      <div className="lg:hidden flex flex-col items-center justify-center py-8 px-8 text-white text-center relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white opacity-10" />
         <div className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full bg-white opacity-10" />
         <span className="text-3xl font-bold tracking-tight relative z-10">SyncCycle</span>
@@ -87,34 +88,29 @@ export default function Home() {
       {/* Desktop: full-height right panel */}
       <div className="
         bg-white rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)]
-        flex-1 px-8 pt-8 pb-12 sm:px-10
+        flex-1 px-8 pt-6 pb-8 sm:px-10
         lg:rounded-none lg:shadow-none
         lg:flex lg:flex-col lg:justify-center lg:px-16
       ">
+        {/* Demo button — top */}
+        <DemoLoginButton />
+
+        {/* or divider */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-xs text-gray-400">or</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
         <AuthForm />
 
         {/* Terms note */}
-        <p className="mt-8 text-center text-xs text-gray-400">
+        <p className="mt-5 text-center text-xs text-gray-400">
           By creating an account you agree to our{" "}
           <span className="underline cursor-pointer hover:text-gray-600">Terms of Service</span>{" "}
           and{" "}
           <span className="underline cursor-pointer hover:text-gray-600">Privacy Policy</span>.
         </p>
-
-        {/* Demo button */}
-        <div className="mt-6 text-center">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">dev only</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-          <a
-            href="/dashboard?demo=true"
-            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-gray-300 px-5 py-2.5 text-sm text-gray-500 hover:border-rose-400 hover:text-rose-500 transition-colors"
-          >
-            <span>👁</span> View Demo Dashboard
-          </a>
-        </div>
       </div>
 
     </div>
