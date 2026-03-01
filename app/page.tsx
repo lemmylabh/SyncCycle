@@ -100,6 +100,21 @@ export default function Home() {
           and{" "}
           <span className="underline cursor-pointer hover:text-gray-600">Privacy Policy</span>.
         </p>
+
+        {/* Demo button */}
+        <div className="mt-6 text-center">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">dev only</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+          <a
+            href="/dashboard?demo=true"
+            className="inline-flex items-center gap-2 rounded-xl border border-dashed border-gray-300 px-5 py-2.5 text-sm text-gray-500 hover:border-rose-400 hover:text-rose-500 transition-colors"
+          >
+            <span>👁</span> View Demo Dashboard
+          </a>
+        </div>
       </div>
 
     </div>

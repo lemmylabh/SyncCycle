@@ -1,50 +1,47 @@
-"use client";
+import { CyclePhaseCard } from "@/components/dashboard/CyclePhaseCard";
+import { PhaseDonut } from "@/components/dashboard/PhaseDonut";
+import { TodaySnapshot } from "@/components/dashboard/TodaySnapshot";
+import { SymptomHeatmap } from "@/components/dashboard/SymptomHeatmap";
+import { MoodEnergy } from "@/components/dashboard/MoodEnergy";
+import { CycleCalendar } from "@/components/dashboard/CycleCalendar";
+import { QuickInsights } from "@/components/dashboard/QuickInsights";
+import { AnimatedCard } from "@/components/dashboard/AnimatedCard";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-
-export default function Dashboard() {
-  const router = useRouter();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.replace("/");
-      } else {
-        setUserEmail(session.user.email ?? null);
-      }
-    });
-  }, [router]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-
-  if (!userEmail) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
+export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-4">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Welcome to SyncCycle 🌸
-        </h1>
-        <p className="text-gray-500 text-sm">Signed in as {userEmail}</p>
+    <div className="p-6 space-y-4">
+      {/* Row 1: 3 equal cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <AnimatedCard delay={0}>
+          <CyclePhaseCard />
+        </AnimatedCard>
+        <AnimatedCard delay={0.05}>
+          <PhaseDonut />
+        </AnimatedCard>
+        <AnimatedCard delay={0.1}>
+          <TodaySnapshot />
+        </AnimatedCard>
       </div>
-      <button
-        onClick={handleSignOut}
-        className="rounded-xl border-2 border-rose-200 px-6 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors"
-      >
-        Sign Out
-      </button>
-    </main>
+
+      {/* Row 2: 2/3 + 1/3 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <AnimatedCard delay={0.15} className="lg:col-span-2">
+          <SymptomHeatmap />
+        </AnimatedCard>
+        <AnimatedCard delay={0.2}>
+          <MoodEnergy />
+        </AnimatedCard>
+      </div>
+
+      {/* Row 3: 2/3 + 1/3 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <AnimatedCard delay={0.25} className="lg:col-span-2">
+          <CycleCalendar />
+        </AnimatedCard>
+        <AnimatedCard delay={0.3}>
+          <QuickInsights />
+        </AnimatedCard>
+      </div>
+    </div>
   );
 }

@@ -3,7 +3,17 @@
     "allow": [
       "Bash(curl -s http://localhost:3000/api/test-connection)",
       "WebFetch(domain:cyclesync-five.vercel.app)",
-      "WebFetch(domain:www.trycyclesync.com)"
+      "WebFetch(domain:www.trycyclesync.com)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill /PID 76640 /F)",
+      "Bash(cmd /c \"taskkill /PID 76640 /F\")",
+      "Bash(cmd /c \"taskkill /PID 76640 /F 2>&1\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(supabase --version)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc --noEmit --strict)",
+      "Bash(npm run lint)"
     ]
   }
 }
