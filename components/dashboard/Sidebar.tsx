@@ -25,31 +25,27 @@ const navSections = [
     items: [
       { icon: "▣", label: "Dashboard", href: "/dashboard" },
       { icon: "◈", label: "Insights", href: "/dashboard/insights" },
+      { icon: "✦", label: "Ask Luna", href: "/dashboard/luna" },
     ],
   },
   {
-    label: "TRACKING",
+    label: "CYCLE",
     items: [
-      { icon: "●", label: "Period Tracker", href: "/dashboard/period" },
+      { icon: "●", label: "Period", href: "/dashboard/period" },
       { icon: "♡", label: "Symptoms", href: "/dashboard/symptoms" },
       { icon: "✦", label: "Vibe Check", href: "/dashboard/vibe-check" },
-      { icon: "✦", label: "Daily Journal", href: "/dashboard/journal" },
+      { icon: "✦", label: "Journal", href: "/dashboard/journal" },
     ],
   },
   {
-    label: "WELLNESS",
+    label: "LIFESTYLE",
     items: [
       { icon: "⊕", label: "Nutrition", href: "/dashboard/nutrition" },
       { icon: "◎", label: "Fitness", href: "/dashboard/fitness" },
       { icon: "☽", label: "Sleep", href: "/dashboard/sleep" },
     ],
   },
-  {
-    label: "",
-    items: [
-      { icon: "✦", label: "Ask Experts", href: "/dashboard/experts" },
-    ],
-  },
+  
 ];
 
 const bottomItems = [
