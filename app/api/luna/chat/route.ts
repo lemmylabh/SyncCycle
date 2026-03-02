@@ -53,42 +53,123 @@ async function persistMessages(
     .eq("id", sessionId);
 }
 
-// Demo streaming simulation
-function demoStream(sessionId: string): Response {
-  const demoText =
-    "Hi! I'm Luna, your wellness coach. In demo mode I can show you how the chat interface works, but I can't access your personal data or provide real AI responses. Sign in to unlock personalized, cycle-aware coaching tailored to your unique patterns!";
+const DEMO_SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
+
+The user is exploring in demo mode, so you don't have access to their personal health data. Give helpful, encouraging general advice about cycle awareness, hormonal health, and lifestyle optimisation.
+
+Rules:
+- You are NOT a doctor — never diagnose or prescribe
+- Keep responses warm, empowering, and concise (under 200 words)
+- If asked personal questions, gently note that signing in unlocks personalised cycle-aware coaching`;
+
+interface PersistOpts {
+  supabase: ReturnType<typeof createServerSupabaseClient>;
+  userId: string;
+  lastUserMessage: string;
+  sessionId: string;
+}
+
+async function streamOpenRouter(
+  apiKey: string,
+  messages: Array<{ role: "user" | "assistant"; content: string }>,
+  systemPrompt: string,
+  sessionId: string,
+  persist: PersistOpts | null
+): Promise<Response> {
+  const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://synccycle.app",
+      "X-Title": "SyncCycle - Ask Luna",
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4o-mini",
+      stream: true,
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      max_tokens: 1024,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!openRouterRes.ok) {
+    const errText = await openRouterRes.text();
+    console.error(`OpenRouter error ${openRouterRes.status}:`, errText);
+    return NextResponse.json(
+      { error: "AI service error", detail: errText, status: openRouterRes.status },
+      { status: 502 }
+    );
+  }
 
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
 
   (async () => {
-    await new Promise((r) => setTimeout(r, 400));
-    const words = demoText.split(" ");
-    for (const word of words) {
-      await writer.write(encoder.encode(word + " "));
-      await new Promise((r) => setTimeout(r, 35));
+    let assistantContent = "";
+    try {
+      const reader = openRouterRes.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            const delta: string = parsed.choices?.[0]?.delta?.content ?? "";
+            if (delta) {
+              assistantContent += delta;
+              await writer.write(encoder.encode(delta));
+            }
+          } catch { /* skip malformed SSE */ }
+        }
+      }
+    } finally {
+      await writer.close();
+      if (persist && assistantContent && persist.lastUserMessage) {
+        await persistMessages(
+          persist.supabase,
+          persist.userId,
+          persist.sessionId,
+          persist.lastUserMessage,
+          assistantContent
+        );
+      }
     }
-    await writer.close();
   })();
 
   return new Response(readable, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-cache",
+      "Transfer-Encoding": "chunked",
       "X-Session-Id": sessionId,
     },
   });
 }
 
 export async function POST(req: NextRequest) {
+  console.log("[Luna] POST called");
   try {
     const body: ChatRequestBody = await req.json();
     const { messages, sessionId: incomingSessionId, accessToken, userId, isDemo } = body;
 
-    // Demo mode: return fake response
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    console.log("[Luna] key present:", !!openRouterKey, "isDemo:", isDemo);
+    if (!openRouterKey) {
+      return NextResponse.json({ error: "OpenRouter API key not configured" }, { status: 500 });
+    }
+
+    // Demo mode: real AI, no user context, no session persistence
     if (isDemo) {
-      return demoStream(incomingSessionId ?? `demo-${Date.now()}`);
+      const demoSessionId = incomingSessionId ?? `demo-${Date.now()}`;
+      return streamOpenRouter(openRouterKey, messages, DEMO_SYSTEM_PROMPT, demoSessionId, null);
     }
 
     if (!accessToken || !userId) {
@@ -103,91 +184,21 @@ export async function POST(req: NextRequest) {
     // Pre-create session so we can return the ID in headers
     const sessionId = await ensureSession(supabase, userId, incomingSessionId, lastUserMessage);
 
-    // Build context + system prompt in parallel with session creation
+    // Build context + system prompt
     const context = await buildUserContext(userId, supabase);
     const systemPrompt = buildSystemPrompt(context);
 
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return NextResponse.json({ error: "OpenRouter API key not configured" }, { status: 500 });
-    }
-
-    const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openRouterKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://synccycle.app",
-        "X-Title": "SyncCycle — Ask Luna",
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-3-haiku",
-        stream: true,
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
-        max_tokens: 1024,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!openRouterRes.ok) {
-      const err = await openRouterRes.text();
-      console.error("OpenRouter error:", err);
-      return NextResponse.json({ error: "AI service error" }, { status: 502 });
-    }
-
-    // Stream response back to client, persist after completion
-    const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
-    const writer = writable.getWriter();
-    const encoder = new TextEncoder();
-
-    (async () => {
-      const reader = openRouterRes.body!.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
-              const delta: string = parsed.choices?.[0]?.delta?.content ?? "";
-              if (delta) {
-                assistantContent += delta;
-                await writer.write(encoder.encode(delta));
-              }
-            } catch {
-              // skip malformed SSE lines
-            }
-          }
-        }
-      } finally {
-        await writer.close();
-        // Persist both messages after stream completes
-        if (assistantContent && lastUserMessage) {
-          await persistMessages(supabase, userId, sessionId, lastUserMessage, assistantContent);
-        }
-      }
-    })();
-
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-        "Transfer-Encoding": "chunked",
-        "X-Session-Id": sessionId,
-      },
+    return streamOpenRouter(openRouterKey, messages, systemPrompt, sessionId, {
+      supabase,
+      userId,
+      lastUserMessage,
+      sessionId,
     });
   } catch (err) {
     console.error("Luna chat error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      error: "Internal server error",
+      detail: err instanceof Error ? err.message : String(err),
+    }, { status: 500 });
   }
 }

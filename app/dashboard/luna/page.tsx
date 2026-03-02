@@ -46,6 +46,8 @@ async function streamLunaResponse(
     });
 
     if (!res.ok) {
+      const errBody = await res.text().catch(() => "(no body)");
+      console.error("[Luna] API error", res.status, errBody);
       onError();
       return;
     }
