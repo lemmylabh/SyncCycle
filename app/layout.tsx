@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SyncCycle — Know Your Cycle, Own Your Life",
+  title: "Syncycle — Know Your Cycle, Own Your Life",
   description:
     "Personalized, data-driven menstrual cycle tracking. Understand your hormonal phases and optimize your energy every day.",
 };

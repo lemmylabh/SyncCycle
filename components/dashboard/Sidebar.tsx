@@ -57,10 +57,8 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
     <div className="flex flex-col h-full bg-[#161620]">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-6 py-3 border-b border-white/5">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-          S
-        </div>
-        <span className="text-white font-bold text-lg tracking-tight">Syncycle</span>
+        <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-7 h-7 object-contain flex-shrink-0" />
+        <span className="text-white font-light tracking-[0.25em] text-base">Syncycle<span className="text-white/50">®</span></span>
       </div>
 
       {/* Nav sections */}

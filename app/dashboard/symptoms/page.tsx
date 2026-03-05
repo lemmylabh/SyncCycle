@@ -309,7 +309,6 @@ export default function SymptomsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Tracker 2 of 4</p>
           <h1 className="text-white text-2xl font-bold tracking-tight">Symptoms</h1>
         </div>
         <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-4 py-1.5 text-purple-400 text-sm font-medium">

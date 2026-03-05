@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+
+const PAGE_NAMES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/dashboard/insights": "Insights",
+  "/dashboard/period": "Period",
+  "/dashboard/symptoms": "Symptoms",
+  "/dashboard/vibe-check": "Vibe Check",
+  "/dashboard/journal": "Journal",
+  "/dashboard/nutrition": "Nutrition",
+  "/dashboard/fitness": "Fitness",
+  "/dashboard/sleep": "Sleep",
+  "/dashboard/settings": "Settings",
+  "/dashboard/fiona": "Ask Fiona",
+};
 import { supabase } from "@/lib/supabase";
 
 interface NavbarProps {
@@ -11,6 +25,7 @@ interface NavbarProps {
 
 export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +57,7 @@ export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
             <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
           </svg>
         </button>
-        <h1 className="text-white font-semibold text-base hidden sm:block">Dashboard</h1>
+        <h1 className="text-white font-semibold text-base hidden sm:block">{PAGE_NAMES[pathname] ?? "Dashboard"}</h1>
       </div>
 
       {/* Center: search */}

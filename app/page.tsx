@@ -23,18 +23,24 @@ const features = [
 
 export default function Home() {
   return (
-    <div className="h-screen overflow-hidden flex flex-col lg:grid lg:grid-cols-2 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600">
+    <div className="h-screen overflow-hidden flex flex-col lg:grid lg:grid-cols-2 bg-black">
 
       {/* ── LEFT HERO PANEL (desktop only) ── */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600 text-white relative overflow-hidden">
-        {/* Decorative background circles */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white opacity-10" />
-        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-white opacity-10" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-white opacity-5" />
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-black text-white relative overflow-hidden">
+        {/* Video background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600" />
+        <video
+          autoPlay muted loop playsInline
+          className="absolute inset-0 w-full h-full object-cover z-[1]"
+        >
+          <source src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40 z-[2]" />
 
         {/* Logo */}
-        <div className="relative z-10">
-          <span className="text-2xl font-bold tracking-tight">SyncCycle</span>
+        <div className="relative z-10 flex items-center gap-3">
+          <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
+          <span className="text-white font-light tracking-[0.25em] text-lg">Syncycle<span className="text-white/50">®</span></span>
         </div>
 
         {/* Hero copy */}
@@ -74,13 +80,16 @@ export default function Home() {
       </div>
 
       {/* ── MOBILE HERO BANNER (mobile only) ── */}
-      <div className="lg:hidden flex flex-col items-center justify-center py-8 px-8 text-white text-center relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white opacity-10" />
-        <div className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full bg-white opacity-10" />
-        <span className="text-3xl font-bold tracking-tight relative z-10">SyncCycle</span>
-        <p className="text-rose-100 text-sm mt-2 relative z-10">
-          Know your cycle. Own your life.
-        </p>
+      <div className="lg:hidden relative h-48 flex items-center justify-center overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600" />
+        <video
+          autoPlay muted loop playsInline
+          className="absolute inset-0 w-full h-full object-cover z-[1]"
+        >
+          <source src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40 z-[2]" />
+        <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-16 h-16 object-contain relative z-10" />
       </div>
 
       {/* ── FORM PANEL ── */}
