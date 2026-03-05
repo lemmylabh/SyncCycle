@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Phase, computePhase, PHASE_CONFIG } from "@/lib/cycleUtils";
 
-interface LunaDayCardProps {
+interface FionaDayCardProps {
   userId: string | null;
   cycleDay: number | null;
   cycleLength: number;
@@ -84,14 +84,14 @@ const PHASE_ICONS: Record<Phase, string> = {
   luteal: "🌖",
 };
 
-export function LunaDayCard({
+export function FionaDayCard({
   userId,
   cycleDay,
   cycleLength,
   periodLength,
   startDate,
   isDemo,
-}: LunaDayCardProps) {
+}: FionaDayCardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("today");
   const [data, setData] = useState<Record<TabKey, DaySummary | null>>({
     yesterday: null,

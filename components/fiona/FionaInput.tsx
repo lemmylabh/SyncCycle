@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Loader2, ChevronDown } from "lucide-react";
 import { Phase } from "@/lib/cycleUtils";
 
-interface LunaInputProps {
+interface FionaInputProps {
   onSend: (text: string) => void;
   isStreaming: boolean;
   currentPhase: Phase | null;
@@ -20,7 +20,7 @@ const TRACKER_CONTEXTS = [
   { label: "Symptoms", prefix: "[About my symptoms] " },
 ];
 
-export function LunaInput({ onSend, isStreaming, currentPhase, disabled }: LunaInputProps) {
+export function FionaInput({ onSend, isStreaming, currentPhase, disabled }: FionaInputProps) {
   const [text, setText] = useState("");
   const [contextIdx, setContextIdx] = useState<number | null>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -74,7 +74,7 @@ export function LunaInput({ onSend, isStreaming, currentPhase, disabled }: LunaI
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask Luna anything about your cycle…"
+          placeholder="Ask Fiona anything about your cycle…"
           disabled={isStreaming || disabled}
           rows={1}
           className="w-full bg-transparent text-white text-sm placeholder-gray-600 px-4 pt-4 pb-2 resize-none focus:outline-none leading-relaxed disabled:opacity-50 min-h-[44px]"
@@ -140,7 +140,7 @@ export function LunaInput({ onSend, isStreaming, currentPhase, disabled }: LunaI
       </div>
 
       <p className="text-center text-gray-700 text-[10px] mt-2">
-        Luna is a wellness guide, not a medical professional.
+        Fiona is a wellness guide, not a medical professional.
       </p>
     </div>
   );

@@ -25,7 +25,7 @@ const navSections = [
     items: [
       { icon: "▣", label: "Dashboard", href: "/dashboard" },
       { icon: "◈", label: "Insights", href: "/dashboard/insights" },
-      { icon: "✦", label: "Ask Luna", href: "/dashboard/luna" },
+      { icon: "✦", label: "Ask Fiona", href: "/dashboard/fiona" },
     ],
   },
   {

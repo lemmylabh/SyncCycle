@@ -3,7 +3,7 @@ import { Phase, computePhase, PHASE_CONFIG } from "@/lib/cycleUtils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export interface LunaUserContext {
+export interface FionaUserContext {
   profile: {
     displayName: string;
     averageCycleLength: number;
@@ -42,7 +42,7 @@ export interface LunaUserContext {
   recentNotes: Array<{ date: string; excerpt: string }>;
 }
 
-export interface LunaSession {
+export interface FionaSession {
   id: string;
   title: string;
   created_at: string;
@@ -86,7 +86,7 @@ function addDays(d: Date, n: number): Date {
 export async function buildUserContext(
   userId: string,
   supabase: SupabaseClient
-): Promise<LunaUserContext> {
+): Promise<FionaUserContext> {
   const today = localDateStr(new Date());
   const sevenDaysAgo = localDateStr(addDays(new Date(), -7));
   const threeDaysAgo = localDateStr(addDays(new Date(), -3));
@@ -168,7 +168,7 @@ export async function buildUserContext(
 
   // Profile
   const p = profileRes.data;
-  const profile: LunaUserContext["profile"] = {
+  const profile: FionaUserContext["profile"] = {
     displayName: p?.display_name ?? "there",
     averageCycleLength: p?.average_cycle_length ?? 28,
     averagePeriodLength: p?.average_period_length ?? 5,
@@ -177,7 +177,7 @@ export async function buildUserContext(
   };
 
   // Cycle
-  let cycle: LunaUserContext["cycle"] = null;
+  let cycle: FionaUserContext["cycle"] = null;
   const c = cycleRes.data;
   if (c?.start_date) {
     const start = new Date(c.start_date + "T00:00:00");
@@ -256,7 +256,7 @@ export async function buildUserContext(
 
 // ── buildSystemPrompt ─────────────────────────────────────────────────────────
 
-export function buildSystemPrompt(ctx: LunaUserContext): string {
+export function buildSystemPrompt(ctx: FionaUserContext): string {
   const hour = new Date().getHours();
   const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   const phase = ctx.cycle?.phase ?? null;
@@ -322,7 +322,7 @@ export function buildSystemPrompt(ctx: LunaUserContext): string {
       ? ctx.recentNotes.map((n) => `- ${n.date}: "${n.excerpt}"`).join("\n")
       : "No recent journal entries.";
 
-  return `You are Luna, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
+  return `You are Fiona, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
 
 ## Your Identity & Rules
 - You are NOT a doctor, therapist, nurse, or any kind of medical professional

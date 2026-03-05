@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildUserContext, buildSystemPrompt, createServerSupabaseClient } from "@/lib/lunaUtils";
+import { buildUserContext, buildSystemPrompt, createServerSupabaseClient } from "@/lib/fionaUtils";
 
 export const runtime = "nodejs";
 
@@ -21,7 +21,7 @@ async function ensureSession(
 
   const title = firstUserMessage.slice(0, 60).trim() || "New Chat";
   const { data, error } = await supabase
-    .from("luna_sessions")
+    .from("fiona_sessions")
     .insert({ user_id: userId, title })
     .select("id")
     .single();
@@ -42,18 +42,18 @@ async function persistMessages(
 ) {
   if (sessionId.startsWith("temp-")) return;
 
-  await supabase.from("luna_messages").insert([
+  await supabase.from("fiona_messages").insert([
     { session_id: sessionId, user_id: userId, role: "user", content: userMessage },
     { session_id: sessionId, user_id: userId, role: "assistant", content: assistantContent },
   ]);
 
   await supabase
-    .from("luna_sessions")
+    .from("fiona_sessions")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", sessionId);
 }
 
-const DEMO_SYSTEM_PROMPT = `You are Luna, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
+const DEMO_SYSTEM_PROMPT = `You are Fiona, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
 
 The user is exploring in demo mode, so you don't have access to their personal health data. Give helpful, encouraging general advice about cycle awareness, hormonal health, and lifestyle optimisation.
 
@@ -82,7 +82,7 @@ async function streamOpenRouter(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": "https://synccycle.app",
-      "X-Title": "SyncCycle - Ask Luna",
+      "X-Title": "SyncCycle - Ask Fiona",
     },
     body: JSON.stringify({
       model: "openai/gpt-4o-mini",
@@ -155,13 +155,13 @@ async function streamOpenRouter(
 }
 
 export async function POST(req: NextRequest) {
-  console.log("[Luna] POST called");
+  console.log("[Fiona] POST called");
   try {
     const body: ChatRequestBody = await req.json();
     const { messages, sessionId: incomingSessionId, accessToken, userId, isDemo } = body;
 
     const openRouterKey = process.env.OPENROUTER_API_KEY;
-    console.log("[Luna] key present:", !!openRouterKey, "isDemo:", isDemo);
+    console.log("[Fiona] key present:", !!openRouterKey, "isDemo:", isDemo);
     if (!openRouterKey) {
       return NextResponse.json({ error: "OpenRouter API key not configured" }, { status: 500 });
     }
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
       sessionId,
     });
   } catch (err) {
-    console.error("Luna chat error:", err);
+    console.error("Fiona chat error:", err);
     return NextResponse.json({
       error: "Internal server error",
       detail: err instanceof Error ? err.message : String(err),

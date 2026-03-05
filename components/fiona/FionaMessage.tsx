@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-interface LunaMessageProps {
+interface FionaMessageProps {
   role: "user" | "assistant";
   content: string;
   isStreaming?: boolean;
@@ -64,7 +64,7 @@ function parseInline(text: string): React.ReactNode {
   return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
 }
 
-export function LunaMessage({ role, content, isStreaming }: LunaMessageProps) {
+export function FionaMessage({ role, content, isStreaming }: FionaMessageProps) {
   if (role === "user") {
     return (
       <motion.div
@@ -87,7 +87,7 @@ export function LunaMessage({ role, content, isStreaming }: LunaMessageProps) {
       transition={{ duration: 0.2 }}
       className="flex items-start gap-3 px-4 py-1"
     >
-      {/* Luna avatar */}
+      {/* Fiona avatar */}
       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-purple-500/20">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-white">
           <path

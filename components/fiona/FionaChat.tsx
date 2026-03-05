@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LunaMessage } from "./LunaMessage";
-import { LunaInput } from "./LunaInput";
-import { ChatMessage } from "@/lib/lunaUtils";
+import { FionaMessage } from "./FionaMessage";
+import { FionaInput } from "./FionaInput";
+import { ChatMessage } from "@/lib/fionaUtils";
 import { Phase, PHASE_CONFIG } from "@/lib/cycleUtils";
 
-interface LunaChatProps {
+interface FionaChatProps {
   messages: ChatMessage[];
   isStreaming: boolean;
   streamingContent: string;
@@ -80,7 +80,7 @@ function WelcomeCard({
             </div>
           </div>
           <p className="text-gray-400 text-sm leading-relaxed">
-            I&apos;m Luna, your cycle-aware wellness coach. I have access to your health data and I&apos;m here to help you understand your patterns and feel your best.
+            I&apos;m Fiona, your cycle-aware wellness coach. I have access to your health data and I&apos;m here to help you understand your patterns and feel your best.
           </p>
         </div>
       </div>
@@ -101,7 +101,7 @@ function WelcomeCard({
   );
 }
 
-export function LunaChat({
+export function FionaChat({
   messages,
   isStreaming,
   streamingContent,
@@ -109,7 +109,7 @@ export function LunaChat({
   userName,
   currentPhase,
   disabled,
-}: LunaChatProps) {
+}: FionaChatProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -135,10 +135,10 @@ export function LunaChat({
           ) : (
             <>
               {messages.map((msg) => (
-                <LunaMessage key={msg.id} role={msg.role} content={msg.content} />
+                <FionaMessage key={msg.id} role={msg.role} content={msg.content} />
               ))}
               {isStreaming && streamingContent && (
-                <LunaMessage
+                <FionaMessage
                   key="streaming"
                   role="assistant"
                   content={streamingContent}
@@ -177,7 +177,7 @@ export function LunaChat({
       </div>
 
       {/* Input */}
-      <LunaInput
+      <FionaInput
         onSend={onSend}
         isStreaming={isStreaming}
         currentPhase={currentPhase}

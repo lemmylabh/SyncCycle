@@ -5,16 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Phase, computePhase, cycleDay as calcCycleDay } from "@/lib/cycleUtils";
-import { LunaSession, ChatMessage } from "@/lib/lunaUtils";
-import { LunaChat } from "@/components/luna/LunaChat";
-import { LunaDayCard } from "@/components/luna/LunaDayCard";
-import { LunaChatHistory } from "@/components/luna/LunaChatHistory";
-import { LunaMobilePanel } from "@/components/luna/LunaMobilePanel";
+import { FionaSession, ChatMessage } from "@/lib/fionaUtils";
+import { FionaChat } from "@/components/fiona/FionaChat";
+import { FionaDayCard } from "@/components/fiona/FionaDayCard";
+import { FionaChatHistory } from "@/components/fiona/FionaChatHistory";
+import { FionaMobilePanel } from "@/components/fiona/FionaMobilePanel";
 import { History, CalendarDays, Plus } from "lucide-react";
 
 // ── Demo data ─────────────────────────────────────────────────────────────────
 
-const DEMO_SESSIONS: LunaSession[] = [
+const DEMO_SESSIONS: FionaSession[] = [
   { id: "d1", title: "How to manage cramps naturally", created_at: new Date(Date.now() - 7200000).toISOString(), updated_at: new Date(Date.now() - 7200000).toISOString() },
   { id: "d2", title: "Energy tips for this week", created_at: new Date(Date.now() - 86400000).toISOString(), updated_at: new Date(Date.now() - 86400000).toISOString() },
   { id: "d3", title: "Nutrition in the luteal phase", created_at: new Date(Date.now() - 172800000).toISOString(), updated_at: new Date(Date.now() - 172800000).toISOString() },
@@ -22,7 +22,7 @@ const DEMO_SESSIONS: LunaSession[] = [
 
 // ── Streaming helper ──────────────────────────────────────────────────────────
 
-async function streamLunaResponse(
+async function streamFionaResponse(
   messages: ChatMessage[],
   sessionId: string | null,
   accessToken: string,
@@ -33,7 +33,7 @@ async function streamLunaResponse(
   onError: () => void
 ) {
   try {
-    const res = await fetch("/api/luna/chat", {
+    const res = await fetch("/api/fiona/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -47,7 +47,7 @@ async function streamLunaResponse(
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => "(no body)");
-      console.error("[Luna] API error", res.status, errBody);
+      console.error("[Fiona] API error", res.status, errBody);
       onError();
       return;
     }
@@ -75,7 +75,7 @@ async function streamLunaResponse(
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function LunaPage() {
+export default function FionaPage() {
   const searchParams = useSearchParams();
   const isDemo =
     searchParams.get("demo") === "true" ||
@@ -94,7 +94,7 @@ export default function LunaPage() {
   const [startDate, setStartDate] = useState<string | null>(null);
 
   // Chat state
-  const [sessions, setSessions] = useState<LunaSession[]>([]);
+  const [sessions, setSessions] = useState<FionaSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -176,12 +176,12 @@ export default function LunaPage() {
     if (isDemo || !userId) return;
     setSessionsLoading(true);
     const { data } = await supabase
-      .from("luna_sessions")
+      .from("fiona_sessions")
       .select("id, title, created_at, updated_at")
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
       .limit(20);
-    setSessions((data ?? []) as LunaSession[]);
+    setSessions((data ?? []) as FionaSession[]);
     setSessionsLoading(false);
   }, [userId, isDemo]);
 
@@ -198,7 +198,7 @@ export default function LunaPage() {
       }
       if (!userId) return;
       const { data } = await supabase
-        .from("luna_messages")
+        .from("fiona_messages")
         .select("id, role, content, created_at")
         .eq("session_id", id)
         .order("created_at", { ascending: true });
@@ -246,7 +246,7 @@ export default function LunaPage() {
         setAccessToken(token);
       }
 
-      await streamLunaResponse(
+      await streamFionaResponse(
         updatedMessages,
         activeSessionId,
         token,
@@ -309,7 +309,7 @@ export default function LunaPage() {
     <>
       {/* Day Card — top 50% */}
       <div className="flex-1 min-h-0 border-b border-white/5 overflow-hidden">
-        <LunaDayCard
+        <FionaDayCard
           userId={userId}
           cycleDay={currentCycleDay}
           cycleLength={cycleLength}
@@ -320,7 +320,7 @@ export default function LunaPage() {
       </div>
       {/* Chat History — bottom 50% */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <LunaChatHistory
+        <FionaChatHistory
           sessions={sessions}
           activeSessionId={activeSessionId}
           onSelectSession={(id) => {
@@ -354,7 +354,7 @@ export default function LunaPage() {
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-white font-bold text-base leading-tight">Ask Luna</h1>
+                  <h1 className="text-white font-bold text-base leading-tight">Ask Fiona</h1>
                   <p className="text-gray-500 text-[11px]">Your AI wellness coach</p>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function LunaPage() {
             </motion.div>
 
             {/* Chat body */}
-            <LunaChat
+            <FionaChat
               messages={messages}
               isStreaming={isStreaming}
               streamingContent={streamingContent}
@@ -413,7 +413,7 @@ export default function LunaPage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-white font-bold text-sm">Ask Luna</h1>
+                <h1 className="text-white font-bold text-sm">Ask Fiona</h1>
                 {isDemo && <span className="text-[10px] text-purple-400">Demo mode</span>}
               </div>
             </div>
@@ -449,7 +449,7 @@ export default function LunaPage() {
           </div>
 
           {/* Chat */}
-          <LunaChat
+          <FionaChat
             messages={messages}
             isStreaming={isStreaming}
             streamingContent={streamingContent}
@@ -460,12 +460,12 @@ export default function LunaPage() {
           />
 
           {/* Mobile overlay panels */}
-          <LunaMobilePanel
+          <FionaMobilePanel
             panelType="history"
             isOpen={mobilePanel === "history"}
             onClose={() => setMobilePanel("none")}
           >
-            <LunaChatHistory
+            <FionaChatHistory
               sessions={sessions}
               activeSessionId={activeSessionId}
               onSelectSession={(id) => {
@@ -475,14 +475,14 @@ export default function LunaPage() {
               onNewSession={handleNewSession}
               isLoading={sessionsLoading}
             />
-          </LunaMobilePanel>
+          </FionaMobilePanel>
 
-          <LunaMobilePanel
+          <FionaMobilePanel
             panelType="daycard"
             isOpen={mobilePanel === "daycard"}
             onClose={() => setMobilePanel("none")}
           >
-            <LunaDayCard
+            <FionaDayCard
               userId={userId}
               cycleDay={currentCycleDay}
               cycleLength={cycleLength}
@@ -490,7 +490,7 @@ export default function LunaPage() {
               startDate={startDate}
               isDemo={isDemo}
             />
-          </LunaMobilePanel>
+          </FionaMobilePanel>
         </div>
       )}
     </>

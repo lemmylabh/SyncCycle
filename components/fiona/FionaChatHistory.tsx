@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { MessageSquarePlus, MessageSquare } from "lucide-react";
-import { LunaSession } from "@/lib/lunaUtils";
+import { FionaSession } from "@/lib/fionaUtils";
 
-interface LunaChatHistoryProps {
-  sessions: LunaSession[];
+interface FionaChatHistoryProps {
+  sessions: FionaSession[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
   onNewSession: () => void;
@@ -28,13 +28,13 @@ function relativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-export function LunaChatHistory({
+export function FionaChatHistory({
   sessions,
   activeSessionId,
   onSelectSession,
   onNewSession,
   isLoading,
-}: LunaChatHistoryProps) {
+}: FionaChatHistoryProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -61,7 +61,7 @@ export function LunaChatHistory({
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <MessageSquare size={28} className="text-gray-700 mb-3" />
             <p className="text-gray-500 text-sm">No conversations yet</p>
-            <p className="text-gray-600 text-xs mt-1">Start chatting with Luna</p>
+            <p className="text-gray-600 text-xs mt-1">Start chatting with Fiona</p>
           </div>
         ) : (
           <div className="p-2 space-y-0.5">

@@ -3,14 +3,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-interface LunaMobilePanelProps {
+interface FionaMobilePanelProps {
   panelType: "history" | "daycard";
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-export function LunaMobilePanel({ panelType, isOpen, onClose, children }: LunaMobilePanelProps) {
+export function FionaMobilePanel({ panelType, isOpen, onClose, children }: FionaMobilePanelProps) {
   const isTop = panelType === "history";
 
   return (
