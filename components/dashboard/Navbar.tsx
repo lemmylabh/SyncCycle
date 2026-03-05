@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const PAGE_NAMES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -16,7 +17,6 @@ const PAGE_NAMES: Record<string, string> = {
   "/dashboard/settings": "Settings",
   "/dashboard/fiona": "Ask Fiona",
 };
-import { supabase } from "@/lib/supabase";
 
 interface NavbarProps {
   onMenuToggle: () => void;
