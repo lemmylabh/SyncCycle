@@ -80,7 +80,7 @@ export default function Home() {
       </div>
 
       {/* ── MOBILE HERO BANNER (mobile only) ── */}
-      <div className="lg:hidden relative h-48 flex items-center justify-center overflow-hidden bg-black">
+      <div className="lg:hidden relative h-64 flex items-center justify-center overflow-hidden bg-black">
         <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-400 to-purple-600" />
         <video
           autoPlay muted loop playsInline
@@ -89,14 +89,17 @@ export default function Home() {
           <source src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/40 z-[2]" />
-        <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-16 h-16 object-contain relative z-10" />
+        <div className="flex flex-col items-center gap-2 relative z-10">
+          <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
+          <span className="text-white font-light tracking-[0.25em] text-sm">Syncycle<span className="text-white/50">®</span></span>
+        </div>
       </div>
 
       {/* ── FORM PANEL ── */}
       {/* Mobile: white rounded card floating over gradient */}
       {/* Desktop: full-height right panel */}
       <div className="
-        bg-white rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)]
+        bg-white rounded-t-3xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] -mt-5 relative z-10
         flex-1 px-8 pt-6 pb-8 sm:px-10
         lg:rounded-none lg:shadow-none
         lg:flex lg:flex-col lg:justify-center lg:px-16
