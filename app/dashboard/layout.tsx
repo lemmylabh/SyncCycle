@@ -12,6 +12,8 @@ import { MobilePageIndicator } from "@/components/mobile/MobilePageIndicator";
 import { MobileSwipeWrapper } from "@/components/mobile/MobileSwipeWrapper";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
 import { FionaPopup } from "@/components/mobile/FionaPopup";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { DemoOnboardingChoice } from "@/components/onboarding/DemoOnboardingChoice";
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +25,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [ready, setReady] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [fionaOpen, setFionaOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showDemoChoice, setShowDemoChoice] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const isMobileSwipeRoute =
     pathname === "/dashboard" || pathname === "/dashboard/insights";
@@ -35,13 +40,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       sessionStorage.setItem("demo", "true");
       setIsDemo(true);
       setUserInitials("DM");
+      setShowDemoChoice(true);
       setReady(true);
       return;
     }
 
     // onAuthStateChange fires AFTER Supabase processes OAuth hash tokens —
     // getSession() has a race condition and can return null before the hash is parsed.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) {
         router.replace("/");
         return;
@@ -55,6 +61,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .slice(0, 2)
         .toUpperCase();
       setUserInitials(initials || email[0]?.toUpperCase() || "U");
+      setUserId(session.user.id);
+
+      // Check if onboarding has been completed — show modal if not
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("onboarding_completed")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!profile?.onboarding_completed) {
+        setShowOnboarding(true);
+      }
+
       setReady(true);
     });
 
@@ -133,6 +152,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      {/* ── Demo choice prompt ─────────────────────────────────────── */}
+      {showDemoChoice && (
+        <DemoOnboardingChoice
+          onPreview={() => { setShowDemoChoice(false); setShowOnboarding(true); }}
+          onSkip={() => setShowDemoChoice(false)}
+        />
+      )}
+
+      {/* ── Onboarding modal — real users (saves to DB) or demo preview (fake save) ── */}
+      {showOnboarding && (
+        <OnboardingModal
+          open={showOnboarding}
+          userId={userId ?? "demo"}
+          demoMode={isDemo}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
     </>
   );
 }

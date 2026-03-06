@@ -14,7 +14,9 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npx tsc --noEmit --strict)",
       "Bash(npm run lint)",
-      "Bash(npx tsc --noEmit --skipLibCheck)"
+      "Bash(npx tsc --noEmit --skipLibCheck)",
+      "Bash(npm run build)",
+      "Bash(ls -la /c/Users/Lemmy/Music/synccycle/*.md)"
     ]
   }
 }
