@@ -10,6 +10,12 @@ export interface FionaUserContext {
     averagePeriodLength: number;
     appGoal: string | null;
     timezone: string;
+    pronouns: string | null;
+    cycleRegularity: string | null;
+    typicalFlow: string | null;
+    baselineSymptoms: string[];
+    diagnosedConditions: string[];
+    contraceptiveUse: string | null;
   };
   cycle: {
     currentDay: number;
@@ -104,7 +110,7 @@ export async function buildUserContext(
   ] = await Promise.all([
     supabase
       .from("user_profiles")
-      .select("display_name, average_cycle_length, average_period_length, app_goal, timezone")
+      .select("display_name, average_cycle_length, average_period_length, app_goal, timezone, pronouns, cycle_regularity, typical_flow, baseline_symptoms, diagnosed_conditions, contraceptive_use")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -174,6 +180,12 @@ export async function buildUserContext(
     averagePeriodLength: p?.average_period_length ?? 5,
     appGoal: p?.app_goal ?? null,
     timezone: p?.timezone ?? "UTC",
+    pronouns: p?.pronouns ?? null,
+    cycleRegularity: p?.cycle_regularity ?? null,
+    typicalFlow: p?.typical_flow ?? null,
+    baselineSymptoms: p?.baseline_symptoms ?? [],
+    diagnosedConditions: p?.diagnosed_conditions ?? [],
+    contraceptiveUse: p?.contraceptive_use ?? null,
   };
 
   // Cycle
@@ -340,6 +352,12 @@ export function buildSystemPrompt(ctx: FionaUserContext): string {
 **Time of day:** ${timeOfDay}
 **App goal:** ${ctx.profile.appGoal ?? "general cycle awareness"}
 **Average cycle:** ${ctx.profile.averageCycleLength} days | **Average period:** ${ctx.profile.averagePeriodLength} days
+**Pronouns:** ${ctx.profile.pronouns ?? "not specified"}
+**Cycle regularity:** ${ctx.profile.cycleRegularity ?? "unknown"}
+**Typical flow:** ${ctx.profile.typicalFlow ?? "unknown"}
+**Contraceptive use:** ${ctx.profile.contraceptiveUse ?? "none"}
+**Diagnosed conditions:** ${ctx.profile.diagnosedConditions.length > 0 ? ctx.profile.diagnosedConditions.join(", ") : "none reported"}
+**Baseline symptoms (user typically experiences):** ${ctx.profile.baselineSymptoms.length > 0 ? ctx.profile.baselineSymptoms.join(", ") : "none reported"}
 
 ## Cycle Status
 ${
