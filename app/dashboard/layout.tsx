@@ -45,13 +45,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
 
-    // onAuthStateChange fires AFTER Supabase processes OAuth hash tokens —
-    // getSession() has a race condition and can return null before the hash is parsed.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // getSession() awaits full Supabase localStorage init — no INITIAL_SESSION race
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
+        setReady(true);
         router.replace("/");
         return;
       }
+
       const email = session.user.email ?? "";
       const name = (session.user.user_metadata?.full_name as string) ?? email;
       const initials = name
@@ -63,22 +64,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUserInitials(initials || email[0]?.toUpperCase() || "U");
       setUserId(session.user.id);
 
-      // Check if onboarding has been completed — show modal if not
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("onboarding_completed")
-        .eq("id", session.user.id)
-        .single();
+      // try/finally guarantees setReady(true) even if the DB query fails
+      try {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("onboarding_completed")
+          .eq("id", session.user.id)
+          .single();
 
-      if (!profile?.onboarding_completed) {
-        setShowOnboarding(true);
+        if (!profile?.onboarding_completed) {
+          setShowOnboarding(true);
+        }
+      } finally {
+        setReady(true);
       }
+    });
 
-      setReady(true);
+    // Only watch for explicit sign-out
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        router.replace("/");
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
 
   if (!ready) {
     return (
