@@ -117,29 +117,52 @@ export function SymptomHeatmap() {
     );
   }
 
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const todayIdx = days.findIndex(d => d.isToday);
+  const hasToday = heatmap?.grid?.some(row => todayIdx >= 0 && row[todayIdx] > 0) ?? false;
+  const hasYesterday = todayIdx > 0 && (heatmap?.grid?.some(row => row[todayIdx - 1] > 0) ?? false);
+  const freshnessClass = hasToday ? "bg-green-400" : hasYesterday ? "bg-amber-400" : "bg-white/20";
+
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6">
-      <div className="mb-4">
-        <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Weekly View</p>
-        <h2 className="text-white text-lg font-semibold">Symptom Heatmap</h2>
+    <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5 flex flex-col h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">This Week</p>
+          <h2 className="text-white text-base font-semibold">Symptoms</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${freshnessClass}`} />
+          <a
+            href="/dashboard/symptoms"
+            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+            aria-label="Log symptoms"
+          >
+            <span className="text-gray-400 text-xs font-bold leading-none">+</span>
+          </a>
+        </div>
       </div>
 
       {heatmap && heatmap.symptoms.length === 0 ? (
-        <p className="text-gray-500 text-sm py-8 text-center">No symptoms logged this week</p>
+        <div className="flex-1 flex flex-col items-center justify-center gap-2">
+          <p className="text-gray-400 text-sm font-medium">Feeling good this week ✓</p>
+          <p className="text-gray-600 text-xs">No symptoms logged</p>
+          <a href="/dashboard/symptoms" className="mt-2 text-rose-400 text-xs hover:text-rose-300 transition-colors">
+            Log Symptoms →
+          </a>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[360px]">
+        <div className="flex-1 min-h-0">
+          <table className="w-full">
             <thead>
               <tr>
-                <th className="w-24 pb-3" />
+                <th className="w-16 pb-1" />
                 {days.map((d) => (
-                  <th key={d.label} className="pb-3 text-center w-10">
-                    <div className={`flex flex-col items-center gap-0.5 ${d.isToday ? "text-white" : "text-gray-500"}`}>
-                      <span className="text-[10px] uppercase font-medium">{d.label}</span>
-                      <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${d.isToday ? "bg-rose-500 text-white" : ""}`}>
-                        {d.date}
-                      </span>
-                    </div>
+                  <th key={d.label} className="pb-1 text-center">
+                    <span className={`text-[9px] uppercase font-medium ${d.isToday ? "text-white" : "text-gray-600"}`}>
+                      {d.label.charAt(0)}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -147,12 +170,14 @@ export function SymptomHeatmap() {
             <tbody>
               {heatmap?.symptoms.map((symptom, si) => (
                 <tr key={symptom}>
-                  <td className="py-1.5 pr-3 text-gray-400 text-xs whitespace-nowrap">{symptom}</td>
+                  <td className="py-0.5 pr-2 text-gray-500 text-[10px] whitespace-nowrap truncate max-w-[64px]">
+                    {symptom}
+                  </td>
                   {heatmap.grid[si].map((severity, di) => (
-                    <td key={di} className="py-1.5 text-center">
+                    <td key={di} className="py-0.5 text-center">
                       <div
-                        className={`w-7 h-7 rounded-md mx-auto ${severityClasses[severity] ?? "bg-white/5"} transition-colors`}
-                        title={`${symptom}: severity ${severity}/5`}
+                        className={`w-5 h-5 rounded mx-auto ${severityClasses[severity] ?? "bg-white/5"} transition-colors`}
+                        title={severity > 0 ? `${symptom}: ${severity}/5` : undefined}
                       />
                     </td>
                   ))}
@@ -163,13 +188,6 @@ export function SymptomHeatmap() {
         </div>
       )}
 
-      <div className="flex items-center gap-2 mt-4">
-        <span className="text-gray-500 text-xs">None</span>
-        {[1, 2, 3, 4].map((s) => (
-          <div key={s} className={`w-5 h-5 rounded ${severityClasses[s]}`} />
-        ))}
-        <span className="text-gray-500 text-xs">Severe</span>
-      </div>
     </div>
   );
 }

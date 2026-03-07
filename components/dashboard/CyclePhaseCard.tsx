@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { cycleDay, computePhase, PHASE_CONFIG, type Phase } from "@/lib/cycleUtils";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
-const SIZE = 140;
-const STROKE = 10;
+const SIZE = 110;
+const STROKE = 8;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -47,14 +49,14 @@ export function CyclePhaseCard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 animate-pulse space-y-5">
+      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-4 animate-pulse space-y-3 h-full overflow-hidden">
         <div className="space-y-2">
           <div className="h-2.5 w-20 bg-white/10 rounded" />
           <div className="h-5 w-36 bg-white/10 rounded" />
           <div className="h-3 w-48 bg-white/10 rounded" />
         </div>
         <div className="flex justify-center">
-          <div className="w-[140px] h-[140px] rounded-full bg-white/5" />
+          <div className="w-[110px] h-[110px] rounded-full bg-white/5" />
         </div>
         <div className="flex gap-2">
           <div className="h-6 w-24 bg-white/10 rounded-full" />
@@ -68,12 +70,26 @@ export function CyclePhaseCard() {
   const progress = Math.min(day / cycleLen, 1);
   const dashOffset = CIRCUMFERENCE * (1 - progress);
 
+  const hasCycle = day > 0;
+
   return (
-    <div className={`rounded-2xl border border-white/5 p-6 bg-gradient-to-br ${cfg.gradient} bg-[#1e1e2a] flex flex-col gap-5`}>
-      <div>
-        <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Phase</p>
-        <h2 className="text-white text-xl font-semibold">{cfg.label}</h2>
-        <p className="text-gray-400 text-sm mt-0.5">{cfg.tagline}</p>
+    <div className={`rounded-2xl border border-white/5 p-4 bg-gradient-to-br ${cfg.gradient} bg-[#1e1e2a] flex flex-col gap-3 h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200`}>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Phase</p>
+          <h2 className="text-white text-lg font-semibold">{cfg.label}</h2>
+          <p className="text-gray-400 text-sm mt-0.5">{cfg.tagline}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${hasCycle ? "bg-green-400" : "bg-white/20"}`} />
+          <Link
+            href="/dashboard/period"
+            className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+            aria-label="Go to period tracker"
+          >
+            <Plus size={12} className="text-white/70" />
+          </Link>
+        </div>
       </div>
 
       <div className="flex justify-center">
@@ -90,7 +106,7 @@ export function CyclePhaseCard() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-white text-2xl font-bold">{day}</span>
+            <span className="text-white text-xl font-bold">{day}</span>
             <span className="text-gray-400 text-xs">of {cycleLen}</span>
           </div>
         </div>

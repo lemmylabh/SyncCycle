@@ -1,15 +1,10 @@
+import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { CyclePhaseCard } from "@/components/dashboard/CyclePhaseCard";
-import { PhaseDonut } from "@/components/dashboard/PhaseDonut";
-import { TodaySnapshot } from "@/components/dashboard/TodaySnapshot";
+import { Vibe } from "@/components/dashboard/Vibe";
 import { SymptomHeatmap } from "@/components/dashboard/SymptomHeatmap";
-import { MoodEnergy } from "@/components/dashboard/MoodEnergy";
-import { CycleCalendar } from "@/components/dashboard/CycleCalendar";
-import { QuickInsights } from "@/components/dashboard/QuickInsights";
-import { AnimatedCard } from "@/components/dashboard/AnimatedCard";
-import { SleepCard } from "@/components/dashboard/SleepCard";
-import { FitnessCard } from "@/components/dashboard/FitnessCard";
 import { NutritionCard } from "@/components/dashboard/NutritionCard";
-import { JournalCard } from "@/components/dashboard/JournalCard";
+import { FitnessCard } from "@/components/dashboard/FitnessCard";
+import { SleepCard } from "@/components/dashboard/SleepCard";
 import { MobileDashboardWrapper } from "@/components/mobile/MobileDashboardWrapper";
 
 export default function DashboardPage() {
@@ -20,56 +15,28 @@ export default function DashboardPage() {
         <MobileDashboardWrapper />
       </div>
 
-      {/* ── Desktop view (≥ lg) — unchanged ────────────────────── */}
-      <div className="hidden lg:block p-6 space-y-4">
-        {/* Row 1: 3 equal cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <AnimatedCard delay={0}>
-            <CyclePhaseCard />
-          </AnimatedCard>
-          <AnimatedCard delay={0.05}>
-            <PhaseDonut />
-          </AnimatedCard>
-          <AnimatedCard delay={0.1}>
-            <TodaySnapshot />
-          </AnimatedCard>
-        </div>
+      {/* ── Desktop view (≥ lg) — 4×2 non-scrollable grid ──────── */}
+      <div className="hidden lg:grid grid-cols-4 grid-rows-2 gap-4 p-4 h-[calc(100vh-64px)] overflow-hidden">
+        {/* Col 1, rows 1–2 */}
+        <ProfileCard />
 
-        {/* Row 2: 2/3 + 1/3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <AnimatedCard delay={0.15} className="lg:col-span-2">
-            <SymptomHeatmap />
-          </AnimatedCard>
-          <AnimatedCard delay={0.2}>
-            <MoodEnergy />
-          </AnimatedCard>
-        </div>
+        {/* Col 2, row 1 */}
+        <CyclePhaseCard />
 
-        {/* Row 3: 2/3 + 1/3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <AnimatedCard delay={0.25} className="lg:col-span-2">
-            <CycleCalendar />
-          </AnimatedCard>
-          <AnimatedCard delay={0.3}>
-            <QuickInsights />
-          </AnimatedCard>
-        </div>
+        {/* Col 3, row 1 */}
+        <Vibe />
 
-        {/* Row 4: Tracker summaries — Sleep, Fitness, Nutrition, Journal */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedCard delay={0.35}>
-            <SleepCard />
-          </AnimatedCard>
-          <AnimatedCard delay={0.4}>
-            <FitnessCard />
-          </AnimatedCard>
-          <AnimatedCard delay={0.45}>
-            <NutritionCard />
-          </AnimatedCard>
-          <AnimatedCard delay={0.5}>
-            <JournalCard />
-          </AnimatedCard>
-        </div>
+        {/* Col 4, row 1 */}
+        <SymptomHeatmap />
+
+        {/* Col 2, row 2 */}
+        <NutritionCard />
+
+        {/* Col 3, row 2 */}
+        <FitnessCard />
+
+        {/* Col 4, row 2 */}
+        <SleepCard />
       </div>
     </>
   );
