@@ -5,14 +5,19 @@ import { SymptomHeatmap } from "@/components/dashboard/SymptomHeatmap";
 import { NutritionCard } from "@/components/dashboard/NutritionCard";
 import { FitnessCard } from "@/components/dashboard/FitnessCard";
 import { SleepCard } from "@/components/dashboard/SleepCard";
-import { MobileDashboardWrapper } from "@/components/mobile/MobileDashboardWrapper";
-
 export default function DashboardPage() {
   return (
     <>
-      {/* ── Mobile view (< lg) ─────────────────────────────────── */}
-      <div className="lg:hidden">
-        <MobileDashboardWrapper />
+      {/* ── Mobile view (< lg) — 7 cards scrollable ─────────────── */}
+      <div className="lg:hidden overflow-y-auto h-[calc(100vh-64px)]">
+        <div className="p-4 grid grid-cols-1 gap-4" style={{ gridAutoRows: "300px" }}>
+          <CyclePhaseCard />
+          <Vibe />
+          <SymptomHeatmap />
+          <NutritionCard />
+          <FitnessCard />
+          <SleepCard />
+        </div>
       </div>
 
       {/* ── Desktop view (≥ lg) — 4×2 non-scrollable grid ──────── */}
