@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { MessageSquarePlus, MessageSquare } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, Trash2, Trash } from "lucide-react";
 import { FionaSession } from "@/lib/fionaUtils";
 
 interface FionaChatHistoryProps {
@@ -9,6 +10,8 @@ interface FionaChatHistoryProps {
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
   onNewSession: () => void;
+  onDeleteSession: (id: string) => void;
+  onClearAll: () => void;
   isLoading: boolean;
 }
 
@@ -33,24 +36,44 @@ export function FionaChatHistory({
   activeSessionId,
   onSelectSession,
   onNewSession,
+  onDeleteSession,
+  onClearAll,
   isLoading,
 }: FionaChatHistoryProps) {
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+
+  const handleClearAll = () => {
+    if (confirmClearAll) {
+      onClearAll();
+      setConfirmClearAll(false);
+    } else {
+      setConfirmClearAll(true);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
         <p className="text-gray-400 text-xs uppercase tracking-widest">Chats</p>
-        <button
-          onClick={onNewSession}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 text-xs font-medium transition-colors"
-        >
-          <MessageSquarePlus size={12} />
-          New
-        </button>
+        {sessions.length > 0 && (
+          <button
+            onClick={handleClearAll}
+            onBlur={() => setConfirmClearAll(false)}
+            className={`flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg transition-colors ${
+              confirmClearAll
+                ? "bg-red-500/15 text-red-400 border border-red-500/20"
+                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <Trash size={11} />
+            {confirmClearAll ? "Confirm" : "Clear all"}
+          </button>
+        )}
       </div>
 
       {/* Session list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto premium-scroll">
         {isLoading ? (
           <div className="p-3 space-y-2">
             {[1, 2, 3, 4].map((i) => (
@@ -65,34 +88,48 @@ export function FionaChatHistory({
           </div>
         ) : (
           <div className="p-2 space-y-0.5">
-            {sessions.map((session, i) => {
-              const isActive = session.id === activeSessionId;
-              return (
-                <motion.button
-                  key={session.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  onClick={() => onSelectSession(session.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl transition-all duration-150 group ${
-                    isActive
-                      ? "bg-rose-500/10 border-l-2 border-rose-500/50 pl-2.5"
-                      : "hover:bg-white/5 border-l-2 border-transparent"
-                  }`}
-                >
-                  <p
-                    className={`text-xs font-medium truncate leading-snug ${
-                      isActive ? "text-white" : "text-gray-300 group-hover:text-white"
+            <AnimatePresence initial={false}>
+              {sessions.map((session, i) => {
+                const isActive = session.id === activeSessionId;
+                return (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -8, height: 0, marginBottom: 0 }}
+                    transition={{ delay: i * 0.03, duration: 0.18 }}
+                    className={`group relative flex items-center rounded-xl transition-all duration-150 ${
+                      isActive
+                        ? "bg-violet-500/10 border-l-2 border-violet-500/40"
+                        : "hover:bg-white/5 border-l-2 border-transparent"
                     }`}
                   >
-                    {session.title}
-                  </p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">
-                    {relativeTime(session.updated_at)}
-                  </p>
-                </motion.button>
-              );
-            })}
+                    <button
+                      onClick={() => onSelectSession(session.id)}
+                      className="flex-1 min-w-0 text-left px-3 py-2.5"
+                    >
+                      <p
+                        className={`text-xs font-medium truncate leading-snug ${
+                          isActive ? "text-white" : "text-gray-300 group-hover:text-white"
+                        }`}
+                      >
+                        {session.title}
+                      </p>
+                      <p className="text-[10px] text-gray-600 mt-0.5">
+                        {relativeTime(session.updated_at)}
+                      </p>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
+                      className="opacity-0 group-hover:opacity-100 flex-shrink-0 w-7 h-7 mr-1.5 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+                      aria-label="Delete chat"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
       </div>

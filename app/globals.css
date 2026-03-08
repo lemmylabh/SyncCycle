@@ -17,3 +17,72 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+/* ── Theme tokens ───────────────────────────────────────── */
+:root,
+[data-theme="glass"] {
+  --page-bg: #000000;
+  --sidebar-bg: rgba(255, 255, 255, 0.06);
+  --navbar-bg: rgba(0, 0, 0, 0.55);
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-md: rgba(255, 255, 255, 0.18);
+}
+
+/* Glass: backdrop-blur on structural panels */
+[data-theme="glass"] .navbar-panel {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="glass"] .sidebar-panel {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    1px 0 0 rgba(255, 255, 255, 0.10),
+    4px 0 32px rgba(0, 0, 0, 0.5),
+    inset -1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass: frosted card treatment */
+[data-theme="glass"] .card-glass {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Glass: profile card image overlay — fade to black instead of card color */
+[data-theme="glass"] .profile-overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.12) 55%, transparent 100%) !important;
+}
+
+/* Glass: page background — premium black with subtle center depth */
+[data-theme="glass"] .page-shell {
+  background-color: #000000;
+  background-image: radial-gradient(ellipse at 50% 35%, #111111 0%, #000000 70%);
+}
+
+/* ── Premium scrollbar ───────────────────────────────────── */
+.premium-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+.premium-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.premium-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.premium-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+.premium-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}

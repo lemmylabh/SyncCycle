@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 import {
   type LucideIcon,
-  Activity, AlertCircle, BatteryLow, Brain, Check,
+  Activity, AlertCircle, BatteryLow, Brain, Check, ChevronLeft, ChevronRight,
   Cloud, CloudRain, Cookie, Droplet, Flame, Frown,
   Heart, Moon, Shuffle, Sparkles, Waves, Wind, Zap,
 } from "lucide-react";
@@ -125,13 +126,6 @@ function toDateStr(d: Date) {
 }
 function localToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 
-function ChevLeft() {
-  return <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>;
-}
-function ChevRight() {
-  return <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>;
-}
-
 const CATEGORY_CONFIG: Record<Category, { label: string; color: string; accent: string; bg: string }> = {
   physical:  { label: "Physical",  color: "text-rose-400",   accent: "border-rose-500",   bg: "bg-rose-500/20"   },
   emotional: { label: "Emotional", color: "text-purple-400", accent: "border-purple-500", bg: "bg-purple-500/20" },
@@ -147,6 +141,8 @@ export default function SymptomsPage() {
   const now = localToday();
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true" || (typeof window !== "undefined" && sessionStorage.getItem("demo") === "true");
+  const cellSize  = useDashboardLayout();
+  const gridWidth = 4 * cellSize + 3 * 16;
 
   const [selectedDate, setSelectedDate] = useState(now);
   const [activeCategory, setActiveCategory] = useState<Category>("physical");
@@ -304,255 +300,229 @@ export default function SymptomsPage() {
   }
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto">
+    <div className="flex justify-center px-4 py-5">
+      <div className="w-full space-y-4" style={{ maxWidth: gridWidth }}>
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">Symptoms</h1>
-        </div>
-        <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-4 py-1.5 text-purple-400 text-sm font-medium">
-          {selected.size} logged today
-        </span>
-      </div>
-
-      {/* Date nav */}
-      <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-[#1e1e2a] px-5 py-3">
-        <button onClick={prevDay} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
-          <ChevLeft />
-        </button>
-        <div className="text-center">
-          <p className="text-white font-semibold">
-            {selectedDate.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
-          </p>
-          {selectedStr === todayStr && <p className="text-purple-400 text-xs mt-0.5">Today</p>}
-        </div>
-        <button onClick={nextDay} disabled={selectedDate >= now} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed">
-          <ChevRight />
-        </button>
-      </div>
-
-      {/* Main 2-col */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Left: Symptom grid */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 flex flex-col gap-4">
-
-          {/* Category tabs */}
-          <div className="flex gap-2">
-            {(["physical", "emotional", "energy"] as Category[]).map(cat => {
-              const cfg = CATEGORY_CONFIG[cat];
-              const active = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-150 border ${
-                    active
-                      ? `${cfg.bg} ${cfg.accent} ${cfg.color}`
-                      : "border-white/5 text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                  }`}
-                >
-                  {cfg.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Symptom cards grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-            {filtered.map(st => {
-              const isSelected = selected.has(st.id);
-              const sev = selected.get(st.id);
-              const cfg = CATEGORY_CONFIG[st.category];
-
-              return (
-                <div key={st.id} className="flex flex-col gap-1.5">
-                  <button
-                    onClick={() => toggleSymptom(st.id)}
-                    className={[
-                      "flex flex-col items-center gap-2 py-3 px-2 rounded-xl transition-all duration-150 border w-full",
-                      isSelected
-                        ? `${cfg.bg} ${cfg.accent} border-opacity-60`
-                        : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.07]",
-                    ].join(" ")}
-                  >
-                    <SymptomIcon name={st.name} size={24} />
-                    <span className={`text-xs font-medium text-center leading-tight ${isSelected ? cfg.color : "text-gray-400"}`}>
-                      {st.label}
-                    </span>
-                  </button>
-
-                  {/* Severity dots — only show when selected */}
-                  {isSelected && sev !== undefined && (
-                    <div className="flex justify-center gap-1 pb-1">
-                      {([1, 2, 3, 4, 5] as Severity[]).map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setSeverity(st.id, s)}
-                          className={`w-4 h-4 rounded-full border transition-all duration-100 ${
-                            s <= sev
-                              ? "bg-rose-500 border-rose-500"
-                              : "bg-transparent border-white/20 hover:border-rose-400"
-                          }`}
-                          title={SEV_LABELS[s]}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-gray-600 text-xs text-center">
-            Tap to add · Rate severity with the dots below
-          </p>
-        </div>
-
-        {/* Right: Today's log + notes + save */}
-        <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Today's Log</p>
-            <h2 className="text-white text-lg font-semibold">
-              {selected.size > 0 ? `${selected.size} symptom${selected.size !== 1 ? "s" : ""}` : "Nothing logged yet"}
-            </h2>
+            <h1 className="text-white text-xl font-bold tracking-tight">Symptoms</h1>
+            <p className="text-gray-500 text-xs mt-0.5">Log and track how you feel</p>
           </div>
+          <span className="rounded-full bg-purple-500/15 border border-purple-500/25 px-3 py-1 text-purple-400 text-xs font-medium">
+            {selected.size} logged
+          </span>
+        </div>
 
-          {selected.size === 0 ? (
-            <div className="flex-1 flex items-center justify-center py-8 text-center">
-              <div>
-                <Heart size={28} className="text-gray-700 mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">Select symptoms from the grid to start logging</p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2 flex-1">
-              {Array.from(selected.entries()).map(([sid, sev]) => {
-                const st = symptomTypes.find(s => s.id === sid);
-                if (!st) return null;
+        {/* Date nav */}
+        <div className="bg-[var(--card-bg)] card-glass border border-[var(--border)] rounded-2xl flex items-center justify-between px-5 py-3">
+          <button onClick={prevDay} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+            <ChevronLeft size={15} />
+          </button>
+          <div className="text-center">
+            <p className="text-white font-semibold text-sm">
+              {selectedDate.toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" })}
+            </p>
+            {selectedStr === todayStr && <p className="text-purple-400 text-xs mt-0.5">Today</p>}
+          </div>
+          <button onClick={nextDay} disabled={selectedDate >= now} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed">
+            <ChevronRight size={15} />
+          </button>
+        </div>
+
+        {/* Main 2-col */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          {/* Left: Symptom grid */}
+          <div className="lg:col-span-2 bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5 flex flex-col gap-4">
+
+            {/* Category tabs */}
+            <div className="flex gap-2">
+              {(["physical", "emotional", "energy"] as Category[]).map(cat => {
+                const cfg = CATEGORY_CONFIG[cat];
+                const active = activeCategory === cat;
                 return (
-                  <div key={sid} className="flex items-center justify-between py-2 border-b border-white/5">
-                    <div className="flex items-center gap-2">
-                      <SymptomIcon name={st.name} size={16} />
-                      <span className="text-gray-300 text-sm">{st.label}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {([1, 2, 3, 4, 5] as Severity[]).map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setSeverity(sid, s)}
-                          className={`w-3 h-3 rounded-full transition-colors ${
-                            s <= sev ? "bg-rose-500" : "bg-white/10 hover:bg-rose-500/40"
-                          }`}
-                        />
-                      ))}
-                      <button
-                        onClick={() => toggleSymptom(sid)}
-                        className="ml-1 text-gray-600 hover:text-rose-400 transition-colors text-xs"
-                      >
-                        ×
-                      </button>
-                    </div>
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all duration-150 border ${
+                      active
+                        ? `${cfg.bg} ${cfg.accent} ${cfg.color}`
+                        : "border-white/5 text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                    }`}
+                  >
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Symptom cards grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {filtered.map(st => {
+                const isSelected = selected.has(st.id);
+                const sev = selected.get(st.id);
+                const cfg = CATEGORY_CONFIG[st.category];
+                return (
+                  <div key={st.id} className="flex flex-col gap-1.5">
+                    <button
+                      onClick={() => toggleSymptom(st.id)}
+                      className={[
+                        "flex flex-col items-center gap-2 py-3 px-2 rounded-xl transition-all duration-150 border w-full",
+                        isSelected
+                          ? `${cfg.bg} ${cfg.accent} border-opacity-60`
+                          : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.07]",
+                      ].join(" ")}
+                    >
+                      <SymptomIcon name={st.name} size={22} />
+                      <span className={`text-xs font-medium text-center leading-tight ${isSelected ? cfg.color : "text-gray-400"}`}>
+                        {st.label}
+                      </span>
+                    </button>
+                    {isSelected && sev !== undefined && (
+                      <div className="flex justify-center gap-1 pb-1">
+                        {([1, 2, 3, 4, 5] as Severity[]).map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setSeverity(st.id, s)}
+                            className={`w-3.5 h-3.5 rounded-full border transition-all duration-100 ${
+                              s <= sev ? "bg-rose-500 border-rose-500" : "bg-transparent border-white/20 hover:border-rose-400"
+                            }`}
+                            title={SEV_LABELS[s]}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          )}
 
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Notes</p>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Any additional notes…"
-              rows={3}
-              className="w-full bg-white/[0.04] border border-white/5 rounded-xl px-3 py-2.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500/40 resize-none transition-colors"
-            />
+            <p className="text-gray-600 text-[10px] text-center">Tap to add · Rate severity with the dots below</p>
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={isDemo || saving || selected.size === 0}
-            className={[
-              "w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200",
-              saved
-                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
-                : "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:opacity-90",
-              isDemo || saving || selected.size === 0 ? "opacity-40 cursor-not-allowed" : "",
-            ].join(" ")}
-          >
-            {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo — Sign in to Save" : "Save Symptoms"}
-          </button>
-        </div>
-      </div>
+          {/* Right: Today's log + save */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5 flex flex-col gap-4">
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Today's Log</p>
+              <h2 className="text-white text-lg font-semibold">
+                {selected.size > 0 ? `${selected.size} symptom${selected.size !== 1 ? "s" : ""}` : "Nothing logged yet"}
+              </h2>
+            </div>
 
-      {/* 7-day trend */}
-      {trendSymptoms.length > 0 && (
-        <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6">
-          <div className="mb-4">
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">7-Day Pattern</p>
-            <h2 className="text-white text-lg font-semibold">Symptom Trend</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="text-left text-gray-600 text-xs font-medium pb-3 w-36">Symptom</th>
-                  {trendDates.map(ds => {
-                    const d = new Date(ds + "T00:00:00");
-                    const isToday = ds === todayStr;
-                    return (
-                      <th key={ds} className="pb-3 text-center">
-                        <div className={`text-[10px] font-medium ${isToday ? "text-white" : "text-gray-600"}`}>
-                          {d.toLocaleDateString("en", { weekday: "short" })}
-                        </div>
-                        <div className={`text-[10px] ${isToday ? "text-rose-400" : "text-gray-700"}`}>
-                          {d.getDate()}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.04]">
-                {trendSymptoms.map(st => (
-                  <tr key={st.id}>
-                    <td className="py-2 pr-4">
+            {selected.size === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-8 text-center">
+                <div>
+                  <Heart size={28} className="text-gray-700 mx-auto mb-2" />
+                  <p className="text-gray-600 text-sm">Select symptoms from the grid</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1 flex-1">
+                {Array.from(selected.entries()).map(([sid, sev]) => {
+                  const st = symptomTypes.find(s => s.id === sid);
+                  if (!st) return null;
+                  return (
+                    <div key={sid} className="flex items-center justify-between py-2 border-b border-white/5">
                       <div className="flex items-center gap-2">
                         <SymptomIcon name={st.name} size={14} />
-                        <span className="text-gray-400 text-xs">{st.label}</span>
+                        <span className="text-gray-300 text-xs">{st.label}</span>
                       </div>
-                    </td>
+                      <div className="flex items-center gap-1">
+                        {([1, 2, 3, 4, 5] as Severity[]).map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setSeverity(sid, s)}
+                            className={`w-2.5 h-2.5 rounded-full transition-colors ${s <= sev ? "bg-rose-500" : "bg-white/10 hover:bg-rose-500/40"}`}
+                          />
+                        ))}
+                        <button onClick={() => toggleSymptom(sid)} className="ml-1 text-gray-600 hover:text-rose-400 transition-colors text-xs">×</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              onClick={handleSave}
+              disabled={isDemo || saving || selected.size === 0}
+              className={[
+                "w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.99]",
+                saved
+                  ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                  : "bg-white/8 border border-white/10 text-white hover:bg-white/12",
+                isDemo || saving || selected.size === 0 ? "opacity-40 cursor-not-allowed" : "",
+              ].join(" ")}
+            >
+              {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo — Sign in to Save" : "Save Symptoms"}
+            </button>
+          </div>
+        </div>
+
+        {/* 7-day trend */}
+        {trendSymptoms.length > 0 && (
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5">
+            <div className="mb-4">
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">7-Day Pattern</p>
+              <h2 className="text-white text-lg font-semibold">Symptom Trend</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left text-gray-600 text-xs font-medium pb-3 w-32">Symptom</th>
                     {trendDates.map(ds => {
-                      const sev = getTrendSev(st.id, ds);
+                      const d = new Date(ds + "T00:00:00");
                       const isToday = ds === todayStr;
                       return (
-                        <td key={ds} className="py-2 text-center">
-                          <div
-                            className={`w-7 h-7 rounded-lg mx-auto transition-colors ${
-                              sev > 0 ? SEV_COLORS[sev] : "bg-white/[0.04]"
-                            } ${isToday ? "ring-1 ring-white/20" : ""}`}
-                          />
-                        </td>
+                        <th key={ds} className="pb-3 text-center">
+                          <div className={`text-[10px] font-medium ${isToday ? "text-white" : "text-gray-600"}`}>
+                            {d.toLocaleDateString("en", { weekday: "short" })}
+                          </div>
+                          <div className={`text-[10px] ${isToday ? "text-rose-400" : "text-gray-700"}`}>
+                            {d.getDate()}
+                          </div>
+                        </th>
                       );
                     })}
                   </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {trendSymptoms.map(st => (
+                    <tr key={st.id}>
+                      <td className="py-2 pr-4">
+                        <div className="flex items-center gap-2">
+                          <SymptomIcon name={st.name} size={13} />
+                          <span className="text-gray-400 text-xs">{st.label}</span>
+                        </div>
+                      </td>
+                      {trendDates.map(ds => {
+                        const sev = getTrendSev(st.id, ds);
+                        const isToday = ds === todayStr;
+                        return (
+                          <td key={ds} className="py-2 text-center">
+                            <div className={`w-6 h-6 rounded-md mx-auto transition-colors ${sev > 0 ? SEV_COLORS[sev] : "bg-white/[0.04]"} ${isToday ? "ring-1 ring-white/20" : ""}`} />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/5">
+                <span className="text-gray-600 text-xs">Intensity:</span>
+                {[1,2,3,4,5].map(s => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={`w-3 h-3 rounded-sm ${SEV_COLORS[s]}`} />
+                    <span className="text-gray-600 text-[10px]">{SEV_LABELS[s]}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/5">
-              <span className="text-gray-600 text-xs">Intensity:</span>
-              {[1,2,3,4,5].map(s => (
-                <div key={s} className="flex items-center gap-1">
-                  <div className={`w-3 h-3 rounded-sm ${SEV_COLORS[s]}`} />
-                  <span className="text-gray-600 text-[10px]">{SEV_LABELS[s]}</span>
-                </div>
-              ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -100,7 +100,7 @@ export function SymptomHeatmap() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 animate-pulse">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-6 animate-pulse">
         <div className="h-2.5 w-24 bg-white/10 rounded mb-2" />
         <div className="h-5 w-40 bg-white/10 rounded mb-6" />
         <div className="space-y-3">
@@ -125,7 +125,7 @@ export function SymptomHeatmap() {
   const freshnessClass = hasToday ? "bg-green-400" : hasYesterday ? "bg-amber-400" : "bg-white/20";
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5 flex flex-col h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-5 flex flex-col h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>

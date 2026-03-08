@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Waves, Check } from "lucide-react";
+import { Waves, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 
 // ── Demo data ──────────────────────────────────────────────────────────────
 
@@ -17,12 +18,11 @@ function buildDemoData() {
     return `${y}-${m}-${day}`;
   };
 
-  // Cycle started 3 days ago
   const cycleStart = new Date(now);
   cycleStart.setDate(now.getDate() - 3);
 
   const demoLogs = new Map<string, PeriodLogRow>();
-  const flowLevels: FlowLevel[] = [2, 3, 3, 2]; // days -3, -2, -1, today
+  const flowLevels: FlowLevel[] = [2, 3, 3, 2];
   const colors: PeriodColor[] = ["bright_red", "bright_red", "dark_red", "bright_red"];
   for (let i = 0; i <= 3; i++) {
     const d = new Date(cycleStart);
@@ -91,7 +91,6 @@ const COLOR_CONFIG = [
   { value: "black"      as PeriodColor, label: "Black",      bg: "#1f2937", ring: "#374151" },
 ] as const;
 
-// Rose background intensity by flow level — full class strings for Tailwind JIT
 const FLOW_BG: Record<FlowLevel, string> = {
   0: "bg-rose-500/20",
   1: "bg-rose-500/35",
@@ -108,12 +107,11 @@ const FLOW_TEXT: Record<FlowLevel, string> = {
   4: "text-white",
 };
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function toDateStr(d: Date): string {
-  // Use local date, not UTC
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -124,6 +122,16 @@ function localToday(): Date {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function getMonthCells(year: number, month: number): (Date | null)[] {
+  const first = new Date(year, month, 1);
+  const last  = new Date(year, month + 1, 0);
+  let offset  = first.getDay() - 1;
+  if (offset < 0) offset = 6;
+  const cells: (Date | null)[] = Array(offset).fill(null);
+  for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(year, month, d));
+  return cells;
 }
 
 // ── Droplet SVG ────────────────────────────────────────────────────────────
@@ -145,21 +153,79 @@ function Droplet({ level, filled, active }: { level: FlowLevel; filled: boolean;
   );
 }
 
-// ── Chevron icons ──────────────────────────────────────────────────────────
+// ── Single month calendar ──────────────────────────────────────────────────
 
-function ChevLeft({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
+function MonthCalendar({
+  year, month, periodDays, selectedStr, todayStr, now,
+  onSelect,
+}: {
+  year: number;
+  month: number;
+  periodDays: Map<string, PeriodLogRow>;
+  selectedStr: string;
+  todayStr: string;
+  now: Date;
+  onSelect: (d: Date) => void;
+}) {
+  const cells = getMonthCells(year, month);
+  const monthName = new Date(year, month, 1).toLocaleDateString("en", { month: "long" });
+  const yearLabel = new Date(year, month, 1).toLocaleDateString("en", { year: "numeric" });
 
-function ChevRight({ size = 16 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
+    <div className="flex flex-col gap-2">
+      {/* Month header */}
+      <div className="text-center mb-1">
+        <p className="text-white text-sm font-semibold">{monthName}</p>
+        <p className="text-gray-600 text-[10px]">{yearLabel}</p>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-x-1">
+        {WEEKDAYS.map(w => (
+          <p key={w} className="text-center text-gray-600 text-[10px] font-medium py-1">
+            {w}
+          </p>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (!d) return <div key={`e${i}`} />;
+          const ds    = toDateStr(d);
+          const log   = periodDays.get(ds);
+          const isP   = !!log;
+          const isSel = ds === selectedStr;
+          const isTod = ds === todayStr;
+          const isFut = d > now;
+          const fl    = log?.flow_level;
+
+          return (
+            <button
+              key={i}
+              onClick={() => !isFut && onSelect(new Date(d))}
+              disabled={isFut}
+              className={[
+                "relative flex items-center justify-center h-8 w-full rounded-lg text-xs font-medium",
+                "transition-all duration-150",
+                isFut   ? "text-gray-700 cursor-not-allowed" : "cursor-pointer",
+                isSel   ? "ring-2 ring-white/40 ring-offset-1 ring-offset-[var(--card-bg)] z-10" : "",
+                isP && fl !== undefined ? FLOW_BG[fl] : "",
+                isP && fl !== undefined ? FLOW_TEXT[fl] : "",
+                !isP && isSel  ? "bg-white/10 text-white" : "",
+                !isP && !isSel && !isFut ? "hover:bg-white/5 text-gray-400" : "",
+                isTod && !isP && !isSel ? "text-rose-400 font-bold" : "",
+              ].join(" ")}
+            >
+              {isTod && (
+                <span className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-rose-500" />
+              )}
+              {d.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -170,18 +236,19 @@ export default function PeriodTrackerPage() {
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true" || (typeof window !== "undefined" && sessionStorage.getItem("demo") === "true");
 
-  // ── Navigation state
+  const cellSize  = useDashboardLayout();
+  const gridWidth = 4 * cellSize + 3 * 16;
+
+  // viewMonth = rightmost of the 3 displayed months
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [viewMonth, setViewMonth]       = useState<Date>(new Date(now.getFullYear(), now.getMonth(), 1));
 
-  // ── Auth / data state
   const [userId, setUserId]             = useState<string | null>(null);
   const [currentCycle, setCurrentCycle] = useState<CycleRow | null>(null);
   const [periodDays, setPeriodDays]     = useState<Map<string, PeriodLogRow>>(new Map());
   const [history, setHistory]           = useState<CycleRow[]>([]);
   const [loading, setLoading]           = useState(true);
 
-  // ── Form state
   const [flowLevel, setFlowLevel] = useState<FlowLevel | null>(null);
   const [color, setColor]         = useState<PeriodColor | null>(null);
   const [clots, setClots]         = useState(false);
@@ -189,7 +256,7 @@ export default function PeriodTrackerPage() {
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
 
-  // ── Init ───────────────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (isDemo) {
@@ -214,7 +281,7 @@ export default function PeriodTrackerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMonth, userId, isDemo]);
 
-  // ── Data loaders ───────────────────────────────────────────────────────
+  // ── Data loaders ──────────────────────────────────────────────────────
 
   async function loadAll(uid: string, month: Date) {
     setLoading(true);
@@ -222,15 +289,16 @@ export default function PeriodTrackerPage() {
     setLoading(false);
   }
 
+  // Load 3 months at once (viewMonth-2 → viewMonth)
   async function loadMonth(uid: string, month: Date) {
-    const start = toDateStr(month);
-    const end   = toDateStr(new Date(month.getFullYear(), month.getMonth() + 1, 0));
-    const { data } = await supabase
+    const startDate = new Date(month.getFullYear(), month.getMonth() - 2, 1);
+    const endDate   = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    const { data }  = await supabase
       .from("period_logs")
       .select("*")
       .eq("user_id", uid)
-      .gte("log_date", start)
-      .lte("log_date", end);
+      .gte("log_date", toDateStr(startDate))
+      .lte("log_date", toDateStr(endDate));
     if (data) {
       setPeriodDays(new Map((data as PeriodLogRow[]).map(l => [l.log_date, l])));
     }
@@ -258,7 +326,7 @@ export default function PeriodTrackerPage() {
     if (data) setHistory(data as CycleRow[]);
   }
 
-  // ── Populate form when selected date changes ───────────────────────────
+  // ── Populate form when selected date changes ──────────────────────────
 
   useEffect(() => {
     const log = periodDays.get(toDateStr(selectedDate));
@@ -276,13 +344,12 @@ export default function PeriodTrackerPage() {
     setSaved(false);
   }, [selectedDate, periodDays]);
 
-  // ── Save ───────────────────────────────────────────────────────────────
+  // ── Save ──────────────────────────────────────────────────────────────
 
   async function handleSave() {
     if (isDemo || !userId || flowLevel === null) return;
     setSaving(true);
     try {
-      // Reuse the cycle_id from an existing log on this date, or the active cycle, or create a new one
       let cycleId = periodDays.get(toDateStr(selectedDate))?.cycle_id ?? currentCycle?.id;
 
       if (!cycleId) {
@@ -323,7 +390,6 @@ export default function PeriodTrackerPage() {
       );
       if (error) throw error;
 
-      // Update local cache so the calendar refreshes instantly
       setPeriodDays(prev => {
         const next = new Map(prev);
         next.set(toDateStr(selectedDate), {
@@ -347,24 +413,10 @@ export default function PeriodTrackerPage() {
     }
   }
 
-  // ── Calendar ───────────────────────────────────────────────────────────
-
-  const calendarDays: (Date | null)[] = (() => {
-    const y = viewMonth.getFullYear();
-    const m = viewMonth.getMonth();
-    const first  = new Date(y, m, 1);
-    const last   = new Date(y, m + 1, 0);
-    let offset   = first.getDay() - 1;
-    if (offset < 0) offset = 6;
-    const cells: (Date | null)[] = Array(offset).fill(null);
-    for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(y, m, d));
-    return cells;
-  })();
+  // ── Derived stats ─────────────────────────────────────────────────────
 
   const todayStr    = toDateStr(now);
   const selectedStr = toDateStr(selectedDate);
-
-  // ── Derived stats ──────────────────────────────────────────────────────
 
   const cycleDay = currentCycle
     ? Math.floor((now.getTime() - new Date(currentCycle.start_date).getTime()) / 86400000) + 1
@@ -378,20 +430,21 @@ export default function PeriodTrackerPage() {
     ? Math.round(history.filter(c => (c.period_logs?.length ?? 0) > 0).map(c => c.period_logs!.length).reduce((a, b) => a + b, 0) / Math.max(history.filter(c => (c.period_logs?.length ?? 0) > 0).length, 1))
     : null;
 
-  // ── Date navigation ────────────────────────────────────────────────────
+  // Days logged in the current viewMonth only
+  const daysLoggedThisMonth = Array.from(periodDays.keys()).filter(ds => {
+    const d = new Date(ds);
+    return d.getFullYear() === viewMonth.getFullYear() && d.getMonth() === viewMonth.getMonth();
+  }).length;
 
-  function prevDay() {
-    setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
-  }
-  function nextDay() {
-    setSelectedDate(d => {
-      const n = new Date(d);
-      n.setDate(n.getDate() + 1);
-      return n <= now ? n : d;
-    });
-  }
+  // The 3 months to display: viewMonth-2, viewMonth-1, viewMonth
+  const months = [-2, -1, 0].map(offset => {
+    const d = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + offset, 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
 
-  // ── Loading skeleton ───────────────────────────────────────────────────
+  const canGoForward = viewMonth < new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // ── Loading skeleton ──────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -401,410 +454,390 @@ export default function PeriodTrackerPage() {
     );
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto">
+    <div className="flex justify-center px-4 py-5">
+      <div className="w-full space-y-4" style={{ maxWidth: gridWidth }}>
 
-      {/* ─── Page header ─── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">Period Tracker</h1>
-        </div>
-        {cycleDay !== null && (
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-rose-500/15 border border-rose-500/25 px-4 py-1.5 text-rose-400 text-sm font-medium">
+        {/* ── Page header ── */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-white text-xl font-bold tracking-tight">Period Tracker</h1>
+            <p className="text-gray-500 text-xs mt-0.5">Log and track your cycle</p>
+          </div>
+          {cycleDay !== null && (
+            <span className="rounded-full bg-rose-500/15 border border-rose-500/25 px-3 py-1 text-rose-400 text-xs font-medium">
               Cycle Day {cycleDay}
             </span>
-          </div>
-        )}
-      </div>
-
-      {/* ─── Month calendar ─── */}
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6">
-
-        {/* Month navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-          >
-            <ChevLeft />
-          </button>
-          <div className="text-center">
-            <h2 className="text-white font-semibold">
-              {viewMonth.toLocaleDateString("en", { month: "long", year: "numeric" })}
-            </h2>
-            <p className="text-gray-600 text-xs mt-0.5">
-              {periodDays.size} day{periodDays.size !== 1 ? "s" : ""} logged this month
-            </p>
-          </div>
-          <button
-            onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-            disabled={viewMonth >= new Date(now.getFullYear(), now.getMonth(), 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-          >
-            <ChevRight />
-          </button>
+          )}
         </div>
 
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 mb-2">
-          {WEEKDAYS.map(w => (
-            <p key={w} className="text-center text-gray-600 text-[11px] font-semibold uppercase tracking-wider py-1">
-              {w}
-            </p>
-          ))}
-        </div>
+        {/* ── 3-month calendar card ── */}
+        <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5">
 
-        {/* Day grid */}
-        <div className="grid grid-cols-7 gap-1.5">
-          {calendarDays.map((d, i) => {
-            if (!d) return <div key={`e${i}`} />;
-            const ds    = toDateStr(d);
-            const log   = periodDays.get(ds);
-            const isP   = !!log;
-            const isSel = ds === selectedStr;
-            const isTod = ds === todayStr;
-            const isFut = d > now;
-            const fl    = log?.flow_level;
-
-            return (
-              <button
-                key={i}
-                onClick={() => !isFut && setSelectedDate(new Date(d))}
-                disabled={isFut}
-                className={[
-                  "relative flex items-center justify-center h-10 rounded-xl text-sm font-medium",
-                  "transition-all duration-150",
-                  isFut   ? "text-gray-700 cursor-not-allowed" : "cursor-pointer",
-                  isSel   ? "ring-2 ring-white/50 ring-offset-1 ring-offset-[#1e1e2a]" : "",
-                  isP && fl !== undefined ? FLOW_BG[fl] : "",
-                  isP && fl !== undefined ? FLOW_TEXT[fl] : "",
-                  !isP && isSel ? "bg-white/10 text-white" : "",
-                  !isP && !isSel && !isFut ? "hover:bg-white/5 text-gray-400" : "",
-                  isTod && !isP && !isSel ? "text-white font-bold" : "",
-                ].join(" ")}
-              >
-                {/* Today dot */}
-                {isTod && (
-                  <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
-                )}
-                {d.getDate()}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 pt-4 border-t border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="flex gap-0.5">
-              {([0,1,2,3,4] as FlowLevel[]).map(l => (
-                <span key={l} className={`w-3 h-3 rounded-sm ${FLOW_BG[l]}`} />
-              ))}
+          {/* Navigation header */}
+          <div className="flex items-center justify-between mb-5">
+            <button
+              onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/8 text-gray-400 hover:text-white transition-colors"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <div className="text-center">
+              <p className="text-white text-sm font-semibold">
+                {new Date(months[0].year, months[0].month).toLocaleDateString("en", { month: "short" })}
+                {" – "}
+                {new Date(months[2].year, months[2].month).toLocaleDateString("en", { month: "long", year: "numeric" })}
+              </p>
+              <p className="text-gray-600 text-[10px] mt-0.5">{daysLoggedThisMonth} day{daysLoggedThisMonth !== 1 ? "s" : ""} logged this month</p>
             </div>
-            <span className="text-gray-500 text-xs">Light → Very Heavy</span>
+            <button
+              onClick={() => setViewMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+              disabled={!canGoForward}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/8 text-gray-400 hover:text-white transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={15} />
+            </button>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span className="text-gray-500 text-xs">Today</span>
+
+          {/* 3 month grids */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {months.map((m, idx) => (
+              <div key={idx} className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+                <MonthCalendar
+                  year={m.year}
+                  month={m.month}
+                  periodDays={periodDays}
+                  selectedStr={selectedStr}
+                  todayStr={todayStr}
+                  now={now}
+                  onSelect={(d) => {
+                    setSelectedDate(d);
+                    // If selected date is outside viewMonth, adjust view
+                    const selMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+                    const vmEnd = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+                    if (selMonth > vmEnd) {
+                      setViewMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+                    }
+                  }}
+                />
+              </div>
+            ))}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm border border-white/40" />
-            <span className="text-gray-500 text-xs">Selected</span>
+
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 pt-4 border-t border-white/5">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-0.5">
+                {([0,1,2,3,4] as FlowLevel[]).map(l => (
+                  <span key={l} className={`w-3 h-3 rounded-sm ${FLOW_BG[l]}`} />
+                ))}
+              </div>
+              <span className="text-gray-500 text-xs">Light → Very Heavy</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              <span className="text-gray-500 text-xs">Today</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm border border-white/30" />
+              <span className="text-gray-500 text-xs">Selected</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ─── 3-column section ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* ── 3-column section ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* ── Left: Cycle stats ── */}
-        <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 flex flex-col gap-5">
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Cycle</p>
-            <h2 className="text-white text-lg font-semibold">
-              {currentCycle ? `Cycle #${currentCycle.cycle_number}` : "No Active Cycle"}
-            </h2>
+          {/* ── Cycle stats ── */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5 flex flex-col gap-5">
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Current Cycle</p>
+              <h2 className="text-white text-lg font-semibold">
+                {currentCycle ? `Cycle #${currentCycle.cycle_number}` : "No Active Cycle"}
+              </h2>
+            </div>
+
+            {/* Cycle day ring */}
+            <div className="flex justify-center">
+              {(() => {
+                const total = avgCycleLength ?? 28;
+                const pct   = cycleDay ? Math.min(cycleDay / total, 1) : 0;
+                const R     = 50;
+                const C     = 2 * Math.PI * R;
+                return (
+                  <div className="relative w-32 h-32">
+                    <svg viewBox="0 0 120 120" className="-rotate-90 w-32 h-32">
+                      <circle cx="60" cy="60" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+                      <circle
+                        cx="60" cy="60" r={R}
+                        fill="none"
+                        stroke="#f43f5e"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={C}
+                        strokeDashoffset={C * (1 - pct)}
+                        style={{ transition: "stroke-dashoffset 0.8s ease" }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      {cycleDay !== null ? (
+                        <>
+                          <span className="text-3xl font-bold text-white leading-none">{cycleDay}</span>
+                          <span className="text-gray-500 text-xs mt-1">of {total} days</span>
+                        </>
+                      ) : (
+                        <span className="text-gray-600 text-sm text-center px-4">Start logging to track</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Stat rows */}
+            <div className="divide-y divide-white/5 text-sm">
+              {currentCycle && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-gray-400">Cycle started</span>
+                  <span className="text-white font-medium">
+                    {new Date(currentCycle.start_date).toLocaleDateString("en", { month: "short", day: "numeric" })}
+                  </span>
+                </div>
+              )}
+              {avgCycleLength && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-gray-400">Avg cycle length</span>
+                  <span className="text-white font-medium">{avgCycleLength} days</span>
+                </div>
+              )}
+              {avgPeriodLength && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-gray-400">Avg period length</span>
+                  <span className="text-white font-medium">{avgPeriodLength} days</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-gray-400">Days logged</span>
+                <span className="text-white font-medium">{daysLoggedThisMonth} this month</span>
+              </div>
+            </div>
+
+            {toDateStr(selectedDate) !== todayStr && (
+              <button
+                onClick={() => setSelectedDate(now)}
+                className="w-full rounded-xl border border-white/5 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Jump to today
+              </button>
+            )}
           </div>
 
-          {/* Cycle day ring */}
-          <div className="flex justify-center">
-            {(() => {
-              const total = avgCycleLength ?? 28;
-              const pct   = cycleDay ? Math.min(cycleDay / total, 1) : 0;
-              const R     = 50;
-              const C     = 2 * Math.PI * R;
-              return (
-                <div className="relative w-32 h-32">
-                  <svg viewBox="0 0 120 120" className="-rotate-90 w-32 h-32">
-                    <circle cx="60" cy="60" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-                    <circle
-                      cx="60" cy="60" r={R}
-                      fill="none"
-                      stroke="#f43f5e"
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={C}
-                      strokeDashoffset={C * (1 - pct)}
-                      style={{ transition: "stroke-dashoffset 0.8s ease" }}
+          {/* ── Log form ── */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5 flex flex-col gap-4">
+
+            {/* Date nav header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Logging</p>
+                <p className="text-white font-semibold">
+                  {selectedDate.toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" })}
+                </p>
+                {toDateStr(selectedDate) === todayStr && (
+                  <span className="text-rose-400 text-xs">Today</span>
+                )}
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; })}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setSelectedDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n <= now ? n : d; })}
+                  disabled={selectedDate >= now}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Flow level */}
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-3">Flow Level</p>
+              <div className="flex gap-1.5">
+                {FLOW_CONFIG.map(f => {
+                  const active = flowLevel === f.value;
+                  const filled = flowLevel !== null && f.value <= flowLevel;
+                  return (
+                    <button
+                      key={f.value}
+                      onClick={() => setFlowLevel(active ? null : f.value)}
+                      className={[
+                        "flex flex-col items-center justify-end gap-2 pt-3 pb-2 px-1.5 rounded-xl flex-1",
+                        "transition-all duration-150 border",
+                        active ? "bg-rose-500/15 border-rose-500/40" : "hover:bg-white/5 border-transparent",
+                      ].join(" ")}
+                      title={f.label}
+                    >
+                      <Droplet level={f.value} filled={filled} active={active} />
+                      <span className={`text-[10px] font-bold leading-none ${active ? "text-rose-400" : "text-gray-600"}`}>
+                        {f.short}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-gray-500 text-[10px] text-center mt-1.5 h-3.5 transition-all">
+                {flowLevel !== null ? FLOW_CONFIG[flowLevel].desc : "Tap a droplet to log your flow"}
+              </p>
+            </div>
+
+            {/* Color picker */}
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-widest mb-3">Color</p>
+              <div className="flex items-center gap-3">
+                {COLOR_CONFIG.map(c => {
+                  const active = color === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      onClick={() => setColor(active ? null : c.value)}
+                      title={c.label}
+                      style={{
+                        backgroundColor: c.bg,
+                        boxShadow: active ? `0 0 0 3px var(--card-bg), 0 0 0 5px ${c.ring}` : "none",
+                      }}
+                      className={`w-8 h-8 rounded-full transition-all duration-150 hover:scale-110 border border-white/10 ${active ? "scale-110" : ""}`}
                     />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    {cycleDay !== null ? (
-                      <>
-                        <span className="text-3xl font-bold text-white leading-none">{cycleDay}</span>
-                        <span className="text-gray-500 text-xs mt-1">of {total} days</span>
-                      </>
-                    ) : (
-                      <span className="text-gray-600 text-sm text-center px-4">Start logging to track</span>
-                    )}
+                  );
+                })}
+                <span className="text-gray-500 text-xs ml-1 min-w-[60px]">
+                  {color ? COLOR_CONFIG.find(c => c.value === color)?.label : ""}
+                </span>
+              </div>
+            </div>
+
+            {/* Clots toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-300 text-sm font-medium">Clots</p>
+                <p className="text-gray-600 text-xs mt-0.5">Blood clots present</p>
+              </div>
+              <button
+                onClick={() => setClots(c => !c)}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${clots ? "bg-rose-500" : "bg-white/10"}`}
+              >
+                <span
+                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200 ${clots ? "left-5" : "left-0.5"}`}
+                />
+              </button>
+            </div>
+
+            {/* Save */}
+            <button
+              onClick={handleSave}
+              disabled={isDemo || saving || flowLevel === null}
+              className={[
+                "w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.99]",
+                saved
+                  ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                  : "bg-white/8 border border-white/10 text-white hover:bg-white/12",
+                isDemo || saving || flowLevel === null ? "opacity-40 cursor-not-allowed" : "",
+              ].join(" ")}
+            >
+              {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo Mode — Sign in to Save" : "Save Log"}
+            </button>
+
+            {!isDemo && flowLevel === null && (
+              <p className="text-gray-600 text-xs text-center -mt-3">Select a flow level to enable saving</p>
+            )}
+          </div>
+
+          {/* ── History ── */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-5 flex flex-col gap-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">History</p>
+                <h2 className="text-white text-lg font-semibold">Past Cycles</h2>
+              </div>
+              <div className="flex flex-col items-end gap-0.5 mt-1">
+                {avgPeriodLength && <span className="text-gray-500 text-xs">Avg period <span className="text-white font-medium">{avgPeriodLength}d</span></span>}
+                {avgCycleLength  && <span className="text-gray-500 text-xs">Avg cycle <span className="text-white font-medium">{avgCycleLength}d</span></span>}
+              </div>
+            </div>
+
+            {history.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-center py-10 px-4">
+                <div>
+                  <Waves size={36} className="text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No history yet.</p>
+                  <p className="text-gray-600 text-xs mt-1">Log your first cycle to see patterns here.</p>
+                </div>
+              </div>
+            ) : (() => {
+              const MAX_PERIOD = 10;
+              const MAX_CYCLE  = Math.max(...history.map(c => c.cycle_length ?? 0), 35);
+              const bars = [...history].reverse();
+              return (
+                <div className="flex flex-col gap-2 flex-1">
+                  {/* Y-axis label + bars */}
+                  <div className="flex items-end gap-1.5 h-36 px-1">
+                    {bars.map(cycle => {
+                      const periodLen = cycle.period_logs?.length ?? 0;
+                      const cycleLen  = cycle.cycle_length ?? 0;
+                      const isOngoing = !cycle.end_date;
+                      const cyclePct  = cycleLen  ? Math.min(cycleLen  / MAX_CYCLE,  1) : 0;
+                      const periodPct = periodLen  ? Math.min(periodLen / MAX_PERIOD, 1) : 0;
+                      return (
+                        <div key={cycle.id} className="flex flex-col items-center gap-1 flex-1 h-full group">
+                          {/* Tooltip */}
+                          <div className="hidden group-hover:flex absolute -translate-y-full mb-1 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-gray-300 z-10 whitespace-nowrap shadow-xl flex-col gap-0.5 pointer-events-none">
+                            <span className="text-white font-semibold">Cycle #{cycle.cycle_number}</span>
+                            <span>Period: {periodLen}d</span>
+                            {cycleLen > 0 && <span>Cycle: {cycleLen}d</span>}
+                          </div>
+                          {/* Bar group */}
+                          <div className="relative flex items-end w-full flex-1">
+                            {/* Cycle length bar (background) */}
+                            {cyclePct > 0 && (
+                              <div
+                                className="absolute bottom-0 left-0 right-0 rounded-t-sm bg-white/[0.05]"
+                                style={{ height: `${cyclePct * 100}%` }}
+                              />
+                            )}
+                            {/* Period length bar (foreground) */}
+                            <div
+                              className={`absolute bottom-0 left-0 right-0 rounded-t-sm transition-all duration-500 ${isOngoing ? "bg-gradient-to-t from-rose-500 to-rose-400/70" : "bg-gradient-to-t from-rose-500/80 to-rose-400/40"}`}
+                              style={{ height: periodPct > 0 ? `${periodPct * 100}%` : "2px", opacity: periodLen === 0 ? 0.2 : 1 }}
+                            />
+                          </div>
+                          <span className="text-[9px] text-gray-600 leading-none">#{cycle.cycle_number}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Axis labels */}
+                  <div className="flex items-center justify-between px-1 border-t border-white/5 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-sm bg-rose-500/70 flex-shrink-0" />
+                      <span className="text-gray-600 text-[10px]">Period days</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-sm bg-white/10 flex-shrink-0" />
+                      <span className="text-gray-600 text-[10px]">Cycle length</span>
+                    </div>
                   </div>
                 </div>
               );
             })()}
           </div>
 
-          {/* Stat rows */}
-          <div className="divide-y divide-white/5 text-sm">
-            {currentCycle && (
-              <div className="flex justify-between items-center py-2.5">
-                <span className="text-gray-400">Cycle started</span>
-                <span className="text-white font-medium">
-                  {new Date(currentCycle.start_date).toLocaleDateString("en", { month: "short", day: "numeric" })}
-                </span>
-              </div>
-            )}
-            {avgCycleLength && (
-              <div className="flex justify-between items-center py-2.5">
-                <span className="text-gray-400">Avg cycle length</span>
-                <span className="text-white font-medium">{avgCycleLength} days</span>
-              </div>
-            )}
-            {avgPeriodLength && (
-              <div className="flex justify-between items-center py-2.5">
-                <span className="text-gray-400">Avg period length</span>
-                <span className="text-white font-medium">{avgPeriodLength} days</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center py-2.5">
-              <span className="text-gray-400">Days logged</span>
-              <span className="text-white font-medium">{periodDays.size} this month</span>
-            </div>
-          </div>
-
-          {/* Quick-jump to today */}
-          {toDateStr(selectedDate) !== todayStr && (
-            <button
-              onClick={() => setSelectedDate(now)}
-              className="w-full rounded-xl border border-white/5 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              Jump to today
-            </button>
-          )}
         </div>
-
-        {/* ── Center: Log form ── */}
-        <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 flex flex-col gap-5">
-
-          {/* Date nav header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Logging</p>
-              <p className="text-white font-semibold">
-                {selectedDate.toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" })}
-              </p>
-              {toDateStr(selectedDate) === todayStr && (
-                <span className="text-rose-400 text-xs">Today</span>
-              )}
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={prevDay}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-              >
-                <ChevLeft size={14} />
-              </button>
-              <button
-                onClick={nextDay}
-                disabled={selectedDate >= now}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
-              >
-                <ChevRight size={14} />
-              </button>
-            </div>
-          </div>
-
-          {/* Flow level */}
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-3">Flow Level</p>
-            <div className="flex gap-1.5">
-              {FLOW_CONFIG.map(f => {
-                const active  = flowLevel === f.value;
-                const filled  = flowLevel !== null && f.value <= flowLevel;
-                return (
-                  <button
-                    key={f.value}
-                    onClick={() => setFlowLevel(active ? null : f.value)}
-                    className={[
-                      "flex flex-col items-center justify-end gap-2 pt-3 pb-2 px-1.5 rounded-xl flex-1",
-                      "transition-all duration-150 border",
-                      active
-                        ? "bg-rose-500/15 border-rose-500/40"
-                        : "hover:bg-white/5 border-transparent",
-                    ].join(" ")}
-                    title={f.label}
-                  >
-                    <Droplet level={f.value} filled={filled} active={active} />
-                    <span className={`text-[10px] font-bold leading-none ${active ? "text-rose-400" : "text-gray-600"}`}>
-                      {f.short}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-gray-500 text-xs text-center mt-2.5 h-4 transition-all">
-              {flowLevel !== null ? FLOW_CONFIG[flowLevel].desc : "Tap a droplet to log your flow"}
-            </p>
-          </div>
-
-          {/* Color picker */}
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-3">Color</p>
-            <div className="flex items-center gap-3">
-              {COLOR_CONFIG.map(c => {
-                const active = color === c.value;
-                return (
-                  <button
-                    key={c.value}
-                    onClick={() => setColor(active ? null : c.value)}
-                    title={c.label}
-                    style={{
-                      backgroundColor: c.bg,
-                      boxShadow: active ? `0 0 0 3px #1e1e2a, 0 0 0 5px ${c.ring}` : "none",
-                    }}
-                    className={`w-8 h-8 rounded-full transition-all duration-150 hover:scale-110 border border-white/10 ${active ? "scale-110" : ""}`}
-                  />
-                );
-              })}
-              <span className="text-gray-500 text-xs ml-1 min-w-[60px]">
-                {color ? COLOR_CONFIG.find(c => c.value === color)?.label : ""}
-              </span>
-            </div>
-          </div>
-
-          {/* Clots toggle */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-300 text-sm font-medium">Clots</p>
-              <p className="text-gray-600 text-xs mt-0.5">Blood clots present</p>
-            </div>
-            <button
-              onClick={() => setClots(c => !c)}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${clots ? "bg-rose-500" : "bg-white/10"}`}
-            >
-              <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200 ${clots ? "left-5" : "left-0.5"}`}
-              />
-            </button>
-          </div>
-
-          {/* Notes */}
-          <div className="flex-1">
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-2">Notes</p>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="How are you feeling today?"
-              rows={3}
-              className="w-full bg-white/[0.04] border border-white/5 rounded-xl px-3 py-2.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-rose-500/40 focus:bg-white/[0.06] resize-none transition-colors"
-            />
-          </div>
-
-          {/* Save */}
-          <button
-            onClick={handleSave}
-            disabled={isDemo || saving || flowLevel === null}
-            className={[
-              "w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.99]",
-              saved
-                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
-                : "bg-gradient-to-r from-rose-500 to-purple-600 text-white hover:opacity-90",
-              isDemo || saving || flowLevel === null ? "opacity-40 cursor-not-allowed" : "",
-            ].join(" ")}
-          >
-            {saved ? <><Check size={14} className="inline mr-1" />Saved</> : saving ? "Saving…" : isDemo ? "Demo Mode — Sign in to Save" : "Save Log"}
-          </button>
-
-          {!isDemo && flowLevel === null && (
-            <p className="text-gray-600 text-xs text-center -mt-3">Select a flow level to enable saving</p>
-          )}
-        </div>
-
-        {/* ── Right: History ── */}
-        <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-6 flex flex-col gap-4">
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">History</p>
-            <h2 className="text-white text-lg font-semibold">Past Cycles</h2>
-          </div>
-
-          {history.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-center py-10 px-4">
-              <div>
-                <Waves size={36} className="text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No history yet.</p>
-                <p className="text-gray-600 text-xs mt-1">Log your first cycle to see patterns here.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {history.map(cycle => {
-                const start       = new Date(cycle.start_date);
-                const periodLen   = cycle.period_logs?.length ?? 0;
-                const cycleLen    = cycle.cycle_length;
-                const isOngoing   = !cycle.end_date;
-
-                return (
-                  <div key={cycle.id} className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 hover:bg-white/[0.05] transition-colors">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white text-sm font-semibold">Cycle #{cycle.cycle_number}</span>
-                        {isOngoing && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-medium">Ongoing</span>
-                        )}
-                      </div>
-                      <span className="text-gray-600 text-xs">
-                        {start.toLocaleDateString("en", { month: "short", day: "numeric" })}
-                      </span>
-                    </div>
-
-                    {/* Period length bar (7 day max) */}
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      {Array.from({ length: 7 }, (_, i) => (
-                        <div
-                          key={i}
-                          className={`h-1.5 flex-1 rounded-full transition-colors ${i < periodLen ? "bg-rose-500/70" : "bg-white/5"}`}
-                        />
-                      ))}
-                      <span className="text-gray-500 text-[10px] flex-shrink-0 w-6 text-right">
-                        {periodLen > 0 ? `${periodLen}d` : "—"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 text-[10px]">Period length</span>
-                      {cycleLen !== null && (
-                        <span className="text-gray-600 text-[10px]">Cycle: {cycleLen} days</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );

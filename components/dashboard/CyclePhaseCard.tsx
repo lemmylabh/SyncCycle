@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { cycleDay, computePhase, PHASE_CONFIG, type Phase } from "@/lib/cycleUtils";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { useTheme } from "@/lib/themeContext";
 
 const SIZE = 76;
 const STROKE = 6;
@@ -24,6 +25,7 @@ export function CyclePhaseCard() {
   const [cycleLen, setCycleLen] = useState(28);
   const [phase, setPhase] = useState<Phase>("follicular");
   const [daysLeft, setDaysLeft] = useState(14);
+  useTheme(); // keep context subscription at top level
 
   useEffect(() => {
     (async () => {
@@ -56,7 +58,7 @@ export function CyclePhaseCard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-4 animate-pulse flex flex-col gap-3 h-full overflow-hidden">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-4 animate-pulse flex flex-col gap-3 h-full overflow-hidden">
         <div className="h-2.5 w-20 bg-white/10 rounded" />
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-2 flex-1">
@@ -80,7 +82,7 @@ export function CyclePhaseCard() {
   const hasCycle = day > 0;
 
   return (
-    <div className={`rounded-2xl border border-white/5 p-4 bg-gradient-to-br ${cfg.gradient} bg-[#1e1e2a] flex flex-col gap-3 h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200`}>
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-4 flex flex-col gap-3 h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
 
       {/* Row 1: label + dot + plus */}
       <div className="flex items-center justify-between">
@@ -146,8 +148,8 @@ export function CyclePhaseCard() {
 
       {/* Row 4: bottom pills */}
       <div className="flex gap-2 flex-wrap mt-auto">
-        <span className="px-3 py-1 rounded-full bg-white/5 text-gray-300 text-xs">Day {day}</span>
-        <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-xs">{daysLeft} days to next period</span>
+        <span className="px-3 py-1 rounded-full bg-white/5 text-gray-300 text-[11px]">Day {day}</span>
+        <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-[11px]">{daysLeft} days to next period</span>
       </div>
     </div>
   );

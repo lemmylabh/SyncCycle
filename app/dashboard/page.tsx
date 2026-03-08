@@ -27,7 +27,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Desktop view (≥ lg) — always 4×2, square cells ──────── */}
-      <div className="hidden lg:flex items-center justify-center p-4 h-[calc(100vh-64px)] overflow-hidden">
+      <div className="hidden lg:flex items-center justify-center p-4 h-[calc(100vh-72px)] overflow-hidden">
         <div
           className="grid gap-4"
           style={{

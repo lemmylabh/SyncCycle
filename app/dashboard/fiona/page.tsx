@@ -10,7 +10,8 @@ import { FionaChat } from "@/components/fiona/FionaChat";
 import { FionaDayCard } from "@/components/fiona/FionaDayCard";
 import { FionaChatHistory } from "@/components/fiona/FionaChatHistory";
 import { FionaMobilePanel } from "@/components/fiona/FionaMobilePanel";
-import { History, CalendarDays, Plus } from "lucide-react";
+import { History, CalendarDays, Plus, Sparkles } from "lucide-react";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 
 // ── Demo data ─────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,7 @@ export default function FionaPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string>("");
   const [userName, setUserName] = useState("there");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Cycle state (for DayCard + welcome card)
   const [currentPhase, setCurrentPhase] = useState<Phase | null>(null);
@@ -100,6 +102,9 @@ export default function FionaPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [sessionsLoading, setSessionsLoading] = useState(true);
+
+  const cellSize = useDashboardLayout();
+  const gridWidth = 4 * cellSize + 3 * 16;
 
   // Mobile UI state
   const [isMobile, setIsMobile] = useState(false);
@@ -141,7 +146,7 @@ export default function FionaPage() {
       const [profileRes, cycleRes] = await Promise.all([
         supabase
           .from("user_profiles")
-          .select("display_name, average_cycle_length, average_period_length")
+          .select("display_name, average_cycle_length, average_period_length, avatar_url")
           .eq("id", session.user.id)
           .maybeSingle(),
         supabase
@@ -158,6 +163,7 @@ export default function FionaPage() {
         if (p.display_name) setUserName(p.display_name.split(" ")[0]);
         setCycleLength(p.average_cycle_length ?? 28);
         setPeriodLength(p.average_period_length ?? 5);
+        if (p.avatar_url) setAvatarUrl(p.avatar_url);
       }
 
       if (cycleRes.data?.start_date) {
@@ -221,6 +227,29 @@ export default function FionaPage() {
     setMessages([]);
     setMobilePanel("none");
   };
+
+  const handleDeleteSession = useCallback(async (id: string) => {
+    if (isDemo) return;
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    if (activeSessionId === id) {
+      setActiveSessionId(null);
+      setMessages([]);
+    }
+    await supabase.from("fiona_messages").delete().eq("session_id", id);
+    await supabase.from("fiona_sessions").delete().eq("id", id);
+  }, [isDemo, activeSessionId]);
+
+  const handleClearAll = useCallback(async () => {
+    if (isDemo) return;
+    const ids = sessions.map((s) => s.id);
+    setSessions([]);
+    setActiveSessionId(null);
+    setMessages([]);
+    for (const id of ids) {
+      await supabase.from("fiona_messages").delete().eq("session_id", id);
+    }
+    await supabase.from("fiona_sessions").delete().in("id", ids);
+  }, [isDemo, sessions]);
 
   // ── Send message ──
   const handleSend = useCallback(
@@ -305,90 +334,76 @@ export default function FionaPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  const rightPanel = (
-    <>
-      {/* Day Card — top 50% */}
-      <div className="flex-1 min-h-0 border-b border-white/5 overflow-hidden">
-        <FionaDayCard
-          userId={userId}
-          cycleDay={currentCycleDay}
-          cycleLength={cycleLength}
-          periodLength={periodLength}
-          startDate={startDate}
-          isDemo={isDemo}
-        />
-      </div>
-      {/* Chat History — bottom 50% */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <FionaChatHistory
-          sessions={sessions}
-          activeSessionId={activeSessionId}
-          onSelectSession={(id) => {
-            loadSession(id);
-            setMobilePanel("none");
-          }}
-          onNewSession={handleNewSession}
-          isLoading={sessionsLoading}
-        />
-      </div>
-    </>
-  );
-
   return (
     <>
       {/* ── Desktop Layout ──────────────────────────────────────────────────── */}
       {!isMobile && (
-        <div className="h-[calc(100vh-56px)] grid grid-cols-[1fr_360px] overflow-hidden">
-          {/* Left: Chat */}
-          <div className="flex flex-col border-r border-white/5 overflow-hidden">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between px-5 py-4 border-b border-white/5 flex-shrink-0"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
+        <div className="flex justify-center px-4 py-4 h-[calc(100vh-72px)] overflow-hidden">
+          <div
+            className="w-full grid gap-4 overflow-hidden"
+            style={{ maxWidth: gridWidth, gridTemplateColumns: "1fr 280px" }}
+          >
+            {/* Left: Chat panel */}
+            <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden">
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border)] flex-shrink-0"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <Sparkles size={15} className="text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-white font-semibold text-sm leading-tight">Ask Fiona</h1>
+                    <p className="text-gray-500 text-[11px]">Your AI wellness coach</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-white font-bold text-base leading-tight">Ask Fiona</h1>
-                  <p className="text-gray-500 text-[11px]">Your AI wellness coach</p>
+                <div className="flex items-center gap-2">
+                  {isDemo && (
+                    <span className="text-xs bg-violet-500/15 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-full">
+                      Demo
+                    </span>
+                  )}
+                  <button
+                    onClick={handleNewSession}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors"
+                  >
+                    <Plus size={12} />
+                    New Chat
+                  </button>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {isDemo && (
-                  <span className="text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded-full">
-                    Demo
-                  </span>
-                )}
-                <button
-                  onClick={handleNewSession}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/20 text-rose-400 transition-colors"
-                >
-                  <Plus size={12} />
-                  New Chat
-                </button>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            {/* Chat body */}
-            <FionaChat
-              messages={messages}
-              isStreaming={isStreaming}
-              streamingContent={streamingContent}
-              onSend={handleSend}
-              userName={userName}
-              currentPhase={currentPhase}
-              disabled={isStreaming}
-            />
-          </div>
+              {/* Chat body */}
+              <FionaChat
+                messages={messages}
+                isStreaming={isStreaming}
+                streamingContent={streamingContent}
+                onSend={handleSend}
+                userName={userName}
+                avatarUrl={avatarUrl}
+                currentPhase={currentPhase}
+                disabled={isStreaming}
+              />
+            </div>
 
-          {/* Right: Day Card + History */}
-          <div className="flex flex-col overflow-hidden">
-            {rightPanel}
+            {/* Right: Chat History — full height */}
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden">
+              <FionaChatHistory
+                sessions={sessions}
+                activeSessionId={activeSessionId}
+                onSelectSession={(id) => {
+                  loadSession(id);
+                  setMobilePanel("none");
+                }}
+                onNewSession={handleNewSession}
+                onDeleteSession={handleDeleteSession}
+                onClearAll={handleClearAll}
+                isLoading={sessionsLoading}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -407,10 +422,8 @@ export default function FionaPage() {
             className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0"
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                <Sparkles size={15} className="text-white" />
               </div>
               <div>
                 <h1 className="text-white font-bold text-sm">Ask Fiona</h1>

@@ -69,7 +69,7 @@ export function ProfileCard() {
 
   if (loading) {
     return (
-      <div className="row-span-2 rounded-2xl border border-white/5 bg-[#1e1e2a] overflow-hidden flex flex-col h-full animate-pulse">
+      <div className="row-span-2 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden flex flex-col h-full animate-pulse">
         <div className="h-52 bg-white/5 flex-shrink-0" />
         <div className="p-5 flex flex-col gap-4 flex-1">
           <div className="h-4 w-32 bg-white/10 rounded" />
@@ -92,7 +92,7 @@ export function ProfileCard() {
 
   return (
     <div className="row-span-2 h-full">
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] overflow-hidden flex flex-col h-full relative">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden flex flex-col h-full relative">
         {/* Edit button */}
         <button
           onClick={() => setShowModal(true)}
@@ -118,7 +118,7 @@ export function ProfileCard() {
             </div>
           )}
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e2a] via-[#1e1e2a]/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e2a] via-[#1e1e2a]/20 to-transparent pointer-events-none profile-overlay" />
           {/* Name + pronouns overlay */}
           <div className="absolute bottom-0 left-0 p-4">
             <div className="flex items-baseline gap-2">

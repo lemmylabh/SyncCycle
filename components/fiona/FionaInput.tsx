@@ -67,7 +67,7 @@ export function FionaInput({ onSend, isStreaming, currentPhase, disabled }: Fion
 
   return (
     <div className="px-4 pb-4 pt-2 flex-shrink-0">
-      <div className="rounded-2xl border border-white/8 bg-[#1a1a24] focus-within:border-white/15 transition-colors shadow-sm">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] focus-within:border-white/15 transition-colors shadow-sm">
         {/* Textarea */}
         <textarea
           ref={textareaRef}
@@ -99,10 +99,10 @@ export function FionaInput({ onSend, isStreaming, currentPhase, disabled }: Fion
             </button>
 
             {showContextMenu && (
-              <div className="absolute bottom-full mb-2 left-0 bg-[#1e1e2a] border border-white/10 rounded-xl overflow-hidden shadow-xl z-10 min-w-[140px]">
+              <div className="absolute bottom-full mb-2 left-0 bg-[var(--card-bg)] border border-[var(--border)] rounded-xl overflow-hidden shadow-xl z-10 min-w-[140px]">
                 <button
                   onClick={() => { setContextIdx(null); setShowContextMenu(false); }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${contextIdx === null ? "text-rose-400 bg-rose-500/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
+                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${contextIdx === null ? "text-violet-400 bg-violet-500/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
                 >
                   No context
                 </button>
@@ -110,7 +110,7 @@ export function FionaInput({ onSend, isStreaming, currentPhase, disabled }: Fion
                   <button
                     key={ctx.label}
                     onClick={() => { setContextIdx(i); setShowContextMenu(false); }}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${contextIdx === i ? "text-rose-400 bg-rose-500/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${contextIdx === i ? "text-violet-400 bg-violet-500/10" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
                   >
                     {ctx.label}
                   </button>
@@ -126,7 +126,7 @@ export function FionaInput({ onSend, isStreaming, currentPhase, disabled }: Fion
             disabled={!canSend}
             className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 flex-shrink-0 ${
               canSend
-                ? "bg-gradient-to-br from-rose-600 to-purple-600 text-white hover:opacity-90 active:scale-95 shadow-lg shadow-purple-500/20"
+                ? "bg-gradient-to-br from-violet-600 to-purple-700 text-white hover:opacity-90 active:scale-95 shadow-lg shadow-violet-500/20"
                 : "bg-white/5 text-gray-600 cursor-not-allowed"
             }`}
           >

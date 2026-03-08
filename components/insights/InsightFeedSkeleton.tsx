@@ -2,7 +2,7 @@
 
 function SkeletonCard({ wide }: { wide?: boolean }) {
   return (
-    <div className="bg-[#1e1e2a] rounded-2xl border border-white/5 p-4 space-y-3 animate-pulse">
+    <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] p-4 space-y-3 animate-pulse">
       {/* Hashtag badges */}
       <div className="flex gap-2">
         <div className="h-6 w-16 rounded-lg bg-white/5" />

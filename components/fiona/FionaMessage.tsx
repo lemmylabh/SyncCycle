@@ -1,11 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 interface FionaMessageProps {
   role: "user" | "assistant";
   content: string;
   isStreaming?: boolean;
+  userName?: string;
+  avatarUrl?: string | null;
 }
 
 // Minimal inline markdown renderer — handles bold, italic, bullets, newlines
@@ -19,7 +23,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       const content = line.slice(2);
       return (
         <div key={lineIdx} className="flex items-start gap-2 my-0.5">
-          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-rose-400/60 flex-shrink-0" />
+          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-violet-400/60 flex-shrink-0" />
           <span>{parseInline(content)}</span>
         </div>
       );
@@ -64,17 +68,28 @@ function parseInline(text: string): React.ReactNode {
   return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
 }
 
-export function FionaMessage({ role, content, isStreaming }: FionaMessageProps) {
+export function FionaMessage({ role, content, isStreaming, userName = "", avatarUrl }: FionaMessageProps) {
+  const initials = userName.slice(0, 2).toUpperCase() || "U";
+
   if (role === "user") {
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="flex justify-end px-4 py-1"
+        className="flex items-end justify-end gap-2 px-4 py-1"
       >
-        <div className="max-w-[75%] bg-gradient-to-br from-rose-600/80 to-purple-600/80 text-white text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-tr-sm border border-white/10 shadow-lg">
+        <div className="max-w-[75%] bg-gradient-to-br from-violet-600/80 to-purple-700/80 text-white text-xs leading-relaxed px-4 py-3 rounded-2xl rounded-tr-sm border border-white/10 shadow-lg">
           {content}
+        </div>
+        <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden ring-2 ring-white/10">
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt={userName} width={28} height={28} className="object-cover w-full h-full" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-[9px] font-semibold">
+              {initials}
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -88,21 +103,15 @@ export function FionaMessage({ role, content, isStreaming }: FionaMessageProps) 
       className="flex items-start gap-3 px-4 py-1"
     >
       {/* Fiona avatar */}
-      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-purple-500/20">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-white">
-          <path
-            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-            fill="currentColor"
-            opacity="0.9"
-          />
-        </svg>
+      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-violet-500/20">
+        <Sparkles size={14} className="text-white" />
       </div>
 
       {/* Bubble */}
-      <div className="max-w-[85%] bg-[#1e1e2a] border border-white/5 text-gray-200 text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
+      <div className="max-w-[85%] bg-[var(--card-bg)] border border-[var(--border)] text-gray-300 text-xs leading-relaxed px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
         {renderMarkdown(content)}
         {isStreaming && (
-          <span className="inline-block w-1 h-4 bg-rose-400/70 rounded-sm animate-pulse ml-0.5 align-middle" />
+          <span className="inline-block w-1 h-3.5 bg-violet-400/70 rounded-sm animate-pulse ml-0.5 align-middle" />
         )}
       </div>
     </motion.div>

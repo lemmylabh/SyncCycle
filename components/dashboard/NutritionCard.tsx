@@ -66,7 +66,7 @@ export function NutritionCard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5 animate-pulse space-y-3 h-full">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-5 animate-pulse space-y-3 h-full">
         <div className="flex justify-between">
           <div className="space-y-2">
             <div className="h-2 w-16 bg-white/10 rounded" />
@@ -90,7 +90,7 @@ export function NutritionCard() {
   const calPct = calories ? Math.min((calories / CALORIE_GOAL) * 100, 100) : 0;
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#1e1e2a] p-5 flex flex-col gap-4 h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-5 flex flex-col gap-4 h-full overflow-hidden hover:scale-[1.01] transition-transform duration-200">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

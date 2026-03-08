@@ -28,8 +28,8 @@ export function InsightLoadPrevious({ dates, selectedDate, onSelect }: InsightLo
           onClick={() => onSelect(date)}
           className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
             selectedDate === date
-              ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
-              : "bg-white/5 text-gray-400 border-white/8 hover:bg-white/10 hover:text-white"
+              ? "bg-white/10 text-white border-white/20"
+              : "bg-white/5 text-gray-500 border-white/8 hover:bg-white/8 hover:text-gray-300"
           }`}
         >
           {formatDateChip(date)}

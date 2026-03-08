@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 import {
   type LucideIcon,
-  BookOpen, Check, Moon, PenLine, Sparkles, Sprout, Waves,
+  BookOpen, Check, ChevronLeft, ChevronRight, Moon, PenLine, Sparkles, Sprout, Waves,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -116,6 +117,8 @@ export default function JournalPage() {
   const isDemo =
     searchParams.get("demo") === "true" ||
     (typeof window !== "undefined" && sessionStorage.getItem("demo") === "true");
+  const cellSize  = useDashboardLayout();
+  const gridWidth = 4 * cellSize + 3 * 16;
 
   // Date
   const [selectedDate, setSelectedDate] = useState(localDateStr(new Date()));
@@ -268,184 +271,153 @@ export default function JournalPage() {
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-full bg-[#0f0f13] flex flex-col lg:flex-row">
-      {/* ── Sidebar: entry list ─────────────────────────────────────────── */}
-      <aside className="w-full lg:w-64 xl:w-72 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-white/5 bg-[#0f0f13] lg:h-full lg:overflow-y-auto">
-        <div className="p-4 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-amber-400" />
-            <h1 className="text-white font-bold text-sm tracking-tight">Daily Journal</h1>
-            {isDemo && (
-              <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full ml-auto">
-                Demo
-              </span>
-            )}
+    <div className="flex justify-center px-4 py-5">
+      <div className="w-full space-y-4" style={{ maxWidth: gridWidth }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-white text-xl font-bold tracking-tight">Daily Journal</h1>
+            <p className="text-gray-500 text-xs mt-0.5">{entries.length} {entries.length === 1 ? "entry" : "entries"}</p>
           </div>
-          <p className="text-gray-500 text-xs mt-1 ml-6">
-            {entries.length} {entries.length === 1 ? "entry" : "entries"}
-          </p>
-        </div>
-
-        {/* New entry button */}
-        <div className="p-3">
-          <button
-            onClick={() => selectDate(localDateStr(new Date()))}
-            className="w-full py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-amber-600/80 to-orange-500/80 text-white hover:opacity-90 transition-opacity"
-          >
-            + Today&apos;s Entry
-          </button>
-        </div>
-
-        {/* Entry list */}
-        <div className="px-3 pb-4 space-y-1">
-          {entries.length === 0 ? (
-            <p className="text-gray-600 text-xs text-center py-8">No entries yet</p>
-          ) : (
-            entries.map(entry => {
-              const active = entry.log_date === selectedDate;
-              return (
-                <button
-                  key={entry.log_date}
-                  onClick={() => selectDate(entry.log_date)}
-                  className={`w-full text-left p-3 rounded-xl transition-all ${
-                    active
-                      ? "bg-amber-500/15 border border-amber-500/30"
-                      : "hover:bg-white/[0.04] border border-transparent"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className={`text-xs font-semibold ${active ? "text-amber-300" : "text-gray-300"}`}>
-                      {formatShort(entry.log_date)}
-                    </span>
-                    <span className="text-[10px] text-gray-600">
-                      {wordCount(entry.content)}w
-                    </span>
-                  </div>
-                  <p className="text-gray-500 text-[11px] leading-relaxed line-clamp-2">
-                    {excerpt(entry.content, 80)}
-                  </p>
-                </button>
-              );
-            })
+          {isDemo && (
+            <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">Demo</span>
           )}
         </div>
-      </aside>
 
-      {/* ── Main editor ─────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {loading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Editor header */}
-            <div className="px-6 pt-6 pb-4 border-b border-white/5 flex-shrink-0">
-              {/* Date nav */}
-              <div className="flex items-center gap-3 mb-4">
-                <button
-                  onClick={() => selectDate(localDateStr(addDays(new Date(selectedDate + "T00:00:00"), -1)))}
-                  className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all text-sm"
-                >
-                  ‹
-                </button>
-                <div className="flex-1">
-                  <h2 className="text-white font-bold text-base">{formatDay(selectedDate)}</h2>
-                  {isToday && <p className="text-amber-400 text-xs">Today</p>}
-                </div>
-                <button
-                  onClick={() => {
-                    const next = addDays(new Date(selectedDate + "T00:00:00"), 1);
-                    if (next <= new Date()) selectDate(localDateStr(next));
-                  }}
-                  disabled={isToday}
-                  className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all text-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  ›
-                </button>
-              </div>
+        {/* Two-col layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4 items-start">
 
-              {/* Phase banner + meta row */}
-              <div className="flex items-center gap-3 flex-wrap">
-                {phase && cycleInfo && (
-                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${phase.bg} ${phase.border} ${phase.color}`}>
-                    <phase.Icon size={12} />
-                    <span>Day {cycleInfo.cycle_day} · {phase.label}</span>
-                  </div>
-                )}
-                <div className="ml-auto flex items-center gap-3">
-                  {/* Word count */}
-                  <span className="text-gray-600 text-xs">{wc} {wc === 1 ? "word" : "words"}</span>
+          {/* ── Sidebar ── */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] overflow-hidden">
+            {/* New entry */}
+            <div className="p-3 border-b border-white/5">
+              <button
+                onClick={() => selectDate(localDateStr(new Date()))}
+                className="w-full py-2 rounded-xl text-xs font-semibold bg-white/8 border border-white/10 text-white hover:bg-white/12 transition-colors"
+              >
+                + Today&apos;s Entry
+              </button>
+            </div>
 
-                  {/* Save status */}
-                  {saveStatus === "saving" && (
-                    <span className="text-amber-400 text-xs flex items-center gap-1">
-                      <span className="w-3 h-3 rounded-full border border-amber-400 border-t-transparent animate-spin" />
-                      Saving…
-                    </span>
-                  )}
-                  {saveStatus === "saved" && (
-                    <span className="text-green-400 text-xs flex items-center gap-1">
-                      <Check size={12} />Saved
-                    </span>
-                  )}
-                  {saveStatus === "error" && (
-                    <span className="text-red-400 text-xs">Save failed</span>
-                  )}
-                  {isDirty && saveStatus === "idle" && (
-                    <span className="text-gray-600 text-xs">Unsaved</span>
-                  )}
-
-                  {/* Manual save */}
+            {/* Entry list */}
+            <div className="p-2 space-y-0.5 max-h-[60vh] overflow-y-auto premium-scroll">
+              {entries.length === 0 ? (
+                <p className="text-gray-600 text-xs text-center py-8">No entries yet</p>
+              ) : entries.map(entry => {
+                const active = entry.log_date === selectedDate;
+                return (
                   <button
-                    onClick={() => save(content)}
-                    disabled={saving || !isDirty || !content.trim() || isDemo}
-                    className="px-3 py-1 rounded-lg text-xs font-medium bg-amber-600/80 hover:bg-amber-600 text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    key={entry.log_date}
+                    onClick={() => selectDate(entry.log_date)}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all ${
+                      active ? "bg-amber-500/15 border border-amber-500/30" : "hover:bg-white/[0.04] border border-transparent"
+                    }`}
                   >
-                    {isDemo ? "Demo" : "Save"}
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-xs font-semibold ${active ? "text-amber-300" : "text-gray-300"}`}>
+                        {formatShort(entry.log_date)}
+                      </span>
+                      <span className="text-[10px] text-gray-600">{wordCount(entry.content)}w</span>
+                    </div>
+                    <p className="text-gray-500 text-[11px] leading-relaxed line-clamp-2">{excerpt(entry.content, 72)}</p>
                   </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Editor ── */}
+          <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] overflow-hidden flex flex-col">
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+              </div>
+            ) : (
+              <>
+                {/* Editor header */}
+                <div className="px-5 pt-5 pb-4 border-b border-white/5 flex-shrink-0">
+                  {/* Date nav */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <button
+                      onClick={() => selectDate(localDateStr(addDays(new Date(selectedDate + "T00:00:00"), -1)))}
+                      className="w-7 h-7 rounded-lg hover:bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all"
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                    <div className="flex-1">
+                      <h2 className="text-white font-bold text-sm">{formatDay(selectedDate)}</h2>
+                      {isToday && <p className="text-amber-400 text-xs">Today</p>}
+                    </div>
+                    <button
+                      onClick={() => { const next = addDays(new Date(selectedDate + "T00:00:00"), 1); if (next <= new Date()) selectDate(localDateStr(next)); }}
+                      disabled={isToday}
+                      className="w-7 h-7 rounded-lg hover:bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+
+                  {/* Phase + meta */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {phase && cycleInfo && (
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium ${phase.bg} ${phase.border} ${phase.color}`}>
+                        <phase.Icon size={11} />
+                        <span>Day {cycleInfo.cycle_day} · {phase.label}</span>
+                      </div>
+                    )}
+                    <div className="ml-auto flex items-center gap-3">
+                      <span className="text-gray-600 text-xs">{wc} {wc === 1 ? "word" : "words"}</span>
+                      {saveStatus === "saving" && (
+                        <span className="text-amber-400 text-xs flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full border border-amber-400 border-t-transparent animate-spin" />Saving…
+                        </span>
+                      )}
+                      {saveStatus === "saved" && <span className="text-emerald-400 text-xs flex items-center gap-1"><Check size={11} />Saved</span>}
+                      {saveStatus === "error" && <span className="text-red-400 text-xs">Save failed</span>}
+                      {isDirty && saveStatus === "idle" && <span className="text-gray-600 text-xs">Unsaved</span>}
+                      <button
+                        onClick={() => save(content)}
+                        disabled={saving || !isDirty || !content.trim() || isDemo}
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/8 border border-white/10 text-white hover:bg-white/12 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {isDemo ? "Demo" : "Save"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Textarea */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {content === "" && !loading && (
-                <p className="text-gray-600 text-sm mb-3 italic flex items-center gap-1.5">
-                  <PenLine size={14} />{PROMPTS[promptIdx]}
-                </p>
-              )}
-              <textarea
-                ref={textareaRef}
-                value={content}
-                onChange={e => setContent(e.target.value)}
-                onBlur={() => { if (isDirty && content.trim()) void save(content); }}
-                placeholder={`Start writing… ${PROMPTS[promptIdx]}`}
-                className="w-full min-h-[60vh] bg-transparent text-white text-base leading-relaxed placeholder-gray-700 resize-none focus:outline-none"
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-              />
-            </div>
+                {/* Textarea */}
+                <div className="flex-1 p-5">
+                  {content === "" && !loading && (
+                    <p className="text-gray-600 text-sm mb-3 italic flex items-center gap-1.5">
+                      <PenLine size={13} />{PROMPTS[promptIdx]}
+                    </p>
+                  )}
+                  <textarea
+                    ref={textareaRef}
+                    value={content}
+                    onChange={e => setContent(e.target.value)}
+                    onBlur={() => { if (isDirty && content.trim()) void save(content); }}
+                    placeholder={`Start writing… ${PROMPTS[promptIdx]}`}
+                    className="w-full min-h-[400px] bg-transparent text-white text-sm leading-relaxed placeholder-gray-700 resize-none focus:outline-none"
+                    style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                  />
+                </div>
 
-            {/* Footer bar */}
-            <div className="px-6 py-3 border-t border-white/5 flex-shrink-0 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 text-xs">{wc} words</span>
-                {content.trim() && (
-                  <span className="text-gray-600 text-xs">
-                    ~{Math.ceil(wc / 200)} min read
-                  </span>
-                )}
-              </div>
-              {isDemo && (
-                <span className="text-gray-600 text-xs">Demo Mode — Sign in to save entries</span>
-              )}
-              {!isDemo && (
-                <span className="text-gray-600 text-xs">Auto-saves as you type</span>
-              )}
-            </div>
-          </>
-        )}
-      </main>
+                {/* Footer */}
+                <div className="px-5 py-3 border-t border-white/5 flex-shrink-0 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600 text-xs">{wc} words</span>
+                    {content.trim() && <span className="text-gray-600 text-xs">~{Math.ceil(wc / 200)} min read</span>}
+                  </div>
+                  <span className="text-gray-600 text-xs">{isDemo ? "Demo Mode — Sign in to save" : "Auto-saves as you type"}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

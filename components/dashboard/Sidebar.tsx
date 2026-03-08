@@ -3,6 +3,20 @@
 import { usePathname, useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Sparkles,
+  Droplets,
+  HeartPulse,
+  Smile,
+  BookOpen,
+  UtensilsCrossed,
+  Dumbbell,
+  Moon,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,43 +36,43 @@ interface SidebarContentProps {
   collapsed?: boolean;
 }
 
-const navSections = [
+const navSections: { label: string; items: { Icon: LucideIcon; label: string; href: string }[] }[] = [
   {
     label: "MAIN",
     items: [
-      { icon: "▣", label: "Dashboard", href: "/dashboard" },
-      { icon: "◈", label: "Insights", href: "/dashboard/insights" },
-      { icon: "✦", label: "Ask Fiona", href: "/dashboard/fiona" },
+      { Icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+      { Icon: TrendingUp,      label: "Insights",  href: "/dashboard/insights" },
+      { Icon: Sparkles,        label: "Ask Fiona", href: "/dashboard/fiona" },
     ],
   },
   {
     label: "CYCLE",
     items: [
-      { icon: "●", label: "Period", href: "/dashboard/period" },
-      { icon: "♡", label: "Symptoms", href: "/dashboard/symptoms" },
-      { icon: "✦", label: "Vibe Check", href: "/dashboard/vibe-check" },
-      { icon: "✦", label: "Journal", href: "/dashboard/journal" },
+      { Icon: Droplets,   label: "Period",     href: "/dashboard/period" },
+      { Icon: HeartPulse, label: "Symptoms",   href: "/dashboard/symptoms" },
+      { Icon: Smile,      label: "Vibe Check", href: "/dashboard/vibe-check" },
+      { Icon: BookOpen,   label: "Journal",    href: "/dashboard/journal" },
     ],
   },
   {
     label: "LIFESTYLE",
     items: [
-      { icon: "⊕", label: "Nutrition", href: "/dashboard/nutrition" },
-      { icon: "◎", label: "Fitness", href: "/dashboard/fitness" },
-      { icon: "☽", label: "Sleep", href: "/dashboard/sleep" },
+      { Icon: UtensilsCrossed, label: "Nutrition", href: "/dashboard/nutrition" },
+      { Icon: Dumbbell,        label: "Fitness",   href: "/dashboard/fitness" },
+      { Icon: Moon,            label: "Sleep",     href: "/dashboard/sleep" },
     ],
   },
 ];
 
-const bottomItems = [
-  { icon: "⚙", label: "Settings", href: "/dashboard/settings" },
+const bottomItems: { Icon: LucideIcon; label: string; href: string }[] = [
+  { Icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
 function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, shouldReduceMotion, collapsed }: SidebarContentProps) {
   return (
-    <div className="flex flex-col h-full bg-[#161620]">
+    <div className="flex flex-col h-full bg-[var(--sidebar-bg)] sidebar-panel">
       {/* Logo */}
-      <div className={`flex items-center border-b border-white/5 ${collapsed ? "justify-center px-2 py-3" : "gap-2.5 px-6 py-3"}`}>
+      <div className={`h-16 flex items-center border-b border-white/5 ${collapsed ? "justify-center px-2" : "gap-2.5 px-6"}`}>
         <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-7 h-7 object-contain flex-shrink-0" />
         {!collapsed && (
           <span className="text-white font-light tracking-[0.25em] text-base">Syncycle<span className="text-white/50"></span></span>
@@ -84,14 +98,14 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
                       <>
                         <motion.div
                           layoutId={`${instanceId}-activeNav`}
-                          className="absolute inset-0 rounded-lg bg-rose-500/20"
+                          className="absolute inset-0 rounded-lg bg-violet-500/20"
                           transition={{
                             type: "tween",
                             duration: shouldReduceMotion ? 0 : 0.2,
                             ease: "easeInOut",
                           }}
                         />
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-rose-500 rounded-full z-10" />
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-violet-500 rounded-full z-10" />
                       </>
                     )}
                     <a
@@ -99,13 +113,13 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
                       onClick={onClose}
                       className={
                         collapsed
-                          ? `relative z-10 flex items-center justify-center px-2 py-1.5 rounded-lg transition-colors ${isActive ? "text-rose-400" : "text-gray-400 hover:bg-white/5 hover:text-white"}`
+                          ? `relative z-10 flex items-center justify-center px-2 py-1.5 rounded-lg transition-colors ${isActive ? "text-violet-400" : "text-gray-400 hover:bg-white/5 hover:text-white"}`
                           : isActive
-                            ? "relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-lg text-rose-400 font-medium text-sm"
+                            ? "relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-lg text-violet-400 font-medium text-sm"
                             : "flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm"
                       }
                     >
-                      <span className="text-base w-5 text-center flex-shrink-0">{item.icon}</span>
+                      <item.Icon size={16} className="flex-shrink-0" />
                       {!collapsed && item.label}
                     </a>
                     {/* Tooltip on hover when collapsed */}
@@ -131,7 +145,7 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
               onClick={onClose}
               className={`flex items-center rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm ${collapsed ? "justify-center px-2 py-1.5" : "gap-3 px-3 py-1.5"}`}
             >
-              <span className="text-base w-5 text-center">{item.icon}</span>
+              <item.Icon size={16} className="flex-shrink-0" />
               {!collapsed && item.label}
             </a>
             {collapsed && (

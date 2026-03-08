@@ -37,7 +37,7 @@ export function InsightCard({
       {/* Card */}
       <motion.div
         layout
-        className="bg-[#1e1e2a] rounded-2xl border border-white/5 overflow-hidden"
+        className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] overflow-hidden hover:scale-[1.01] transition-transform duration-200"
         transition={{ duration: 0.25, ease: "easeInOut" }}
       >
         {/* Header: hashtags + Ask Fiona */}

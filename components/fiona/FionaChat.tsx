@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Sunrise, Sun, Moon } from "lucide-react";
 import { FionaMessage } from "./FionaMessage";
 import { FionaInput } from "./FionaInput";
 import { ChatMessage } from "@/lib/fionaUtils";
@@ -13,6 +14,7 @@ interface FionaChatProps {
   streamingContent: string;
   onSend: (text: string) => void;
   userName: string;
+  avatarUrl?: string | null;
   currentPhase: Phase | null;
   disabled?: boolean;
 }
@@ -35,7 +37,7 @@ function WelcomeCard({
 }) {
   const hour = typeof window !== "undefined" ? new Date().getHours() : 9;
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const moon = hour < 12 ? "🌅" : hour < 17 ? "☀️" : "🌙";
+  const TimeIcon = hour < 12 ? Sunrise : hour < 17 ? Sun : Moon;
 
   const phaseInfo = currentPhase ? PHASE_CONFIG[currentPhase] : null;
   const ringColor = phaseInfo?.ring ?? "#a855f7";
@@ -47,21 +49,11 @@ function WelcomeCard({
       transition={{ duration: 0.4 }}
       className="mx-4 mt-6 mb-4"
     >
-      {/* Greeting card with phase ring glow */}
-      <div
-        className="rounded-2xl p-px"
-        style={{
-          background: `linear-gradient(135deg, ${ringColor}40, ${ringColor}15, transparent)`,
-          boxShadow: `0 0 40px ${ringColor}15`,
-        }}
-      >
-        <div className="rounded-[15px] bg-[#1a1a24] p-5">
+      {/* Greeting card */}
+      <div className="rounded-2xl bg-[var(--card-bg)] border border-[var(--border)] p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ background: `${ringColor}20` }}
-            >
-              {moon}
+            <div className="flex-shrink-0">
+              <TimeIcon size={22} style={{ color: ringColor }} />
             </div>
             <div>
               <h2 className="text-white font-semibold text-base leading-tight">
@@ -82,7 +74,6 @@ function WelcomeCard({
           <p className="text-gray-400 text-sm leading-relaxed">
             I&apos;m Fiona, your cycle-aware wellness coach. I have access to your health data and I&apos;m here to help you understand your patterns and feel your best.
           </p>
-        </div>
       </div>
 
       {/* Suggestion chips */}
@@ -107,6 +98,7 @@ export function FionaChat({
   streamingContent,
   onSend,
   userName,
+  avatarUrl,
   currentPhase,
   disabled,
 }: FionaChatProps) {
@@ -123,7 +115,7 @@ export function FionaChat({
       {/* Messages area */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-2"
+        className="flex-1 overflow-y-auto premium-scroll py-2"
       >
         <AnimatePresence initial={false}>
           {messages.length === 0 && !isStreaming ? (
@@ -135,7 +127,7 @@ export function FionaChat({
           ) : (
             <>
               {messages.map((msg) => (
-                <FionaMessage key={msg.id} role={msg.role} content={msg.content} />
+                <FionaMessage key={msg.id} role={msg.role} content={msg.content} userName={userName} avatarUrl={avatarUrl} />
               ))}
               {isStreaming && streamingContent && (
                 <FionaMessage
@@ -143,6 +135,8 @@ export function FionaChat({
                   role="assistant"
                   content={streamingContent}
                   isStreaming
+                  userName={userName}
+                  avatarUrl={avatarUrl}
                 />
               )}
               {isStreaming && !streamingContent && (
@@ -151,16 +145,14 @@ export function FionaChat({
                   animate={{ opacity: 1 }}
                   className="flex items-center gap-3 px-4 py-2"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                    </svg>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center flex-shrink-0">
+                    <Sparkles size={13} className="text-white" />
                   </div>
                   <div className="flex gap-1 items-center h-8">
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 rounded-full bg-rose-400/60"
+                        className="w-1.5 h-1.5 rounded-full bg-violet-400/60"
                         style={{
                           animation: `bounce 1.2s infinite`,
                           animationDelay: `${i * 0.2}s`,

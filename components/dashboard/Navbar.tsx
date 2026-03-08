@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
+import { Settings, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { ThemeSelector } from "@/components/dashboard/ThemeSelector";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
 
 const PAGE_NAMES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -16,18 +20,24 @@ const PAGE_NAMES: Record<string, string> = {
   "/dashboard/sleep": "Sleep",
   "/dashboard/settings": "Settings",
   "/dashboard/fiona": "Ask Fiona",
+  "/dashboard/community": "Community",
+  "/dashboard/marketplace": "Marketplace",
+  "/dashboard/whats-next": "What's Next",
 };
 
 interface NavbarProps {
   onMenuToggle: () => void;
   userInitials: string;
+  avatarUrl?: string | null;
 }
 
-export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
+export function Navbar({ onMenuToggle, userInitials, avatarUrl }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const cellSize = useDashboardLayout();
+  const gridWidth = 4 * cellSize + 3 * 16;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -45,7 +55,11 @@ export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#0f0f13] flex-shrink-0">
+    <header className="flex items-center justify-center px-4 py-3 flex-shrink-0 bg-[var(--page-bg)]">
+      <div
+        className="w-full flex items-center justify-between px-5 h-12 rounded-2xl bg-[var(--card-bg)] card-glass border border-[var(--border-md)] shadow-[0_2px_24px_rgba(0,0,0,0.4)]"
+        style={{ maxWidth: gridWidth }}
+      >
       {/* Left: hamburger + page title */}
       <div className="flex items-center gap-4">
         <button
@@ -60,28 +74,30 @@ export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
         <h1 className="text-white font-semibold text-base hidden sm:block">{PAGE_NAMES[pathname] ?? "Dashboard"}</h1>
       </div>
 
-      {/* Center: search */}
-      <div className="flex-1 max-w-sm mx-4 hidden md:block">
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+      {/* Center: nav links */}
+      <nav className="flex items-center gap-1 hidden md:flex">
+        {[
+          { label: "Community",   href: "/dashboard/community" },
+          { label: "Marketplace", href: "/dashboard/marketplace" },
+          { label: "What's Next", href: "/dashboard/whats-next" },
+        ].map(({ label, href }) => (
+          <a
+            key={href}
+            href={href}
+            className={`px-3.5 py-1.5 rounded-lg text-sm transition-colors ${
+              pathname === href
+                ? "text-violet-400 bg-violet-500/10"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+            }`}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search symptoms, phases..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-gray-300 placeholder:text-gray-600 focus:outline-none focus:border-rose-500/50 focus:bg-white/8 transition-colors"
-          />
-        </div>
-      </div>
+            {label}
+          </a>
+        ))}
+      </nav>
 
-      {/* Right: bell + avatar */}
+      {/* Right: theme + bell + avatar */}
       <div className="flex items-center gap-3">
+        <ThemeSelector />
         {/* Notification bell */}
         <button className="relative text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -95,30 +111,58 @@ export function Navbar({ onMenuToggle, userInitials }: NavbarProps) {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="w-8 h-8 rounded-full ring-2 ring-white/10 hover:ring-violet-500/50 transition-all duration-200 overflow-hidden flex-shrink-0 flex items-center justify-center"
           >
-            {userInitials}
+            {avatarUrl ? (
+              <Image src={avatarUrl} alt={userInitials} width={32} height={32} className="w-full h-full object-cover" />
+            ) : (
+              <span className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-xs font-semibold">
+                {userInitials}
+              </span>
+            )}
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 top-11 w-44 bg-[#1e1e2a] border border-white/10 rounded-xl shadow-2xl py-1 z-50">
-              <a
-                href="/dashboard/settings"
-                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
-                onClick={() => setDropdownOpen(false)}
-              >
-                <span>⚙</span> Settings
-              </a>
-              <div className="border-t border-white/5 my-1" />
-              <button
-                onClick={handleSignOut}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-rose-400 transition-colors"
-              >
-                <span>↪</span> Sign Out
-              </button>
+            <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-[#0a0a0a] border border-white/8 shadow-[0_8px_40px_rgba(0,0,0,0.7)] overflow-hidden z-50">
+              {/* User identity header */}
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
+                <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/10 flex-shrink-0 flex items-center justify-center">
+                  {avatarUrl ? (
+                    <Image src={avatarUrl} alt={userInitials} width={32} height={32} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-xs font-semibold">
+                      {userInitials}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-xs font-medium truncate">My Account</p>
+                  <p className="text-gray-500 text-[11px] truncate">Signed in</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="py-1">
+                <a
+                  href="/dashboard/settings"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <Settings size={14} className="text-gray-500" />
+                  Settings
+                </a>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-rose-400 transition-colors"
+                >
+                  <LogOut size={14} className="text-gray-500" />
+                  Sign Out
+                </button>
+              </div>
             </div>
           )}
         </div>
+      </div>
       </div>
     </header>
   );

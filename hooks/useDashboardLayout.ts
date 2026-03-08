@@ -23,7 +23,7 @@ export function useDashboardLayout() {
       const vw = window.innerWidth;
       const sidebarW = computeSidebarW(vw);
       const w = vw - sidebarW;
-      const h = window.innerHeight - 64;
+      const h = window.innerHeight - 72;
       const size = Math.floor(
         Math.min((w - PAD - 3 * GAP) / 4, (h - PAD - GAP) / 2)
       );

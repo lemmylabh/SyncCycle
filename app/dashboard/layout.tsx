@@ -15,6 +15,7 @@ import { MobileFAB } from "@/components/mobile/MobileFAB";
 import { FionaPopup } from "@/components/mobile/FionaPopup";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { DemoOnboardingChoice } from "@/components/onboarding/DemoOnboardingChoice";
+import { ThemeProvider } from "@/lib/themeContext";
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarW, setSidebarW] = useState(256);
   const [userInitials, setUserInitials] = useState("U");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [fionaOpen, setFionaOpen] = useState(false);
@@ -70,12 +72,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const { data: profile } = await supabase
           .from("user_profiles")
-          .select("onboarding_completed")
+          .select("onboarding_completed,avatar_url")
           .eq("id", session.user.id)
           .single();
 
         if (!profile?.onboarding_completed) {
           setShowOnboarding(true);
+        }
+        if (profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
         }
       } finally {
         setReady(true);
@@ -103,16 +108,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[#0f0f13] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <>
+    <ThemeProvider>
       {/* ── Mobile Shell (< lg) ─────────────────────────────────── */}
-      <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-[#0f0f13] text-white">
+      <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-[var(--page-bg)] page-shell text-white">
         <MobileTopBar initials={userInitials} isDemo={isDemo} />
 
         {isMobileSwipeRoute && (
@@ -133,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="absolute inset-0 bg-[#0f0f13] overflow-y-auto z-10"
+              className="absolute inset-0 bg-[var(--page-bg)] overflow-y-auto premium-scroll z-10"
             >
               {/* Floating close button */}
               <button
@@ -159,16 +164,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       </div>
 
-      {/* ── Desktop Shell (≥ lg) — unchanged ───────────────────── */}
-      <div className="hidden lg:flex h-screen bg-[#0f0f13] text-white">
+      {/* ── Desktop Shell (≥ lg) ───────────────────────────────── */}
+      <div className="hidden lg:flex h-screen bg-[var(--page-bg)] page-shell text-white">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isDemo={isDemo} sidebarWidth={sidebarW} collapsed={sidebarW <= 64} />
 
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Navbar
             onMenuToggle={() => setSidebarOpen((prev) => !prev)}
             userInitials={userInitials}
+            avatarUrl={avatarUrl}
           />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto premium-scroll">
             {children}
           </main>
         </div>
@@ -191,6 +197,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onComplete={() => setShowOnboarding(false)}
         />
       )}
-    </>
+    </ThemeProvider>
   );
 }
