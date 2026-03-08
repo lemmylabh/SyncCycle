@@ -27,7 +27,7 @@ function ScoreRing({ score, ring }: { score: number | null; ring: Ring }) {
   const filled = score ? (score / 5) * circ : 0;
   const cx = size / 2;
   return (
-    <svg width={size} height={size} className="-rotate-90" style={{ display: "block" }}>
+    <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="-rotate-90" style={{ display: "block" }}>
       <circle cx={cx} cy={cx} r={r} fill="none" stroke={ring.track} strokeWidth={stroke} opacity={0.25} />
       <circle cx={cx} cy={cx} r={r} fill="none" stroke={ring.fill} strokeWidth={stroke}
         strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
@@ -132,7 +132,7 @@ export function Vibe() {
         <div className="flex-1 flex flex-col justify-center space-y-3">
           {rows.map(({ ring, score, avg }) => (
             <div key={ring.label} className="flex items-center gap-3">
-              <div className="relative w-10 h-10 flex-shrink-0">
+              <div className="relative flex-shrink-0" style={{ width: 'clamp(32px, calc(var(--cell, 300px) * 0.13), 56px)', height: 'clamp(32px, calc(var(--cell, 300px) * 0.13), 56px)' }}>
                 <ScoreRing score={score} ring={ring} />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-white text-[10px] font-bold">{avg ?? "–"}</span>

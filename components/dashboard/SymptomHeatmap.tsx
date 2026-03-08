@@ -157,7 +157,7 @@ export function SymptomHeatmap() {
           <table className="w-full">
             <thead>
               <tr>
-                <th className="w-16 pb-1" />
+                <th className="w-14 pb-1" />
                 {days.map((d) => (
                   <th key={d.label} className="pb-1 text-center">
                     <span className={`text-[9px] uppercase font-medium ${d.isToday ? "text-white" : "text-gray-600"}`}>
@@ -170,13 +170,13 @@ export function SymptomHeatmap() {
             <tbody>
               {heatmap?.symptoms.map((symptom, si) => (
                 <tr key={symptom}>
-                  <td className="py-0.5 pr-2 text-gray-500 text-[10px] whitespace-nowrap truncate max-w-[64px]">
+                  <td className="py-0.5 pr-2 text-gray-500 text-[10px] whitespace-nowrap truncate max-w-[56px]">
                     {symptom}
                   </td>
                   {heatmap.grid[si].map((severity, di) => (
                     <td key={di} className="py-0.5 text-center">
                       <div
-                        className={`w-5 h-5 rounded mx-auto ${severityClasses[severity] ?? "bg-white/5"} transition-colors`}
+                        className={`w-4 h-4 rounded mx-auto ${severityClasses[severity] ?? "bg-white/5"} transition-colors`}
                         title={severity > 0 ? `${symptom}: ${severity}/5` : undefined}
                       />
                     </td>

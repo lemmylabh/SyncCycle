@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { computeSidebarW } from "@/hooks/useDashboardLayout";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { MobileTopBar } from "@/components/mobile/MobileTopBar";
 import { MobilePageIndicator } from "@/components/mobile/MobilePageIndicator";
@@ -21,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarW, setSidebarW] = useState(256);
   const [userInitials, setUserInitials] = useState("U");
   const [ready, setReady] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
@@ -90,6 +92,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    function updateSidebar() {
+      setSidebarW(computeSidebarW(window.innerWidth));
+    }
+    updateSidebar();
+    window.addEventListener("resize", updateSidebar);
+    return () => window.removeEventListener("resize", updateSidebar);
+  }, []);
+
   if (!ready) {
     return (
       <div className="min-h-screen bg-[#0f0f13] flex items-center justify-center">
@@ -149,8 +160,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* ── Desktop Shell (≥ lg) — unchanged ───────────────────── */}
-      <div className="hidden lg:flex h-screen bg-[#0f0f13] text-white overflow-hidden">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isDemo={isDemo} />
+      <div className="hidden lg:flex h-screen bg-[#0f0f13] text-white">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isDemo={isDemo} sidebarWidth={sidebarW} collapsed={sidebarW <= 64} />
 
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Navbar

@@ -103,8 +103,8 @@ export function CyclePhaseCard() {
           <h2 className="text-white text-lg font-semibold leading-tight">{cfg.label}</h2>
           <p className="text-gray-400 text-sm mt-0.5 leading-snug">{cfg.tagline}</p>
         </div>
-        <div className="relative flex-shrink-0" style={{ width: SIZE, height: SIZE }}>
-          <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90">
+        <div className="relative flex-shrink-0" style={{ width: 'clamp(60px, calc(var(--cell, 300px) * 0.26), 104px)', height: 'clamp(60px, calc(var(--cell, 300px) * 0.26), 104px)' }}>
+          <svg width="100%" height="100%" viewBox={`0 0 ${SIZE} ${SIZE}`} className="-rotate-90">
             <circle cx={SIZE/2} cy={SIZE/2} r={RADIUS} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE} />
             <circle
               cx={SIZE/2} cy={SIZE/2} r={RADIUS}

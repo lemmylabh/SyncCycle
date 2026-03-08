@@ -137,7 +137,7 @@ export function SleepCard() {
       </div>
 
       {/* Chart */}
-      <figure aria-label="Sleep hours over last 7 days" className="h-24 flex-shrink-0">
+      <figure aria-label="Sleep hours over last 7 days" className="flex-shrink-0" style={{ height: 'clamp(64px, calc(var(--cell, 300px) * 0.28), 130px)' }}>
         <figcaption className="sr-only">
           {chartData.map(d => `${d.day}: ${d.hours}h`).join(", ")}
         </figcaption>
