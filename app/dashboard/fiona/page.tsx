@@ -486,6 +486,8 @@ export default function FionaPage() {
                 setMobilePanel("none");
               }}
               onNewSession={handleNewSession}
+              onDeleteSession={handleDeleteSession}
+              onClearAll={handleClearAll}
               isLoading={sessionsLoading}
             />
           </FionaMobilePanel>
