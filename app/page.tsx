@@ -47,9 +47,9 @@ export default function Home() {
         <div className="relative z-10 space-y-8">
           <div className="space-y-4">
             <h2 className="text-4xl font-bold leading-tight">
-              Know your cycle.
+              Clarity for your cycle.
               <br />
-              Own your life.
+              Comfort in your life.
             </h2>
             <p className="text-rose-100 text-lg leading-relaxed max-w-sm">
               Personalized insights that help you predict how you&apos;ll feel,

@@ -187,7 +187,7 @@ export function AuthForm() {
         <button
           type="submit"
           disabled={loading || googleLoading}
-          className="w-full rounded-xl bg-gradient-to-r from-rose-500 to-purple-600 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:from-rose-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-200"
+          className="w-full rounded-lg bg-[#5A006B] py-3 px-6 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#480055] focus:outline-none focus:ring-2 focus:ring-[#5A006B] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading
             ? mode === "signup"
