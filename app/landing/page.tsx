@@ -6,6 +6,7 @@ import { Instagram, Music2 } from "lucide-react";
 import { AnimatePresence, motion, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
+import { TestimonialsSection } from "@/components/landing/Testimonials";
 
 const useLiquidGlass = () => {
   const ref = useRef<HTMLElement | null>(null);
@@ -214,7 +215,7 @@ export default function LandingPage() {
       <div ref={missionRef} className="relative z-[50]">
 
         {/* ===== MISSION SECTION ===== */}
-        <section id="mission" className="relative pt-40 pb-40 px-6 md:px-12">
+        <section id="mission" className="relative pt-24 pb-24 px-6 md:px-12">
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40 pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto text-center">
             <p className="text-white/40 uppercase tracking-[0.3em] text-xs font-light mb-10">Our Mission</p>
@@ -231,7 +232,7 @@ export default function LandingPage() {
         </section>
 
         {/* ===== HOW IT WORKS ===== */}
-        <section ref={howItWorksRef as React.Ref<HTMLElement>} id="how-it-works" className="relative pt-16 pb-24 px-6 md:px-12">
+        <section ref={howItWorksRef as React.Ref<HTMLElement>} id="how-it-works" className="relative pt-24 pb-24 px-6 md:px-12">
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60 pointer-events-none" />
           <div className="relative z-10 max-w-6xl mx-auto">
             <div className="text-center mb-10">
@@ -293,8 +294,10 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <TestimonialsSection />
+
       {/* ===== MEET THE TEAM ===== */}
-      <section id="team" className="pt-16 pb-28 px-6 md:px-12 bg-gradient-to-b from-black via-slate-900/50 to-black">
+      <section id="team" className="pt-24 pb-24 px-6 md:px-12 bg-gradient-to-b from-black via-slate-900/50 to-black">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-white/50 uppercase tracking-widest text-sm mb-4">Team</p>
