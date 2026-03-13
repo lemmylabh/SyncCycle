@@ -68,6 +68,80 @@ body {
   background-image: radial-gradient(ellipse at 50% 35%, #111111 0%, #000000 70%);
 }
 
+/* ── Landing page ───────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+@layer utilities {
+  .text-hero-tagline {
+    @apply text-white/60 text-sm font-light tracking-widest uppercase;
+  }
+  .text-hero-headline {
+    @apply text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extralight leading-[1.05] tracking-tight;
+  }
+  .text-hero-headline-dim {
+    @apply text-white/90;
+  }
+  .text-hero-body {
+    @apply text-white/70 font-light leading-relaxed;
+  }
+  .text-nav-link {
+    @apply text-white/80 hover:text-white transition-colors duration-300 text-sm font-light tracking-wide;
+  }
+  .btn-outline-hero {
+    @apply rounded-full border border-white/30 hover:border-white/50 text-white px-5 py-2.5 text-sm font-light tracking-wide transition-all duration-300 hover:bg-white/5;
+  }
+  .input-hero {
+    @apply bg-white/10 border border-white/20 text-white placeholder:text-white/40 rounded-full px-5 py-3 w-full focus:ring-2 focus:ring-white/30 focus:outline-none backdrop-blur-sm text-sm font-light transition-all duration-300;
+  }
+}
+
+.liquid-glass-btn {
+  --mx: 50%;
+  --my: 35%;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: box-shadow 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+}
+.liquid-glass-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.liquid-glass-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle 80px at var(--mx) var(--my), rgba(255, 255, 255, 0.22) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.liquid-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 255, 255, 0.06);
+}
+.liquid-glass-btn:hover::after {
+  opacity: 1;
+}
+
 /* ── Premium scrollbar ───────────────────────────────────── */
 .premium-scroll {
   scrollbar-width: thin;

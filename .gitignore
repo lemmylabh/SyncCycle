@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# remotion promo video (local only, not for github)
+/video/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -16,7 +16,26 @@
       "Bash(npm run lint)",
       "Bash(npx tsc --noEmit --skipLibCheck)",
       "Bash(npm run build)",
-      "Bash(ls -la /c/Users/Lemmy/Music/synccycle/*.md)"
+      "Bash(ls -la /c/Users/Lemmy/Music/synccycle/*.md)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -s https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/pages/Index.tsx)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/index.css\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/App.tsx\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/components/NavLink.tsx\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/pages/NotFound.tsx\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/main.tsx\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/tailwind.config.ts\")",
+      "Bash(curl -s https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/components/NavLink.tsx)",
+      "Bash(curl -s https://raw.githubusercontent.com/Fi-ona10/cyclesync/main/src/index.css)",
+      "Bash(ls -la \"c:\\\\Users\\\\Lemmy\\\\Music\\\\synccycle\\\\app\\\\landing\"\" 2>/dev/null || echo \"Directory not found \")",
+      "Bash(find c:/Users/Lemmy/Music/synccycle -maxdepth 2 -name tailwind* -o -name package.json)",
+      "Bash(ls -la c:/Users/Lemmy/Music/synccycle/tailwind.*)",
+      "Bash(find c:/Users/Lemmy/Music/synccycle -name *.css -type f)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npx --yes playwright@latest screenshot --browser chromium --viewport-size \"1920,1080\" --wait-for-timeout 3000 \"http://localhost:3000/dashboard?demo=true\" video/dashboard-screenshot.png)",
+      "Bash(npx playwright:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }
