@@ -39,7 +39,7 @@ export default function Home() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
+          <img src="/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
           <span className="text-white font-light tracking-[0.25em] text-lg">Syncycle<span className="text-white/50">®</span></span>
         </div>
 
@@ -90,7 +90,7 @@ export default function Home() {
         </video>
         <div className="absolute inset-0 bg-black/40 z-[2]" />
         <div className="flex flex-col items-center gap-2 relative z-10">
-          <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
+          <img src="/logo-dark.png" alt="Syncycle" className="w-10 h-10 object-contain" />
           <span className="text-white font-light tracking-[0.25em] text-sm">Syncycle<span className="text-white/50">®</span></span>
         </div>
       </div>

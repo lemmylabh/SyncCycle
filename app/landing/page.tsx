@@ -69,7 +69,7 @@ const pricingPlans = [
     sub: { monthly: "/employee/mo", annual: "/employee/mo" },
     features: ["Team wellness dashboard", "Group insights & reports", "Monthly wellness reports", "Wellness workshops", "Dedicated support"],
     cta: "Contact Sales",
-    ctaHref: "mailto:hello@synccycle.com",
+    ctaHref: "mailto:sales@syncycle.app",
     highlight: false,
     badge: null as string | null,
     note: "For 20+ employees. Custom pricing available.",
@@ -88,6 +88,7 @@ export default function LandingPage() {
   const missionRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLElement>(null);
   const teamRef = useRef<HTMLElement>(null);
+  const blogRef = useRef<HTMLElement>(null);
 
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 350], [1, 0]);
@@ -113,6 +114,14 @@ export default function LandingPage() {
     offset: ["start center", "end center"],
   });
   const previewFinalOpacity = useTransform(howItWorksProgress, [0.65, 1.0], [1, 0]);
+
+  const { scrollYProgress: blogProgress } = useScroll({
+    target: blogRef,
+    offset: ["start end", "center center"],
+  });
+  const blogOpacity = useTransform(blogProgress, [0, 0.6], [0, 1]);
+  const blogBlurValue = useTransform(blogProgress, [0, 0.5], [14, 0]);
+  const blogFilter = useMotionTemplate`blur(${blogBlurValue}px)`;
 
   useEffect(() => {
     const t = setInterval(() => setActiveIndex(i => (i + 1) % headlines.length), 3000);
@@ -142,15 +151,20 @@ export default function LandingPage() {
       {/* ===== NAVIGATION — outside hero so z-index is in root context ===== */}
       <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-8 lg:px-12 py-4 bg-black/30 backdrop-blur-md border-b border-white/10">
         <div className="flex items-center gap-3">
-          <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="h-9 object-contain" />
-          <span className="text-white font-light tracking-[0.25em] text-lg">Syncycle<span className="text-white/50">®</span></span>
+          <img src="/logo-dark.png" alt="Syncycle" className="h-9 object-contain" />
+          <span className="text-white font-light tracking-[0.25em] text-lg">Syncycle</span>
         </div>
         <div className="hidden md:flex items-center gap-8">
-          <a href="#" className="text-nav-link">Home</a>
-          <a href="#features" className="text-nav-link">Features</a>
-          <a href="#pricing" className="text-nav-link">Pricing</a>
-          <a href="#team" className="text-nav-link">Team</a>
-          <a href="#blog" className="text-nav-link">Blog</a>
+          {(() => {
+            const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+            return (<>
+              <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="text-nav-link bg-transparent border-0 cursor-pointer">Home</button>
+              <button onClick={() => scrollTo("features")} className="text-nav-link bg-transparent border-0 cursor-pointer">Features</button>
+              <button onClick={() => scrollTo("pricing")}  className="text-nav-link bg-transparent border-0 cursor-pointer">Pricing</button>
+              <button onClick={() => scrollTo("team")}     className="text-nav-link bg-transparent border-0 cursor-pointer">Team</button>
+              <button onClick={() => scrollTo("blog")}     className="text-nav-link bg-transparent border-0 cursor-pointer">Blog</button>
+            </>);
+          })()}
         </div>
         <a
           ref={navBtnRef as React.Ref<HTMLAnchorElement>}
@@ -174,7 +188,7 @@ export default function LandingPage() {
           loop
           playsInline
           preload="auto"
-          src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4"
+          src="/Hero.mp4"
         />
 
         {/* Dark overlay */}
@@ -471,7 +485,7 @@ export default function LandingPage() {
           <video
             className="absolute inset-0 w-full h-full object-cover"
             autoPlay muted loop playsInline
-            src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4"
+            src="/Hero.mp4"
             style={{ filter: "blur(4px)", transform: "scale(1.05)" }}
           />
         </motion.div>
@@ -550,115 +564,195 @@ export default function LandingPage() {
       </section>
 
       {/* ===== BLOG SECTION ===== */}
-      <section id="blog" className="relative pt-24 pb-12 px-6 md:px-12 overflow-hidden">
-        <img
-          src="https://i.postimg.cc/yxkC8fTM/bg-blog-compressed.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        />
-        <div className="absolute inset-0 z-[1] bg-black/50" />
-        <div className="absolute bottom-0 left-0 right-0 h-56 z-[2] bg-gradient-to-b from-transparent via-black/60 to-black" />
+      <motion.section ref={blogRef} id="blog" className="relative py-28 px-6 md:px-12 overflow-hidden" style={{ opacity: blogOpacity, filter: blogFilter }}>
+        <img src="https://i.postimg.cc/yxkC8fTM/bg-blog-compressed.png" alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+        <div className="absolute inset-0 z-[1] bg-black/60" />
+        <div className="absolute bottom-0 left-0 right-0 h-40 z-[2] bg-gradient-to-b from-transparent to-black" />
 
-        <div className="relative z-10 max-w-6xl mx-auto text-center">
-          <div className="mb-14">
+        <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
             <p className="text-white/35 uppercase tracking-[0.3em] text-xs font-light mb-6">Blog</p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extralight leading-[1.15] tracking-tight text-white">
               Our Resources &amp;{" "}
               <span className="italic text-white/55">Updates.</span>
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
-              { title: "Introducing Syncycle: Your Personalized Cycle Companion", date: "Feb 2026", author: "Syncycle Team", image: "https://i.postimg.cc/qMFMLVFc/blog-3.jpg" },
-              { title: "Training, Mood, and Energy: How Your Cycle Shapes Everything", date: "Feb 2026", author: "Syncycle Team", image: "https://i.postimg.cc/zGW5FLWK/blog-2.jpg" },
-            ].map((post) => (
-              <div key={post.title} className="rounded-3xl bg-white/[0.08] backdrop-blur-md border border-white/15 overflow-hidden text-left cursor-pointer hover:bg-white/[0.12] transition-colors duration-300">
-                <div className="relative h-56 md:h-64">
-                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-                <div className="bg-black/35 backdrop-blur-sm p-6 md:p-7">
-                  <h3 className="text-white font-light text-lg leading-snug mb-3">{post.title}</h3>
-                  <div className="flex items-center gap-2 text-white/40 text-xs font-light">
-                    <span>{post.date}</span>
-                    <span>·</span>
-                    <span>{post.author}</span>
+              {
+                tag: "Product",
+                title: "Introducing Syncycle: Your Personalized Cycle Companion",
+                excerpt: "Discover how Syncycle maps your hormonal phases to give you clarity, confidence, and control over your wellbeing every single day.",
+                date: "Feb 2026",
+                readTime: "4 min read",
+                image: "https://i.postimg.cc/qMFMLVFc/blog-3.jpg",
+              },
+              {
+                tag: "Wellness",
+                title: "Training, Mood, and Energy: How Your Cycle Shapes Everything",
+                excerpt: "Your cycle isn't just about periods — it influences your strength, focus, and emotional state. Here's how to work with it, not against it.",
+                date: "Feb 2026",
+                readTime: "6 min read",
+                image: "https://i.postimg.cc/zGW5FLWK/blog-2.jpg",
+              },
+            ].map((post, index) => (
+              <motion.div
+                key={post.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.2 }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: index * 0.12 }}
+                className="group rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.10] overflow-hidden text-left cursor-pointer hover:bg-white/[0.11] hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+              >
+                {/* Image */}
+                <div className="relative h-56 md:h-60 overflow-hidden">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  {/* Tag pill */}
+                  <div className="absolute top-4 left-4">
+                    <span className="text-[11px] font-medium px-3 py-1 rounded-full bg-[#a020c8]/80 backdrop-blur-sm text-white tracking-wide">
+                      {post.tag}
+                    </span>
                   </div>
                 </div>
-              </div>
+
+                {/* Content */}
+                <div className="p-6 md:p-8 flex flex-col gap-4">
+                  <div className="flex items-center gap-2 text-white/35 text-xs font-light">
+                    <span>{post.date}</span>
+                    <span>·</span>
+                    <span>{post.readTime}</span>
+                  </div>
+                  <h3 className="text-white font-light text-xl leading-snug tracking-tight">{post.title}</h3>
+                  <p className="text-white/50 text-sm font-light leading-relaxed line-clamp-2">{post.excerpt}</p>
+                  <div className="flex items-center gap-1.5 text-purple-400 text-sm font-light mt-1 group-hover:gap-3 transition-all duration-300">
+                    <span>Read article</span>
+                    <span>→</span>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
+
+          {/* View all CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ amount: 0.5 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.25 }}
+            className="text-center mt-14"
+          >
+            <button className="btn-outline-hero px-8 py-3 text-sm tracking-wide">
+              View all articles
+            </button>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="py-24 px-6 md:px-12 bg-gradient-to-b from-black to-slate-900">
+      <footer className="pt-20 p-12 px-6 md:px-12 bg-gradient-to-b from-black to-slate-900">
         <div className="max-w-6xl mx-auto">
-          <div className="rounded-3xl bg-white/[0.06] backdrop-blur-sm border border-white/10 shadow-xl shadow-black/20 p-10 md:p-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-              {/* Left */}
-              <div>
-                <div className="flex items-center gap-4 mb-3">
-                  <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="h-10 object-contain opacity-90" />
-                  <span className="text-white text-lg font-light tracking-[0.25em]">Syncycle<span className="text-white/50">®</span></span>
+
+          {/* ── PRE-FOOTER CTA CARD ── */}
+          <div className="rounded-3xl bg-white/[0.06] backdrop-blur-md border border-white/[0.10] shadow-2xl shadow-black/40 overflow-hidden p-10 md:p-14 mb-10 relative">
+            <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-60 h-60 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-start gap-10 md:gap-16">
+
+              {/* Left column — logo · preview · contact */}
+              <div className="shrink-0 w-full md:w-[320px] flex flex-col gap-6">
+                {/* Logo + tagline */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <img src="/logo-dark.png" alt="Syncycle" className="h-8 object-contain opacity-90" />
+                    <span className="text-white font-light tracking-[0.25em] text-base">Syncycle</span>
+                  </div>
+                  <p className="text-white/45 text-sm font-light">Your AI cycle companion</p>
                 </div>
-                <p className="text-white/50 text-sm mt-2">Your AI cycle companion</p>
+
+                {/* Product preview — untouched */}
+                <div className="rounded-2xl overflow-hidden border border-white/[0.12] shadow-[0_8px_48px_rgba(160,32,200,0.25)] rotate-[-1.5deg] hover:rotate-0 transition-transform duration-500">
+                  <img src="/dashboard-preview.png" alt="Syncycle Dashboard" className="w-full block" />
+                </div>
+
+
               </div>
 
-              {/* Middle */}
-              <div>
-                <nav className="flex flex-col space-y-4">
-                  {[
-                    { label: "Home",          href: "#" },
-                    { label: "Our Mission",   href: "#mission" },
-                    { label: "How it Works",  href: "#how-it-works" },
-                    { label: "Features",      href: "#features" },
-                    { label: "Pricing",       href: "#pricing" },
-                    { label: "Team",          href: "#team" },
-                    { label: "Blog",          href: "#blog" },
-                  ].map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className="text-white/70 hover:text-white transition-colors duration-300 text-sm font-light"
-                    >
-                      {item.label}
+              {/* Right column — copy + form */}
+              <div className="flex flex-col gap-5 flex-1">
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-white/35 uppercase tracking-[0.3em] text-xs mt-0.5">Get Started</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/35 text-xs font-light">Follow us</span>
+                    <a href="#" className="w-8 h-8 rounded-full border border-white/20 hover:border-white/40 transition-colors duration-300 flex items-center justify-center text-white/55 hover:text-white" aria-label="Instagram">
+                      <Instagram size={14} />
                     </a>
-                  ))}
-                </nav>
-              </div>
+                    <a href="#" className="w-8 h-8 rounded-full border border-white/20 hover:border-white/40 transition-colors duration-300 flex items-center justify-center text-white/55 hover:text-white" aria-label="TikTok">
+                      <Music2 size={14} />
+                    </a>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-extralight leading-tight text-white">
+                    Ready to sync with<br />
+                    <span className="italic text-white/55">your body?</span>
+                  </h2>
+                  <p className="text-white/45 text-sm mt-3 font-light">Try it free — no card required.</p>
+                </div>
 
-              {/* Right */}
-              <div>
-                <p className="text-white/70 font-light mb-4">Follow us</p>
-                <div className="flex gap-3">
-                  <a
-                    href="#"
-                    className="w-10 h-10 rounded-full border border-white/20 hover:border-white/40 transition-colors duration-300 flex items-center justify-center text-white/60 hover:text-white"
-                    aria-label="Instagram"
+                <form onSubmit={handleSubmit} className="flex flex-row gap-3">
+                  <input
+                    type="email"
+                    value={emailValue}
+                    onChange={e => setEmailValue(e.target.value)}
+                    placeholder="Enter your email for a demo"
+                    className="flex-1 min-w-0 bg-white/[0.08] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-white/35 outline-none focus:border-purple-500/60 focus:bg-white/[0.11] transition-all"
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === "loading" || !emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
+                    className={`px-6 py-3 text-sm whitespace-nowrap shrink-0 rounded-full font-light tracking-wide transition-all duration-300 border ${
+                      emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+                        ? "bg-purple-600 hover:bg-purple-500 border-purple-500 text-white shadow-[0_0_20px_rgba(160,32,200,0.35)] cursor-pointer"
+                        : "bg-white/[0.06] border-white/15 text-white/30 cursor-not-allowed"
+                    }`}
                   >
-                    <Instagram size={18} />
+                    {status === "loading" ? "Sending…" : status === "success" ? "Sent ✓" : "Get Demo"}
+                  </button>
+                  <a href="/signup" className="btn-outline-hero px-6 py-3 text-sm whitespace-nowrap shrink-0">
+                    Sign Up Free
                   </a>
-                  <a
-                    href="#"
-                    className="w-10 h-10 rounded-full border border-white/20 hover:border-white/40 transition-colors duration-300 flex items-center justify-center text-white/60 hover:text-white"
-                    aria-label="TikTok"
-                  >
-                    <Music2 size={18} />
-                  </a>
+                </form>
+
+                <div className="flex items-center gap-5 text-white/25 text-xs">
+                  {["✓ Cancel anytime", "✓ GDPR compliant", "✓ Secure payments"].map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-white/10 my-8" />
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <p className="text-white/40 text-sm">© 2026 Syncycle. All rights reserved.</p>
-              <div className="flex gap-6">
-                <a href="#" className="text-white/40 hover:text-white/60 transition-colors duration-300 text-sm">Privacy Policy</a>
-                <a href="#" className="text-white/40 hover:text-white/60 transition-colors duration-300 text-sm">Terms of Service</a>
+            {/* Divider + bottom bar */}
+            <div className="relative z-10 border-t border-white/[0.08] mt-10 pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-white/30 text-sm">© 2026 Syncycle. All rights reserved.</p>
+              <div className="flex flex-wrap gap-5">
+                {["Privacy Policy", "Terms of Service", "Impressum", "Cookie Policy"].map(label => (
+                  <a key={label} href="#" className="text-white/30 hover:text-white/55 transition-colors duration-300 text-sm">
+                    {label}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
+
         </div>
       </footer>
 

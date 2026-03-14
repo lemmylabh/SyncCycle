@@ -73,7 +73,7 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
     <div className="flex flex-col h-full bg-[var(--sidebar-bg)] sidebar-panel">
       {/* Logo */}
       <a href="/landing" className={`h-16 flex items-center border-b border-white/5 hover:opacity-80 transition-opacity ${collapsed ? "justify-center px-2" : "gap-2.5 px-6"}`}>
-        <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-7 h-7 object-contain flex-shrink-0" />
+        <img src="/logo-dark.png" alt="Syncycle" className="w-7 h-7 object-contain flex-shrink-0" />
         {!collapsed && (
           <span className="text-white font-light tracking-[0.25em] text-base">Syncycle<span className="text-white/50"></span></span>
         )}

@@ -13,9 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Syncycle — Know Your Cycle, Own Your Life",
+  title: "Syncycle : AI Cycle Companion",
   description:
     "Personalized, data-driven menstrual cycle tracking. Understand your hormonal phases and optimize your energy every day.",
+  icons: {
+    icon: "/logo-dark.png",
+  },
 };
 
 export default function RootLayout({

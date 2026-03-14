@@ -30,7 +30,7 @@ export function MobileTopBar({ initials, isDemo }: MobileTopBarProps) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0 relative z-30 bg-[#0f0f13]">
       {/* Left: Logo image (mirrors profile avatar height) */}
-      <img src="https://i.postimg.cc/fW1nkM36/logo-dark.png" alt="Syncycle" className="w-8 h-8 object-contain flex-shrink-0" />
+      <img src="/logo-dark.png" alt="Syncycle" className="w-8 h-8 object-contain flex-shrink-0" />
 
       {/* Center: Trackers dropdown */}
       <TrackerDropdown />
