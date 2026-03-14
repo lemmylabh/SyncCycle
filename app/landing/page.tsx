@@ -47,6 +47,7 @@ export default function LandingPage() {
 
   const missionRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLElement>(null);
+  const teamRef = useRef<HTMLElement>(null);
 
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 350], [1, 0]);
@@ -59,6 +60,12 @@ export default function LandingPage() {
   const previewBlurValue = useTransform(missionProgress, [0.05, 0.15, 0.85, 0.97], [0, 14, 14, 0]);
   const previewDim = useTransform(missionProgress, [0.05, 0.15, 0.85, 0.97], [0, 0.65, 0.65, 0]);
   const previewFilter = useMotionTemplate`blur(${previewBlurValue}px)`;
+
+  const { scrollYProgress: teamProgress } = useScroll({
+    target: teamRef,
+    offset: ["center end", "center center"],
+  });
+  const teamVideoOpacity = useTransform(teamProgress, [0, 1], [0, 0.35]);
 
   const { scrollYProgress: howItWorksProgress } = useScroll({
     target: howItWorksRef,
@@ -297,35 +304,88 @@ export default function LandingPage() {
       <TestimonialsSection />
 
       {/* ===== MEET THE TEAM ===== */}
-      <section id="team" className="pt-24 pb-24 px-6 md:px-12 bg-gradient-to-b from-black via-slate-900/50 to-black">
-        <div className="max-w-6xl mx-auto">
+      <section ref={teamRef} id="team" className="relative pt-24 pb-24 px-6 md:px-12 overflow-hidden">
+        {/* Solid fallback — visible before video loads */}
+        <div className="absolute inset-0 bg-black" />
+        {/* Video background — fades in on scroll */}
+        <motion.div className="absolute inset-0 pointer-events-none" style={{ opacity: teamVideoOpacity }}>
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay muted loop playsInline
+            src="https://emitrr-ai-test.s3.us-east-2.amazonaws.com/mms/f73ce880-8806-4510-9898-a2aa7dee7979-7c443c83-1332-473f-8b13-0255116eb27b.mp4"
+            style={{ filter: "blur(4px)", transform: "scale(1.05)" }}
+          />
+        </motion.div>
+        {/* Heavy dark overlay — matches mission section near-black feel */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/45 to-black/65 pointer-events-none" />
+
+        <div className="relative z-10 max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-white/50 uppercase tracking-widest text-sm mb-4">Team</p>
             <h2 className="text-4xl md:text-5xl font-light text-white">Meet the Team</h2>
           </div>
-          <div className="flex flex-wrap justify-center gap-8">
-            {[
-              { name: "Fiona",     role: "Product Owner",  image: "https://i.postimg.cc/Gm75pfrR/Fiona.png" },
-              { name: "Sameeksha", role: "Scrum Master",   image: "https://i.postimg.cc/K8qHYWFF/Sameeksha.png" },
-              { name: "Alisa",     role: "Brand & Design", image: "https://i.postimg.cc/Gm75pfrC/Alisa.png" },
-              { name: "Manish",    role: "Engineering",    image: "https://i.postimg.cc/RZsD0Y9z/Manish.png" },
-              { name: "Jane",      role: "Growth",         image: "https://i.postimg.cc/P53Rq7HB/Jane.png" },
-              { name: "Eli",       role: "Engineering",    image: "https://i.postimg.cc/3xVKT2j5/Eli.png" },
-              { name: "Tari",      role: "Engineering" },
-            ].map((member) => (
-              <div
-                key={member.name}
-                className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1.5rem)] rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20 p-6 text-center transition duration-300 hover:border-white/20"
-              >
-                {member.image ? (
-                  <img src={member.image} alt={member.name} className="w-28 h-28 mx-auto mb-6 rounded-full object-cover border border-white/20" />
-                ) : (
-                  <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-white/20 to-white/5 border border-white/20" />
-                )}
-                <p className="text-white text-lg font-medium mb-1">{member.name}</p>
-                <p className="text-white/60 text-sm">{member.role}</p>
-              </div>
-            ))}
+          <div className="flex flex-col gap-6">
+            {/* Row 1 — 4 cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { name: "Fiona",     role: "Product Owner",  image: "/Fiona.PNG" },
+                { name: "Sameeksha", role: "Scrum Master",   image: "/Sameeksha.PNG" },
+                { name: "Alisa",     role: "Brand & Design", image: "/Alisa.PNG" },
+                { name: "Jane",      role: "Business & Growth",         image: "/Jane.PNG" },
+              ].map((member, index) => (
+                <motion.div
+                  key={member.name}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ amount: 0.2 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: index * 0.08 }}
+                  className="group aspect-square rounded-2xl shadow-xl shadow-black/50 cursor-pointer transition-transform duration-500 hover:scale-105"
+                >
+                  <div className="relative w-full h-full overflow-hidden rounded-2xl">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,0,15,0.92) 0%, transparent 65%)" }} />
+                    <div className="absolute bottom-0 left-0 p-5">
+                      <p className="text-white font-semibold text-lg leading-tight tracking-tight">{member.name}</p>
+                      <p className="text-white/65 text-sm font-light mt-1 tracking-wide">{member.role}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            {/* Row 2 — 3 cards, centered */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:max-w-[75%] mx-auto w-full">
+              {[
+                { name: "Manish", role: "Product Developer", image: "/Manish.jpeg" },
+                { name: "Eli",    role: "Product Research", image: "/Eli.JPG" },
+                { name: "Tari",   role: "Product Research", image: "/Tari.JPG" },
+              ].map((member, index) => (
+                <motion.div
+                  key={member.name}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ amount: 0.2 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: (4 + index) * 0.08 }}
+                  className="group aspect-square rounded-2xl shadow-xl shadow-black/50 cursor-pointer transition-transform duration-500 hover:scale-105"
+                >
+                  <div className="relative w-full h-full overflow-hidden rounded-2xl">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(10,0,15,0.92) 0%, transparent 65%)" }} />
+                    <div className="absolute bottom-0 left-0 p-5">
+                      <p className="text-white font-semibold text-lg leading-tight tracking-tight">{member.name}</p>
+                      <p className="text-white/65 text-sm font-light mt-1 tracking-wide">{member.role}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -342,37 +402,28 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-6xl mx-auto text-center">
           <div className="mb-14">
-            <p className="text-white/50 uppercase tracking-widest text-sm mb-4">Blog</p>
-            <h2 className="text-4xl md:text-5xl font-light text-white">Our Resources &amp; Updates</h2>
+            <p className="text-white/35 uppercase tracking-[0.3em] text-xs font-light mb-6">Blog</p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extralight leading-[1.15] tracking-tight text-white">
+              Our Resources &amp;{" "}
+              <span className="italic text-white/55">Updates.</span>
+            </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {[
-              {
-                title: "Introducing Syncycle: Clarity for Your Cycle",
-                date: "Feb 2026",
-                author: "Syncycle Team",
-                image: "https://i.postimg.cc/qMFMLVFc/blog-3.jpg",
-              },
-              {
-                title: "Training, Mood, and Energy: Working With Your Phases",
-                date: "Feb 2026",
-                author: "Syncycle Team",
-                image: "https://i.postimg.cc/zGW5FLWK/blog-2.jpg",
-              },
+              { title: "Introducing Syncycle: Your Personalized Cycle Companion", date: "Feb 2026", author: "Syncycle Team", image: "https://i.postimg.cc/qMFMLVFc/blog-3.jpg" },
+              { title: "Training, Mood, and Energy: How Your Cycle Shapes Everything", date: "Feb 2026", author: "Syncycle Team", image: "https://i.postimg.cc/zGW5FLWK/blog-2.jpg" },
             ].map((post) => (
-              <div
-                key={post.title}
-                className="rounded-3xl bg-white/[0.08] backdrop-blur-md border border-white/15 shadow-xl shadow-black/25 overflow-hidden transition duration-300 hover:border-white/25"
-              >
+              <div key={post.title} className="rounded-3xl bg-white/[0.08] backdrop-blur-md border border-white/15 overflow-hidden text-left cursor-pointer hover:bg-white/[0.12] transition-colors duration-300">
                 <div className="relative h-56 md:h-64">
                   <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/20" />
                 </div>
-                <div className="bg-black/35 backdrop-blur-sm p-6 md:p-7 flex justify-between items-end gap-6">
-                  <h3 className="text-white text-lg md:text-xl font-light leading-snug text-left">{post.title}</h3>
-                  <div className="text-right shrink-0">
-                    <p className="text-white/80 text-sm">{post.date}</p>
-                    <p className="text-white/50 text-sm">{post.author}</p>
+                <div className="bg-black/35 backdrop-blur-sm p-6 md:p-7">
+                  <h3 className="text-white font-light text-lg leading-snug mb-3">{post.title}</h3>
+                  <div className="flex items-center gap-2 text-white/40 text-xs font-light">
+                    <span>{post.date}</span>
+                    <span>·</span>
+                    <span>{post.author}</span>
                   </div>
                 </div>
               </div>
