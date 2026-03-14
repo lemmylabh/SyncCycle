@@ -112,7 +112,7 @@ export function TestimonialsSection() {
 
       <section
         ref={sectionRef}
-        className="relative py-24 overflow-hidden bg-gradient-to-b from-[#0d0d18] to-black"
+        className="relative pt-24 pb-12overflow-hidden bg-gradient-to-b from-[#0d0d18] to-black"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >

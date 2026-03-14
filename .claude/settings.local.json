@@ -35,7 +35,9 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "Bash(npx --yes playwright@latest screenshot --browser chromium --viewport-size \"1920,1080\" --wait-for-timeout 3000 \"http://localhost:3000/dashboard?demo=true\" video/dashboard-screenshot.png)",
       "Bash(npx playwright:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(wait buxayfv8s:*)",
+      "Bash(find c:UsersLemmyMusicsynccycle -type f -iname *pricing*)"
     ]
   }
 }

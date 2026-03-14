@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Instagram, Music2 } from "lucide-react";
+import { Check, Instagram, Music2 } from "lucide-react";
 import { AnimatePresence, motion, useMotionTemplate, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
@@ -37,6 +37,45 @@ const headlines = [
   { text: "Comfort in your life.",  dim: true  },
 ];
 
+const pricingPlans = [
+  {
+    name: "Free",
+    tagline: "Basic cycle tracking",
+    price: { monthly: "Free", annual: "Free" },
+    sub: { monthly: null as string | null, annual: null as string | null },
+    features: ["Cycle tracking", "Habit tracking", "Limited AI insights", "Educational content", "Ads & sponsored content"],
+    cta: "Start for Free",
+    ctaHref: "/auth",
+    highlight: false,
+    badge: null as string | null,
+    note: null as string | null,
+  },
+  {
+    name: "Syncycle Plus",
+    tagline: "Personalized cycle intelligence",
+    price: { monthly: "€4.99", annual: "€2.91" },
+    sub: { monthly: "/month", annual: "/mo · billed €34.99/yr" },
+    features: ["Advanced AI insights", "Personalized recommendations", "Detailed wellness analytics", "Monthly wellness reports", "Ad-free experience"],
+    cta: "Upgrade to Plus",
+    ctaHref: "/auth",
+    highlight: true,
+    badge: "Most Popular",
+    note: null as string | null,
+  },
+  {
+    name: "Corporate Wellness",
+    tagline: "Workplace wellbeing powered by Syncycle",
+    price: { monthly: "€3–€5", annual: "€3–€5" },
+    sub: { monthly: "/employee/mo", annual: "/employee/mo" },
+    features: ["Team wellness dashboard", "Group insights & reports", "Monthly wellness reports", "Wellness workshops", "Dedicated support"],
+    cta: "Contact Sales",
+    ctaHref: "mailto:hello@synccycle.com",
+    highlight: false,
+    badge: null as string | null,
+    note: "For 20+ employees. Custom pricing available.",
+  },
+];
+
 export default function LandingPage() {
   const router = useRouter();
   const navBtnRef = useLiquidGlass();
@@ -44,6 +83,7 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [emailValue, setEmailValue] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "duplicate">("idle");
+  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
   const missionRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLElement>(null);
@@ -66,6 +106,7 @@ export default function LandingPage() {
     offset: ["center end", "center center"],
   });
   const teamVideoOpacity = useTransform(teamProgress, [0, 1], [0, 0.35]);
+
 
   const { scrollYProgress: howItWorksProgress } = useScroll({
     target: howItWorksRef,
@@ -105,18 +146,18 @@ export default function LandingPage() {
           <span className="text-white font-light tracking-[0.25em] text-lg">Syncycle<span className="text-white/50">®</span></span>
         </div>
         <div className="hidden md:flex items-center gap-8">
-          <a href="#mission" className="text-nav-link">Mission</a>
-          <a href="#how-it-works" className="text-nav-link">How it Works</a>
+          <a href="#" className="text-nav-link">Home</a>
           <a href="#features" className="text-nav-link">Features</a>
+          <a href="#pricing" className="text-nav-link">Pricing</a>
           <a href="#team" className="text-nav-link">Team</a>
           <a href="#blog" className="text-nav-link">Blog</a>
         </div>
         <a
           ref={navBtnRef as React.Ref<HTMLAnchorElement>}
-          href="#early-access"
+          href="/signup"
           className="liquid-glass-btn rounded-full px-5 py-2.5 text-sm font-light tracking-wide text-white cursor-pointer"
         >
-          Get Demo
+          Sign Up
         </a>
       </nav>
 
@@ -197,7 +238,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== PRODUCT PREVIEW ===== */}
-      <motion.section style={{ opacity: previewFinalOpacity }} className="-mt-24 md:-mt-36 sticky top-20 z-[40] pb-20 px-6 md:px-12">
+      <motion.section style={{ opacity: previewFinalOpacity }} className="-mt-24 md:-mt-36 sticky top-20 z-[40] pb-20 px-6 md:px-12 pointer-events-none">
         <div className="max-w-6xl mx-auto">
           <motion.div
             style={{ filter: previewFilter }}
@@ -222,7 +263,7 @@ export default function LandingPage() {
       <div ref={missionRef} className="relative z-[50]">
 
         {/* ===== MISSION SECTION ===== */}
-        <section id="mission" className="relative pt-24 pb-24 px-6 md:px-12">
+        <section id="mission" className="relative pt-24 pb-12 px-6 md:px-12">
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/40 pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto text-center">
             <p className="text-white/40 uppercase tracking-[0.3em] text-xs font-light mb-10">Our Mission</p>
@@ -239,7 +280,7 @@ export default function LandingPage() {
         </section>
 
         {/* ===== HOW IT WORKS ===== */}
-        <section ref={howItWorksRef as React.Ref<HTMLElement>} id="how-it-works" className="relative pt-24 pb-24 px-6 md:px-12">
+        <section ref={howItWorksRef as React.Ref<HTMLElement>} id="how-it-works" className="relative pt-24 pb-12 px-6 md:px-12">
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60 pointer-events-none" />
           <div className="relative z-10 max-w-6xl mx-auto">
             <div className="text-center mb-10">
@@ -288,7 +329,7 @@ export default function LandingPage() {
       </div>
 
       {/* ===== FEATURES ===== */}
-      <section id="features" className="relative z-[60] py-24 px-6 md:px-12 bg-gradient-to-b from-[#07070e] to-[#0d0d18] overflow-hidden">
+      <section id="features" className="relative z-[60] pt-24 pb-12 px-6 md:px-12 bg-gradient-to-b from-[#07070e] to-[#0d0d18] overflow-hidden">
         {/* Purple radial glow */}
         <div className="absolute inset-x-0 top-0 h-96 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59,7,100,0.25), transparent)" }} />
         <div className="relative z-10 max-w-6xl mx-auto">
@@ -302,6 +343,124 @@ export default function LandingPage() {
       </section>
 
       <TestimonialsSection />
+
+      {/* ===== PRICING ===== */}
+      <section id="pricing" className="relative pt-24 pb-12 px-6 md:px-12 overflow-hidden bg-black">
+        {/* Atmospheric radial glow */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(160,32,200,0.10) 0%, transparent 70%)" }} />
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center">
+            <p className="text-white/35 uppercase tracking-[0.3em] text-xs font-light mb-6">Pricing</p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extralight leading-[1.15] tracking-tight text-white">
+              Simple, transparent{" "}
+              <span className="italic text-white/55">pricing.</span>
+            </h2>
+          </div>
+
+          {/* Billing toggle */}
+          <div className="flex items-center justify-center mt-10 mb-14">
+            <div className="flex items-center bg-white/[0.06] border border-white/[0.10] rounded-full p-1 gap-1">
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`px-5 py-2 rounded-full text-sm font-light transition-all duration-300 ${billing === "monthly" ? "bg-white/15 text-white" : "text-white/45 hover:text-white/70"}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBilling("annual")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-light transition-all duration-300 ${billing === "annual" ? "bg-white/15 text-white" : "text-white/45 hover:text-white/70"}`}
+              >
+                Annual
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[#a020c8]/30 text-purple-300 border border-purple-500/30">
+                  Save 30%
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            {pricingPlans.map((plan, index) => (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.15 }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: index * 0.1 }}
+              >
+              <div
+                className={`relative flex flex-col rounded-2xl backdrop-blur-md p-7 gap-6 transition-transform duration-500 h-full ${
+                  plan.highlight
+                    ? "bg-white/[0.11] border border-purple-500/40 shadow-[0_0_40px_rgba(160,32,200,0.18)] md:scale-[1.04]"
+                    : "bg-white/[0.07] border border-white/[0.10]"
+                }`}
+              >
+                {/* Badge */}
+                {plan.badge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <span className="text-[11px] font-medium px-3 py-1 rounded-full bg-[#a020c8] text-white tracking-wide whitespace-nowrap">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                {/* Plan name + tagline */}
+                <div>
+                  <p className="text-white font-light text-lg tracking-wide">{plan.name}</p>
+                  <p className="text-white/45 text-sm font-light mt-1">{plan.tagline}</p>
+                </div>
+
+                {/* Price */}
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-white text-4xl font-extralight tracking-tight">{plan.price[billing]}</span>
+                    {plan.sub[billing] && (
+                      <span className="text-white/40 text-sm font-light">{plan.sub[billing]}</span>
+                    )}
+                  </div>
+                  {plan.note && (
+                    <p className="text-white/30 text-xs font-light mt-1.5 leading-relaxed">{plan.note}</p>
+                  )}
+                </div>
+
+                {/* Features */}
+                <ul className="flex flex-col gap-3 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2.5 text-white/65 text-sm font-light">
+                      <Check size={13} className="text-purple-400 shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <a
+                  href={plan.ctaHref}
+                  className={`text-center rounded-full px-6 py-3 text-sm font-light tracking-wide transition-all duration-300 ${
+                    plan.highlight
+                      ? "liquid-glass-btn text-white"
+                      : "btn-outline-hero"
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Trust signals */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-14 text-white/30 text-xs font-light tracking-wide">
+            {["Cancel anytime", "Secure payments", "GDPR compliant"].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <Check size={11} className="text-white/40" /> {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ===== MEET THE TEAM ===== */}
       <section ref={teamRef} id="team" className="relative pt-24 pb-24 px-6 md:px-12 overflow-hidden">
@@ -391,7 +550,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== BLOG SECTION ===== */}
-      <section id="blog" className="relative py-28 px-6 md:px-12 overflow-hidden">
+      <section id="blog" className="relative pt-24 pb-12 px-6 md:px-12 overflow-hidden">
         <img
           src="https://i.postimg.cc/yxkC8fTM/bg-blog-compressed.png"
           alt=""
@@ -450,10 +609,13 @@ export default function LandingPage() {
               <div>
                 <nav className="flex flex-col space-y-4">
                   {[
-                    { label: "Why Syncycle",  href: "#" },
+                    { label: "Home",          href: "#" },
                     { label: "Our Mission",   href: "#mission" },
                     { label: "How it Works",  href: "#how-it-works" },
+                    { label: "Features",      href: "#features" },
+                    { label: "Pricing",       href: "#pricing" },
                     { label: "Team",          href: "#team" },
+                    { label: "Blog",          href: "#blog" },
                   ].map((item) => (
                     <a
                       key={item.label}
