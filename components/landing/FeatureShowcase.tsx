@@ -20,6 +20,13 @@ import {
   Activity,
   Sparkles,
   Heart,
+  UtensilsCrossed,
+  BrainCircuit,
+  Zap,
+  Users,
+  ShieldAlert,
+  AlertTriangle,
+  Droplets,
 } from "lucide-react";
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
@@ -488,140 +495,117 @@ function LandingSleepCard({ animated }: { animated: boolean }) {
 
 // ─── Insights Placeholder ──────────────────────────────────────────────────────
 
-const INSIGHT_CARDS = [
-  {
-    icon: TrendingDown,
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.08)",
-    border: "rgba(167,139,250,0.15)",
-    label: "ENERGY FORECAST",
-    headline: "Luteal phase in 3 days",
-    description: "Progesterone rise expected — plan lighter workouts and extra rest from Day 21.",
-    tag: "Day 18 · Follicular",
-    tagColor: "rgba(167,139,250,0.7)",
-    tagBg: "rgba(167,139,250,0.08)",
-    tagBorder: "rgba(167,139,250,0.2)",
-  },
-  {
-    icon: Dumbbell,
-    color: "#f43f5e",
-    bg: "rgba(244,63,94,0.08)",
-    border: "rgba(244,63,94,0.15)",
-    label: "PERFORMANCE PEAK",
-    headline: "Best workout window",
-    description: "Estrogen is at its peak. Strength and endurance are optimal — push hard today.",
-    tag: "Day 9 · Follicular",
-    tagColor: "rgba(244,63,94,0.7)",
-    tagBg: "rgba(244,63,94,0.08)",
-    tagBorder: "rgba(244,63,94,0.2)",
-  },
-  {
-    icon: Moon,
-    color: "#06b6d4",
-    bg: "rgba(6,182,212,0.08)",
-    border: "rgba(6,182,212,0.15)",
-    label: "RECOVERY SIGNAL",
-    headline: "Rest day recommended",
-    description: "Your HRV trend and cycle data suggest your body needs recovery time today.",
-    tag: "Day 27 · Luteal",
-    tagColor: "rgba(6,182,212,0.7)",
-    tagBg: "rgba(6,182,212,0.08)",
-    tagBorder: "rgba(6,182,212,0.2)",
-  },
-  {
-    icon: Activity,
-    color: "#34d399",
-    bg: "rgba(52,211,153,0.08)",
-    border: "rgba(52,211,153,0.15)",
-    label: "CYCLE TREND",
-    headline: "Cycle length stabilizing",
-    description: "Your last 3 cycles averaged 27.3 days — within your personal baseline range.",
-    tag: "3-cycle average",
-    tagColor: "rgba(52,211,153,0.7)",
-    tagBg: "rgba(52,211,153,0.08)",
-    tagBorder: "rgba(52,211,153,0.2)",
-  },
-  {
-    icon: Heart,
-    color: "#fb7185",
-    bg: "rgba(251,113,133,0.08)",
-    border: "rgba(251,113,133,0.15)",
-    label: "SLEEP PATTERN",
-    headline: "Sleep dips on Day 24–27",
-    description: "You consistently sleep 45 min less in your late luteal phase. Melatonin may help.",
-    tag: "4-cycle insight",
-    tagColor: "rgba(251,113,133,0.7)",
-    tagBg: "rgba(251,113,133,0.08)",
-    tagBorder: "rgba(251,113,133,0.2)",
-  },
-  {
-    icon: Sparkles,
-    color: "#fbbf24",
-    bg: "rgba(251,191,36,0.08)",
-    border: "rgba(251,191,36,0.15)",
-    label: "MOOD PREDICTION",
-    headline: "High mood window ahead",
-    description: "Ovulation approaching — expect elevated energy, confidence, and social drive in 2 days.",
-    tag: "Day 11 · Follicular",
-    tagColor: "rgba(251,191,36,0.7)",
-    tagBg: "rgba(251,191,36,0.08)",
-    tagBorder: "rgba(251,191,36,0.2)",
-  },
+type InsightCard = {
+  icon: React.ElementType;
+  color: string; bg: string; border: string;
+  label: string; headline: string; description: string;
+  tag: string; tagColor: string; tagBg: string; tagBorder: string;
+  dLeft: string; dTop: number; dW: number; dRotate: number;
+  mLeft: string; mTop: number; mSize: "large" | "medium" | "small";
+  floatDur: number; floatY: number;
+};
+
+const INSIGHT_CARDS: InsightCard[] = [
+  { icon: TrendingDown, color: "#a78bfa", bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.15)", label: "ENERGY FORECAST", headline: "Luteal phase in 3 days", description: "Progesterone rise expected — plan lighter workouts from Day 21.", tag: "Day 18 · Follicular", tagColor: "rgba(167,139,250,0.7)", tagBg: "rgba(167,139,250,0.08)", tagBorder: "rgba(167,139,250,0.2)", dLeft: "0%", dTop: 20, dW: 240, dRotate: -1.5, mLeft: "2%", mTop: 10, mSize: "large", floatDur: 3.2, floatY: 8 },
+  { icon: Dumbbell, color: "#f43f5e", bg: "rgba(244,63,94,0.08)", border: "rgba(244,63,94,0.15)", label: "PERFORMANCE PEAK", headline: "Best workout window", description: "Estrogen is peaking. Strength and endurance are optimal — push hard.", tag: "Day 9 · Follicular", tagColor: "rgba(244,63,94,0.7)", tagBg: "rgba(244,63,94,0.08)", tagBorder: "rgba(244,63,94,0.2)", dLeft: "22%", dTop: 0, dW: 265, dRotate: 1.0, mLeft: "45%", mTop: 35, mSize: "small", floatDur: 3.8, floatY: 10 },
+  { icon: Moon, color: "#06b6d4", bg: "rgba(6,182,212,0.08)", border: "rgba(6,182,212,0.15)", label: "RECOVERY SIGNAL", headline: "Rest day recommended", description: "Your HRV trend and cycle data suggest your body needs recovery today.", tag: "Day 27 · Luteal", tagColor: "rgba(6,182,212,0.7)", tagBg: "rgba(6,182,212,0.08)", tagBorder: "rgba(6,182,212,0.2)", dLeft: "46%", dTop: 28, dW: 215, dRotate: -2.0, mLeft: "18%", mTop: 155, mSize: "medium", floatDur: 2.9, floatY: 7 },
+  { icon: Activity, color: "#34d399", bg: "rgba(52,211,153,0.08)", border: "rgba(52,211,153,0.15)", label: "CYCLE TREND", headline: "Cycle length stabilizing", description: "Your last 3 cycles averaged 27.3 days — within your personal baseline.", tag: "3-cycle average", tagColor: "rgba(52,211,153,0.7)", tagBg: "rgba(52,211,153,0.08)", tagBorder: "rgba(52,211,153,0.2)", dLeft: "69%", dTop: 5, dW: 250, dRotate: 1.5, mLeft: "40%", mTop: 165, mSize: "large", floatDur: 4.1, floatY: 9 },
+  { icon: Heart, color: "#fb7185", bg: "rgba(251,113,133,0.08)", border: "rgba(251,113,133,0.15)", label: "SLEEP PATTERN", headline: "Sleep dips on Day 24–27", description: "You consistently sleep 45 min less in late luteal. Melatonin may help.", tag: "4-cycle insight", tagColor: "rgba(251,113,133,0.7)", tagBg: "rgba(251,113,133,0.08)", tagBorder: "rgba(251,113,133,0.2)", dLeft: "3%", dTop: 210, dW: 255, dRotate: 1.0, mLeft: "0%", mTop: 295, mSize: "small", floatDur: 3.5, floatY: 8 },
+  { icon: Sparkles, color: "#fbbf24", bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.15)", label: "MOOD PREDICTION", headline: "High mood window ahead", description: "Ovulation approaching — expect elevated energy and social drive in 2 days.", tag: "Day 11 · Follicular", tagColor: "rgba(251,191,36,0.7)", tagBg: "rgba(251,191,36,0.08)", tagBorder: "rgba(251,191,36,0.2)", dLeft: "26%", dTop: 220, dW: 225, dRotate: -1.0, mLeft: "30%", mTop: 285, mSize: "large", floatDur: 4.3, floatY: 11 },
+  { icon: UtensilsCrossed, color: "#86efac", bg: "rgba(134,239,172,0.08)", border: "rgba(134,239,172,0.15)", label: "NUTRITION WINDOW", headline: "Iron absorption peaks now", description: "Add leafy greens and vitamin C today — your body absorbs more this phase.", tag: "Day 5 · Menstrual", tagColor: "rgba(134,239,172,0.7)", tagBg: "rgba(134,239,172,0.08)", tagBorder: "rgba(134,239,172,0.2)", dLeft: "49%", dTop: 200, dW: 245, dRotate: 2.0, mLeft: "55%", mTop: 310, mSize: "medium", floatDur: 3.1, floatY: 9 },
+  { icon: BrainCircuit, color: "#67e8f9", bg: "rgba(103,232,249,0.08)", border: "rgba(103,232,249,0.15)", label: "FOCUS PEAK", headline: "Mental clarity at its highest", description: "Best time for deep work and decisions — cognitive sharpness peaks today.", tag: "Day 10 · Follicular", tagColor: "rgba(103,232,249,0.7)", tagBg: "rgba(103,232,249,0.08)", tagBorder: "rgba(103,232,249,0.2)", dLeft: "71%", dTop: 225, dW: 200, dRotate: -1.5, mLeft: "8%", mTop: 430, mSize: "medium", floatDur: 3.9, floatY: 7 },
+  { icon: Zap, color: "#fca5a5", bg: "rgba(252,165,165,0.08)", border: "rgba(252,165,165,0.15)", label: "CRAMP ALERT", headline: "Prostaglandins rising", description: "Magnesium and heat can ease cramping — avoid caffeine and cold drinks today.", tag: "Day 1 · Menstrual", tagColor: "rgba(252,165,165,0.7)", tagBg: "rgba(252,165,165,0.08)", tagBorder: "rgba(252,165,165,0.2)", dLeft: "1%", dTop: 410, dW: 230, dRotate: -2.0, mLeft: "42%", mTop: 445, mSize: "small", floatDur: 2.8, floatY: 10 },
+  { icon: Users, color: "#c4b5fd", bg: "rgba(196,181,253,0.08)", border: "rgba(196,181,253,0.15)", label: "SOCIAL ENERGY", headline: "Ovulation window open", description: "Communication drive and charisma are at peak — great day for big conversations.", tag: "Day 12 · Ovulatory", tagColor: "rgba(196,181,253,0.7)", tagBg: "rgba(196,181,253,0.08)", tagBorder: "rgba(196,181,253,0.2)", dLeft: "24%", dTop: 395, dW: 260, dRotate: 1.0, mLeft: "5%", mTop: 545, mSize: "large", floatDur: 4.2, floatY: 8 },
+  { icon: ShieldAlert, color: "#fcd34d", bg: "rgba(252,211,77,0.08)", border: "rgba(252,211,77,0.15)", label: "INFLAMMATION DIP", headline: "Anti-inflammatory day", description: "Lower estrogen may increase inflammation — omega-3 and turmeric foods help.", tag: "Day 25 · Luteal", tagColor: "rgba(252,211,77,0.7)", tagBg: "rgba(252,211,77,0.08)", tagBorder: "rgba(252,211,77,0.2)", dLeft: "47%", dTop: 415, dW: 225, dRotate: -1.5, mLeft: "40%", mTop: 555, mSize: "medium", floatDur: 3.6, floatY: 9 },
+  { icon: Sparkles, color: "#a5f3fc", bg: "rgba(165,243,252,0.08)", border: "rgba(165,243,252,0.15)", label: "SKIN CLARITY", headline: "Clear skin week ahead", description: "Sebum production is low — expect fewer breakouts and smoother texture.", tag: "Day 8 · Follicular", tagColor: "rgba(165,243,252,0.7)", tagBg: "rgba(165,243,252,0.08)", tagBorder: "rgba(165,243,252,0.2)", dLeft: "71%", dTop: 410, dW: 215, dRotate: 2.0, mLeft: "58%", mTop: 540, mSize: "small", floatDur: 3.3, floatY: 11 },
+  { icon: AlertTriangle, color: "#f9a8d4", bg: "rgba(249,168,212,0.08)", border: "rgba(249,168,212,0.15)", label: "STRESS SENSITIVITY", headline: "Protect your calm today", description: "Cortisol tolerance is reduced in late luteal — avoid overscheduling.", tag: "Day 26 · Luteal", tagColor: "rgba(249,168,212,0.7)", tagBg: "rgba(249,168,212,0.08)", tagBorder: "rgba(249,168,212,0.2)", dLeft: "1%", dTop: 600, dW: 220, dRotate: 1.5, mLeft: "12%", mTop: 680, mSize: "small", floatDur: 4.0, floatY: 8 },
+  { icon: Droplets, color: "#7dd3fc", bg: "rgba(125,211,252,0.08)", border: "rgba(125,211,252,0.15)", label: "HYDRATION SIGNAL", headline: "Drink more water today", description: "Estrogen drop can cause water retention — staying hydrated offsets the effect.", tag: "Day 14 · Ovulatory", tagColor: "rgba(125,211,252,0.7)", tagBg: "rgba(125,211,252,0.08)", tagBorder: "rgba(125,211,252,0.2)", dLeft: "26%", dTop: 615, dW: 205, dRotate: -1.0, mLeft: "35%", mTop: 670, mSize: "large", floatDur: 3.4, floatY: 9 },
+  { icon: Heart, color: "#f472b6", bg: "rgba(244,114,182,0.08)", border: "rgba(244,114,182,0.15)", label: "LIBIDO PEAK", headline: "Desire peaks this week", description: "Testosterone spikes at ovulation — elevated drive and confidence are normal.", tag: "Day 13 · Ovulatory", tagColor: "rgba(244,114,182,0.7)", tagBg: "rgba(244,114,182,0.08)", tagBorder: "rgba(244,114,182,0.2)", dLeft: "50%", dTop: 595, dW: 205, dRotate: 2.0, mLeft: "0%", mTop: 800, mSize: "medium", floatDur: 2.9, floatY: 7 },
+  { icon: TrendingDown, color: "#d8b4fe", bg: "rgba(216,180,254,0.08)", border: "rgba(216,180,254,0.15)", label: "FATIGUE PATTERN", headline: "Afternoon dips detected", description: "Your logs show consistent energy crashes in late luteal — protect 2–4pm.", tag: "Day 24 · Luteal", tagColor: "rgba(216,180,254,0.7)", tagBg: "rgba(216,180,254,0.08)", tagBorder: "rgba(216,180,254,0.2)", dLeft: "74%", dTop: 610, dW: 195, dRotate: -2.0, mLeft: "42%", mTop: 815, mSize: "large", floatDur: 4.4, floatY: 10 },
 ];
+
+function CardInner({ card, compact = false }: { card: InsightCard; compact?: boolean }) {
+  const Icon = card.icon;
+  return (
+    <div
+      className={`rounded-2xl bg-white/[0.07] border border-white/10 flex flex-col gap-2 hover:border-white/20 transition-colors duration-200 ${compact ? "px-3 pt-3 pb-3" : "px-4 pt-4 pb-4"}`}
+    >
+      {/* Icon + label */}
+      <div className="flex items-center gap-2">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+          style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}
+        >
+          <Icon size={compact ? 11 : 13} style={{ color: card.color }} />
+        </div>
+        <span
+          className={`uppercase tracking-widest font-medium ${compact ? "text-[7px]" : "text-[8px]"}`}
+          style={{ color: card.color }}
+        >
+          {card.label}
+        </span>
+      </div>
+      {/* Headline + description */}
+      <div>
+        <p className={`text-white font-light leading-snug mb-1 ${compact ? "text-[11px]" : "text-[13px]"}`}>{card.headline}</p>
+        <p className={`text-white/40 leading-relaxed line-clamp-2 ${compact ? "text-[9px]" : "text-[11px]"}`}>{card.description}</p>
+      </div>
+      {/* Tag pill */}
+      <span
+        className={`self-start rounded-full leading-none ${compact ? "text-[7px] px-2 py-0.5" : "text-[9px] px-2.5 py-1"}`}
+        style={{ color: card.tagColor, backgroundColor: card.tagBg, border: `1px solid ${card.tagBorder}` }}
+      >
+        {card.tag}
+      </span>
+    </div>
+  );
+}
 
 function InsightsPlaceholder() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:[grid-template-rows:270px_270px]">
-      {INSIGHT_CARDS.map((card, i) => {
-        const Icon = card.icon;
-        return (
+    <div className="relative w-full">
+      {/* ── Desktop: absolute scatter ── */}
+      <div className="hidden md:block relative w-full h-[740px]">
+        {INSIGHT_CARDS.map((card, i) => (
           <motion.div
             key={card.label}
-            className="h-[270px] md:h-auto"
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20, delay: i * 0.07 }}
+            style={{ position: "absolute", left: card.dLeft, top: card.dTop, width: card.dW, zIndex: 1, rotate: card.dRotate }}
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1, y: [0, -card.floatY, 0] }}
+            transition={{
+              opacity: { duration: 0.35, delay: i * 0.055 },
+              scale: { duration: 0.35, delay: i * 0.055 },
+              y: { duration: card.floatDur, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 },
+            }}
           >
-            <div className="rounded-2xl bg-white/[0.06] border border-white/10 h-full flex flex-col px-5 pt-5 pb-5 gap-3 hover:border-white/20 transition-colors duration-200">
-              {/* Icon + label */}
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: card.bg, border: `1px solid ${card.border}` }}
-                >
-                  <Icon size={15} style={{ color: card.color }} />
-                </div>
-                <span
-                  className="text-[8px] uppercase tracking-widest font-medium"
-                  style={{ color: card.color }}
-                >
-                  {card.label}
-                </span>
-              </div>
-
-              {/* Headline */}
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <p className="text-white text-[15px] font-light leading-snug mb-2">{card.headline}</p>
-                  <p className="text-white/40 text-[11px] leading-relaxed">{card.description}</p>
-                </div>
-
-                {/* Tag pill */}
-                <span
-                  className="self-start text-[9px] rounded-full px-2.5 py-1 leading-none"
-                  style={{
-                    color: card.tagColor,
-                    backgroundColor: card.tagBg,
-                    border: `1px solid ${card.tagBorder}`,
-                  }}
-                >
-                  {card.tag}
-                </span>
-              </div>
-            </div>
+            <motion.div
+              className="rounded-2xl"
+              whileHover={{ boxShadow: `0 0 0 1px ${card.color}99, 0 0 22px 6px ${card.color}28` }}
+              transition={{ duration: 0.2 }}
+            >
+              <CardInner card={card} />
+            </motion.div>
           </motion.div>
-        );
-      })}
+        ))}
+      </div>
+
+      {/* ── Mobile: single column, 4 cards, full width ── */}
+      <div className="md:hidden flex flex-col gap-3 pb-4">
+        {INSIGHT_CARDS.slice(0, 4).map((card, i) => (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1, y: [0, -card.floatY * 0.6, 0] }}
+            transition={{
+              opacity: { duration: 0.35, delay: i * 0.08 },
+              scale: { duration: 0.35, delay: i * 0.08 },
+              y: { duration: card.floatDur, repeat: Infinity, ease: "easeInOut", delay: i * 0.25 },
+            }}
+          >
+            <CardInner card={card} />
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -854,41 +838,29 @@ export function FeatureShowcase() {
           exit="exit"
         >
           {activeTab === 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:[grid-template-rows:270px_270px]">
-              {/* Profile — spans both rows */}
-              <motion.div className="h-[564px] md:h-auto md:row-span-2" {...cardProps(0, -10)}>
-                <LandingProfileCard animated={animated} />
-              </motion.div>
+            <div>
+              {/* Desktop: 4-col grid with profile spanning 2 rows */}
+              <div className="hidden md:grid md:grid-cols-4 gap-6 md:[grid-template-rows:270px_270px]">
+                <motion.div className="md:row-span-2" {...cardProps(0, -10)}>
+                  <LandingProfileCard animated={animated} />
+                </motion.div>
+                <motion.div {...cardProps(1, -6)}><LandingCyclePhaseCard animated={animated} /></motion.div>
+                <motion.div {...cardProps(2, 6)}><LandingVibeCard animated={animated} /></motion.div>
+                <motion.div {...cardProps(3, 10)}><LandingSymptomCard animated={animated} /></motion.div>
+                <motion.div {...cardProps(4, -6)}><LandingNutritionCard animated={animated} /></motion.div>
+                <motion.div {...cardProps(5, 6)}><LandingFitnessCard animated={animated} /></motion.div>
+                <motion.div {...cardProps(6, 10)}><LandingSleepCard animated={animated} /></motion.div>
+              </div>
 
-              {/* CyclePhase */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(1, -6)}>
-                <LandingCyclePhaseCard animated={animated} />
-              </motion.div>
-
-              {/* Vibe */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(2, 6)}>
-                <LandingVibeCard animated={animated} />
-              </motion.div>
-
-              {/* Symptoms */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(3, 10)}>
-                <LandingSymptomCard animated={animated} />
-              </motion.div>
-
-              {/* Nutrition */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(4, -6)}>
-                <LandingNutritionCard animated={animated} />
-              </motion.div>
-
-              {/* Fitness */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(5, 6)}>
-                <LandingFitnessCard animated={animated} />
-              </motion.div>
-
-              {/* Sleep */}
-              <motion.div className="h-[270px] md:h-auto" {...cardProps(6, 10)}>
-                <LandingSleepCard animated={animated} />
-              </motion.div>
+              {/* Mobile: 2-col 3-row grid, no profile card */}
+              <div className="md:hidden grid grid-cols-2 gap-3">
+                <motion.div className="h-[220px]" {...cardProps(1, -6)}><LandingCyclePhaseCard animated={animated} /></motion.div>
+                <motion.div className="h-[220px]" {...cardProps(2, 6)}><LandingVibeCard animated={animated} /></motion.div>
+                <motion.div className="h-[220px]" {...cardProps(3, 10)}><LandingSymptomCard animated={animated} /></motion.div>
+                <motion.div className="h-[220px]" {...cardProps(4, -6)}><LandingNutritionCard animated={animated} /></motion.div>
+                <motion.div className="h-[220px]" {...cardProps(5, 6)}><LandingFitnessCard animated={animated} /></motion.div>
+                <motion.div className="h-[220px]" {...cardProps(6, 10)}><LandingSleepCard animated={animated} /></motion.div>
+              </div>
             </div>
           )}
 
