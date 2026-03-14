@@ -657,11 +657,11 @@ export default function LandingPage() {
       </motion.section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="pt-20 p-12 px-6 md:px-12 bg-gradient-to-b from-black to-slate-900">
+      <footer className="pt-20 pb-10 px-6 md:px-12 bg-gradient-to-b from-black to-slate-900">
         <div className="max-w-6xl mx-auto">
 
           {/* ── PRE-FOOTER CTA CARD ── */}
-          <div className="rounded-3xl bg-white/[0.06] backdrop-blur-md border border-white/[0.10] shadow-2xl shadow-black/40 overflow-hidden p-10 md:p-14 mb-10 relative">
+          <div className="rounded-3xl bg-white/[0.06] backdrop-blur-md border border-white/[0.10] shadow-2xl shadow-black/40 overflow-hidden p-10 md:p-14 mb-0 relative">
             <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-purple-600/20 blur-3xl pointer-events-none" />
             <div className="absolute -bottom-16 -left-16 w-60 h-60 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />
 
@@ -708,31 +708,33 @@ export default function LandingPage() {
                   <p className="text-white/45 text-sm mt-3 font-light">Try it free — no card required.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-row gap-3">
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
                     value={emailValue}
                     onChange={e => setEmailValue(e.target.value)}
                     placeholder="Enter your email for a demo"
-                    className="flex-1 min-w-0 bg-white/[0.08] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-white/35 outline-none focus:border-purple-500/60 focus:bg-white/[0.11] transition-all"
+                    className="w-full sm:flex-1 min-w-0 bg-white/[0.08] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-white/35 outline-none focus:border-purple-500/60 focus:bg-white/[0.11] transition-all"
                   />
-                  <button
-                    type="submit"
-                    disabled={status === "loading" || !emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
-                    className={`px-6 py-3 text-sm whitespace-nowrap shrink-0 rounded-full font-light tracking-wide transition-all duration-300 border ${
-                      emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-                        ? "bg-purple-600 hover:bg-purple-500 border-purple-500 text-white shadow-[0_0_20px_rgba(160,32,200,0.35)] cursor-pointer"
-                        : "bg-white/[0.06] border-white/15 text-white/30 cursor-not-allowed"
-                    }`}
-                  >
-                    {status === "loading" ? "Sending…" : status === "success" ? "Sent ✓" : "Get Demo"}
-                  </button>
-                  <a href="/signup" className="btn-outline-hero px-6 py-3 text-sm whitespace-nowrap shrink-0">
-                    Sign Up Free
-                  </a>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={status === "loading" || !emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
+                      className={`flex-1 sm:flex-none px-6 py-3 text-sm whitespace-nowrap rounded-full font-light tracking-wide transition-all duration-300 border ${
+                        emailValue.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+                          ? "bg-purple-600 hover:bg-purple-500 border-purple-500 text-white shadow-[0_0_20px_rgba(160,32,200,0.35)] cursor-pointer"
+                          : "bg-white/[0.06] border-white/15 text-white/30 cursor-not-allowed"
+                      }`}
+                    >
+                      {status === "loading" ? "Sending…" : status === "success" ? "Sent ✓" : "Get Demo"}
+                    </button>
+                    <a href="/signup" className="flex-1 sm:flex-none btn-outline-hero px-6 py-3 text-sm text-center whitespace-nowrap">
+                      Sign Up Free
+                    </a>
+                  </div>
                 </form>
 
-                <div className="flex items-center gap-5 text-white/25 text-xs">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-white/25 text-xs">
                   {["✓ Cancel anytime", "✓ GDPR compliant", "✓ Secure payments"].map((t) => (
                     <span key={t}>{t}</span>
                   ))}
