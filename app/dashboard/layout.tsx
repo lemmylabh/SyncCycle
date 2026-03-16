@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         setReady(true);
-        router.replace("/");
+        router.replace("/auth");
         return;
       }
 
@@ -90,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Only watch for explicit sign-out
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
-        router.replace("/");
+        router.replace("/auth");
       }
     });
 

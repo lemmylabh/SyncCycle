@@ -51,7 +51,7 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl }: NavbarProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/auth");
   };
 
   return (

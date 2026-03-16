@@ -20,11 +20,11 @@ export function MobileTopBar({ initials, isDemo }: MobileTopBarProps) {
     setProfileOpen(false);
     if (isDemo) {
       sessionStorage.removeItem("demo");
-      router.push("/");
+      router.push("/auth");
       return;
     }
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/auth");
   };
 
   return (
