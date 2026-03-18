@@ -133,12 +133,11 @@ export default function LandingPage() {
     if (!emailValue || status === "loading") return;
     setStatus("loading");
     const { error } = await supabase.from("leads").insert({ email: emailValue, source: "landing" });
-    if (!error) {
-      router.push("/dashboard?demo=true");
-    } else if (error.code === "23505") {
-      // Already in CRM — still take them to the demo
-      setStatus("duplicate");
-      setTimeout(() => router.push("/dashboard?demo=true"), 1200);
+    if (!error || error.code === "23505") {
+      // Sign in as demo account so visitor sees the populated Jane Doe dashboard
+      await supabase.auth.signInWithPassword({ email: "demo@syncycle.ai", password: "Hello@1220" });
+      sessionStorage.removeItem("demo");
+      router.push("/dashboard");
     } else {
       console.error("[leads insert error]", error.code, error.message, error.details);
       setStatus("error");

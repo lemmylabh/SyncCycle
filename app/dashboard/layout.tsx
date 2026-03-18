@@ -14,7 +14,6 @@ import { MobileSwipeWrapper } from "@/components/mobile/MobileSwipeWrapper";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
 import { FionaPopup } from "@/components/mobile/FionaPopup";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
-import { DemoOnboardingChoice } from "@/components/onboarding/DemoOnboardingChoice";
 import { ThemeProvider } from "@/lib/themeContext";
 
 
@@ -30,7 +29,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isDemo, setIsDemo] = useState(false);
   const [fionaOpen, setFionaOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showDemoChoice, setShowDemoChoice] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   const isMobileSwipeRoute =
@@ -44,7 +42,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       sessionStorage.setItem("demo", "true");
       setIsDemo(true);
       setUserInitials("DM");
-      setShowDemoChoice(true);
       setReady(true);
       return;
     }
@@ -58,6 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
 
       const email = session.user.email ?? "";
+      if (email === "demo@syncycle.ai") setIsDemo(true);
       const name = (session.user.user_metadata?.full_name as string) ?? email;
       const initials = name
         .split(" ")
@@ -173,20 +171,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onMenuToggle={() => setSidebarOpen((prev) => !prev)}
             userInitials={userInitials}
             avatarUrl={avatarUrl}
+            isDemo={isDemo}
           />
           <main className="flex-1 overflow-y-auto premium-scroll">
             {children}
           </main>
         </div>
       </div>
-
-      {/* ── Demo choice prompt ─────────────────────────────────────── */}
-      {showDemoChoice && (
-        <DemoOnboardingChoice
-          onPreview={() => { setShowDemoChoice(false); setShowOnboarding(true); }}
-          onSkip={() => setShowDemoChoice(false)}
-        />
-      )}
 
       {/* ── Onboarding modal — real users (saves to DB) or demo preview (fake save) ── */}
       {showOnboarding && (

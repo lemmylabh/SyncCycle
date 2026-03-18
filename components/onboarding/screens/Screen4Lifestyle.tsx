@@ -1,5 +1,7 @@
 "use client";
 
+import { Smile, Dumbbell, UtensilsCrossed, Moon, HeartPulse } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { OnboardingData } from "../OnboardingModal";
 
 const CONTRACEPTIVES = [
@@ -13,12 +15,12 @@ const CONTRACEPTIVES = [
   { value: "other", label: "Other" },
 ];
 
-const TRACKERS = [
-  { value: "mood", label: "Mood (Vibe Check)", icon: "🎭" },
-  { value: "fitness", label: "Fitness", icon: "🏃" },
-  { value: "nutrition", label: "Nutrition", icon: "🥗" },
-  { value: "sleep", label: "Sleep", icon: "🌙" },
-  { value: "symptoms", label: "Symptoms", icon: "💊" },
+const TRACKERS: { value: string; label: string; Icon: LucideIcon }[] = [
+  { value: "mood",      label: "Mood (Vibe Check)", Icon: Smile },
+  { value: "fitness",   label: "Fitness",           Icon: Dumbbell },
+  { value: "nutrition", label: "Nutrition",         Icon: UtensilsCrossed },
+  { value: "sleep",     label: "Sleep",             Icon: Moon },
+  { value: "symptoms",  label: "Symptoms",          Icon: HeartPulse },
 ];
 
 const REMINDER_TYPES = [
@@ -94,7 +96,7 @@ export function Screen4Lifestyle({ data, onChange }: Props) {
                     : "bg-white/5 border-white/10 text-white/50 hover:border-white/20 hover:text-white/70"
                 }`}
               >
-                <span>{t.icon}</span>
+                <t.Icon size={12} className="shrink-0" />
                 <span>{t.label}</span>
               </button>
             );

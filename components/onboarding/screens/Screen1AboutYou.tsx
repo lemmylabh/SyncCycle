@@ -1,14 +1,15 @@
 "use client";
 
+import { Calendar, Leaf, Shield, Activity, HeartPulse } from "lucide-react";
 import { AvatarUpload } from "../AvatarUpload";
 import type { OnboardingData } from "../OnboardingModal";
 
 const GOALS = [
-  { value: "track_health", label: "Track my cycle", icon: "📅" },
-  { value: "conceive", label: "Trying to conceive", icon: "🌱" },
-  { value: "avoid_pregnancy", label: "Avoid pregnancy", icon: "🛡️" },
-  { value: "perimenopause_tracking", label: "Perimenopause tracking", icon: "🌿" },
-  { value: "manage_symptoms", label: "General health awareness", icon: "💙" },
+  { value: "track_health",           label: "Track my cycle",           Icon: Calendar },
+  { value: "conceive",               label: "Trying to conceive",       Icon: Leaf },
+  { value: "avoid_pregnancy",        label: "Avoid pregnancy",          Icon: Shield },
+  { value: "perimenopause_tracking", label: "Perimenopause tracking",   Icon: Activity },
+  { value: "manage_symptoms",        label: "General health awareness", Icon: HeartPulse },
 ];
 
 const PRONOUNS = [
@@ -107,7 +108,7 @@ export function Screen1AboutYou({ data, onChange }: Props) {
                   : "bg-white/5 border-white/10 text-white/60 hover:bg-white/8 hover:border-white/20 hover:text-white/80"
               }`}
             >
-              <span className="text-base">{g.icon}</span>
+              <g.Icon size={16} className="shrink-0 text-rose-400/70" />
               <span>{g.label}</span>
             </button>
           ))}

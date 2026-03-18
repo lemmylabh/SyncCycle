@@ -1,5 +1,7 @@
 "use client";
 
+import { Check } from "lucide-react";
+
 interface OnboardingProgressProps {
   currentScreen: number;
   totalScreens: number;
@@ -28,9 +30,7 @@ export function OnboardingProgress({ currentScreen, totalScreens }: OnboardingPr
                 }`}
               >
                 {isCompleted ? (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <Check size={11} />
                 ) : (
                   step
                 )}

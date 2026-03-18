@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { OnboardingProgress } from "./OnboardingProgress";
 import { Screen1AboutYou } from "./screens/Screen1AboutYou";
@@ -216,13 +216,13 @@ export function OnboardingModal({ open, userId, demoMode = false, onComplete }: 
     /* Backdrop */
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       {/* Modal card */}
-      <div className="relative w-full max-w-lg bg-[#1e1e2a] rounded-2xl shadow-2xl shadow-black/60 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-lg bg-[var(--card-bg)] card-glass rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex-shrink-0">
           <div className="mb-1">
             <h2 className="text-base font-semibold text-white">
-              {screen === 1 && "Welcome to CycleSync"}
+              {screen === 1 && "Welcome to Syncycle"}
               {screen === 2 && "Your Cycle"}
               {screen === 3 && "Body Signals"}
               {screen === 4 && "Lifestyle & Health"}
@@ -240,7 +240,7 @@ export function OnboardingModal({ open, userId, demoMode = false, onComplete }: 
         </div>
 
         {/* Scrollable screen content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-2 min-h-0">
+        <div className="flex-1 overflow-y-auto premium-scroll px-6 pb-2 min-h-0">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={screen}
@@ -312,9 +312,7 @@ export function OnboardingModal({ open, userId, demoMode = false, onComplete }: 
                 className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-rose-500 to-purple-600 text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M5.5 3L9.5 7L5.5 11" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ChevronRight size={14} />
               </button>
             )}
           </div>

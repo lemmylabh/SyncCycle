@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+
 interface Props {
   onPreview: () => void;
   onSkip: () => void;
@@ -8,11 +10,11 @@ interface Props {
 export function DemoOnboardingChoice({ onPreview, onSkip }: Props) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-[#1e1e2a] rounded-2xl shadow-2xl shadow-black/60 p-6 flex flex-col gap-5">
+      <div className="w-full max-w-sm bg-[var(--card-bg)] card-glass rounded-2xl p-6 flex flex-col gap-5">
 
         {/* Icon */}
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-purple-600/20 border border-rose-500/20 flex items-center justify-center text-2xl">
-          ✨
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-purple-600/20 border border-rose-500/20 flex items-center justify-center">
+          <Sparkles size={22} className="text-purple-400" />
         </div>
 
         {/* Text */}
@@ -28,14 +30,14 @@ export function DemoOnboardingChoice({ onPreview, onSkip }: Props) {
           <button
             type="button"
             onClick={onPreview}
-            className="w-full py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-rose-500 to-purple-600 text-white hover:opacity-90 active:scale-[0.98] transition-all"
+            className="w-full py-3 rounded-full text-sm font-semibold bg-gradient-to-r from-rose-500 to-purple-600 text-white hover:opacity-90 active:scale-[0.98] transition-all"
           >
             Preview Onboarding
           </button>
           <button
             type="button"
             onClick={onSkip}
-            className="w-full py-3 rounded-xl text-sm font-medium text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+            className="w-full py-3 rounded-full text-sm font-medium text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
           >
             Go to Dashboard
           </button>

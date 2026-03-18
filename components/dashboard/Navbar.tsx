@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ThemeSelector } from "@/components/dashboard/ThemeSelector";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
@@ -29,9 +29,10 @@ interface NavbarProps {
   onMenuToggle: () => void;
   userInitials: string;
   avatarUrl?: string | null;
+  isDemo?: boolean;
 }
 
-export function Navbar({ onMenuToggle, userInitials, avatarUrl }: NavbarProps) {
+export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -71,7 +72,9 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl }: NavbarProps) {
             <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
           </svg>
         </button>
-        <h1 className="text-white font-semibold text-base hidden sm:block">{PAGE_NAMES[pathname] ?? "Dashboard"}</h1>
+        <h1 className="text-white font-semibold text-base hidden sm:block">
+          {pathname.startsWith("/dashboard/settings") ? "Settings" : PAGE_NAMES[pathname] ?? "Dashboard"}
+        </h1>
       </div>
 
       {/* Center: nav links */}
@@ -97,6 +100,15 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl }: NavbarProps) {
 
       {/* Right: theme + bell + avatar */}
       <div className="flex items-center gap-3">
+        {isDemo && (
+          <a
+            href="/signup"
+            className="hidden md:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-violet-500/20 border border-violet-500/30 text-violet-300 hover:border-violet-400/60 hover:text-violet-200 transition-all duration-200"
+          >
+            <Zap size={11} />
+            Sign Up Free
+          </a>
+        )}
         <ThemeSelector />
         {/* Notification bell */}
         <button className="relative text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">

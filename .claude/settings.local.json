@@ -37,7 +37,8 @@
       "Bash(npx playwright:*)",
       "Bash(node -e \":*)",
       "Bash(wait buxayfv8s:*)",
-      "Bash(find c:UsersLemmyMusicsynccycle -type f -iname *pricing*)"
+      "Bash(find c:UsersLemmyMusicsynccycle -type f -iname *pricing*)",
+      "Bash(find c:/Users/Lemmy/Music/synccycle -type f -name *settings* -o -name *Settings*)"
     ]
   }
 }

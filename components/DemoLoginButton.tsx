@@ -22,6 +22,7 @@ export function DemoLoginButton() {
       setLoading(false);
       return;
     }
+    sessionStorage.removeItem("demo");
     router.push("/dashboard");
   };
 

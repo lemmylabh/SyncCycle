@@ -1,18 +1,20 @@
 "use client";
 
+import { Waves, Wind, Brain, Sparkles, Heart, MoveVertical, Moon, Smile, Cookie, Check } from "lucide-react";
 import type { OnboardingData } from "../OnboardingModal";
+import type { LucideIcon } from "lucide-react";
 
-const SYMPTOMS = [
-  { value: "cramps", label: "Cramps", icon: "🌊" },
-  { value: "bloating", label: "Bloating", icon: "💨" },
-  { value: "headache", label: "Headaches", icon: "🤕" },
-  { value: "acne", label: "Acne", icon: "✦" },
-  { value: "breast_tenderness", label: "Breast tenderness", icon: "💗" },
-  { value: "backache", label: "Back pain", icon: "🔙" },
-  { value: "fatigue", label: "Fatigue", icon: "😴" },
-  { value: "mood_swings", label: "Mood swings", icon: "🎭" },
-  { value: "cravings", label: "Food cravings", icon: "🍫" },
-  { value: "none", label: "None", icon: "✓" },
+const SYMPTOMS: { value: string; label: string; Icon: LucideIcon }[] = [
+  { value: "cramps",            label: "Cramps",           Icon: Waves },
+  { value: "bloating",          label: "Bloating",         Icon: Wind },
+  { value: "headache",          label: "Headaches",        Icon: Brain },
+  { value: "acne",              label: "Acne",             Icon: Sparkles },
+  { value: "breast_tenderness", label: "Breast tenderness", Icon: Heart },
+  { value: "backache",          label: "Back pain",        Icon: MoveVertical },
+  { value: "fatigue",           label: "Fatigue",          Icon: Moon },
+  { value: "mood_swings",       label: "Mood swings",      Icon: Smile },
+  { value: "cravings",          label: "Food cravings",    Icon: Cookie },
+  { value: "none",              label: "None",             Icon: Check },
 ];
 
 const FLOW_OPTIONS = [
@@ -76,7 +78,7 @@ export function Screen3BodySignals({ data, onChange }: Props) {
                     : "bg-white/5 border-white/10 text-white/50 hover:border-white/20 hover:text-white/70"
                 }`}
               >
-                <span>{s.icon}</span>
+                <s.Icon size={12} className="shrink-0" />
                 <span>{s.label}</span>
               </button>
             );

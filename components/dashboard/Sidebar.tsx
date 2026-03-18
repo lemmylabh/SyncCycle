@@ -34,6 +34,7 @@ interface SidebarContentProps {
   handleSignOut: () => void;
   shouldReduceMotion: boolean | null;
   collapsed?: boolean;
+  isDemo?: boolean;
 }
 
 const navSections: { label: string; items: { Icon: LucideIcon; label: string; href: string }[] }[] = [
@@ -68,7 +69,7 @@ const bottomItems: { Icon: LucideIcon; label: string; href: string }[] = [
   { Icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
-function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, shouldReduceMotion, collapsed }: SidebarContentProps) {
+function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, shouldReduceMotion, collapsed, isDemo }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full bg-[var(--sidebar-bg)] sidebar-panel">
       {/* Logo */}
@@ -136,6 +137,7 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
         ))}
       </nav>
 
+
       {/* Bottom items */}
       <div className={`pb-2 border-t border-white/5 pt-2 space-y-0.5 ${collapsed ? "px-1" : "px-3"}`}>
         {bottomItems.map((item) => (
@@ -187,6 +189,7 @@ export function Sidebar({ isOpen, onClose, isDemo, collapsed, sidebarWidth }: Si
             handleSignOut={handleSignOut}
             shouldReduceMotion={shouldReduceMotion}
             collapsed={collapsed}
+            isDemo={isDemo}
           />
         </div>
       </aside>
@@ -212,6 +215,7 @@ export function Sidebar({ isOpen, onClose, isDemo, collapsed, sidebarWidth }: Si
           onClose={onClose}
           handleSignOut={handleSignOut}
           shouldReduceMotion={shouldReduceMotion}
+          isDemo={isDemo}
         />
       </aside>
     </>
