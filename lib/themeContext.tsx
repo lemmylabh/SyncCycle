@@ -18,8 +18,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("glass");
 
   useEffect(() => {
-    setThemeState("glass");
-    document.documentElement.setAttribute("data-theme", "glass");
+    const saved = localStorage.getItem("synccycle-theme") as Theme | null;
+    const t: Theme = saved === "glass" ? saved : "glass"; // only "glass" supported for now
+    setThemeState(t);
+    document.documentElement.setAttribute("data-theme", t);
   }, []);
 
   const setTheme = (t: Theme) => {

@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useTrackerSettings } from "@/hooks/useTrackerSettings";
 import {
   LayoutDashboard,
   TrendingUp,
@@ -35,9 +36,10 @@ interface SidebarContentProps {
   shouldReduceMotion: boolean | null;
   collapsed?: boolean;
   isDemo?: boolean;
+  enabledTrackers: string[];
 }
 
-const navSections: { label: string; items: { Icon: LucideIcon; label: string; href: string }[] }[] = [
+const navSections: { label: string; items: { Icon: LucideIcon; label: string; href: string; trackerKey?: string }[] }[] = [
   {
     label: "MAIN",
     items: [
@@ -50,17 +52,17 @@ const navSections: { label: string; items: { Icon: LucideIcon; label: string; hr
     label: "CYCLE",
     items: [
       { Icon: Droplets,   label: "Period",     href: "/dashboard/period" },
-      { Icon: HeartPulse, label: "Symptoms",   href: "/dashboard/symptoms" },
-      { Icon: Smile,      label: "Vibe Check", href: "/dashboard/vibe-check" },
+      { Icon: HeartPulse, label: "Symptoms",   href: "/dashboard/symptoms",   trackerKey: "symptoms" },
+      { Icon: Smile,      label: "Vibe Check", href: "/dashboard/vibe-check", trackerKey: "mood" },
       { Icon: BookOpen,   label: "Journal",    href: "/dashboard/journal" },
     ],
   },
   {
     label: "LIFESTYLE",
     items: [
-      { Icon: UtensilsCrossed, label: "Nutrition", href: "/dashboard/nutrition" },
-      { Icon: Dumbbell,        label: "Fitness",   href: "/dashboard/fitness" },
-      { Icon: Moon,            label: "Sleep",     href: "/dashboard/sleep" },
+      { Icon: UtensilsCrossed, label: "Nutrition", href: "/dashboard/nutrition", trackerKey: "nutrition" },
+      { Icon: Dumbbell,        label: "Fitness",   href: "/dashboard/fitness",   trackerKey: "fitness" },
+      { Icon: Moon,            label: "Sleep",     href: "/dashboard/sleep",     trackerKey: "sleep" },
     ],
   },
 ];
@@ -69,7 +71,7 @@ const bottomItems: { Icon: LucideIcon; label: string; href: string }[] = [
   { Icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
-function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, shouldReduceMotion, collapsed, isDemo }: SidebarContentProps) {
+function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, shouldReduceMotion, collapsed, isDemo, enabledTrackers }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full bg-[var(--sidebar-bg)] sidebar-panel">
       {/* Logo */}
@@ -93,9 +95,10 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const isActive = pathname === item.href;
+                const isDisabled = !!(item.trackerKey && !enabledTrackers.includes(item.trackerKey));
                 return (
                   <li key={item.href} className="relative group">
-                    {isActive && (
+                    {isActive && !isDisabled && (
                       <>
                         <motion.div
                           layoutId={`${instanceId}-activeNav`}
@@ -109,24 +112,43 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
                         <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-violet-500 rounded-full z-10" />
                       </>
                     )}
-                    <a
-                      href={item.href + suffix}
-                      onClick={onClose}
-                      className={
-                        collapsed
-                          ? `relative z-10 flex items-center justify-center px-2 py-1.5 rounded-lg transition-colors ${isActive ? "text-violet-400" : "text-gray-400 hover:bg-white/5 hover:text-white"}`
-                          : isActive
-                            ? "relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-lg text-violet-400 font-medium text-sm"
-                            : "flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm"
-                      }
-                    >
-                      <item.Icon size={16} className="flex-shrink-0" />
-                      {!collapsed && item.label}
-                    </a>
-                    {/* Tooltip on hover when collapsed */}
+                    {isDisabled ? (
+                      <div
+                        className={
+                          collapsed
+                            ? "relative z-10 flex items-center justify-center px-2 py-1.5 rounded-lg opacity-30 cursor-not-allowed"
+                            : "flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-400 opacity-30 cursor-not-allowed text-sm"
+                        }
+                      >
+                        <item.Icon size={16} className="flex-shrink-0" />
+                        {!collapsed && item.label}
+                      </div>
+                    ) : (
+                      <a
+                        href={item.href + suffix}
+                        onClick={onClose}
+                        className={
+                          collapsed
+                            ? `relative z-10 flex items-center justify-center px-2 py-1.5 rounded-lg transition-colors ${isActive ? "text-violet-400" : "text-gray-400 hover:bg-white/5 hover:text-white"}`
+                            : isActive
+                              ? "relative z-10 flex items-center gap-3 px-3 py-1.5 rounded-lg text-violet-400 font-medium text-sm"
+                              : "flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm"
+                        }
+                      >
+                        <item.Icon size={16} className="flex-shrink-0" />
+                        {!collapsed && item.label}
+                      </a>
+                    )}
+                    {/* Collapsed tooltip */}
                     {collapsed && (
-                      <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#1e1e2a] border border-white/10 rounded-lg text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                        {item.label}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-[#1e1e2a] border border-white/10 rounded-lg text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                        {isDisabled ? "Tracker Disabled" : item.label}
+                      </div>
+                    )}
+                    {/* Disabled tooltip when expanded */}
+                    {!collapsed && isDisabled && (
+                      <div className="absolute bottom-full left-0 mb-1.5 px-2 py-1 bg-[#1e1e2a] border border-white/10 rounded-lg text-[10px] text-white/60 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                        Tracker Disabled
                       </div>
                     )}
                   </li>
@@ -165,8 +187,9 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
 export function Sidebar({ isOpen, onClose, isDemo, collapsed, sidebarWidth }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const suffix = isDemo ? "?demo=true" : "";
+  const suffix = "";
   const shouldReduceMotion = useReducedMotion();
+  const { enabledTrackers } = useTrackerSettings();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -190,6 +213,7 @@ export function Sidebar({ isOpen, onClose, isDemo, collapsed, sidebarWidth }: Si
             shouldReduceMotion={shouldReduceMotion}
             collapsed={collapsed}
             isDemo={isDemo}
+            enabledTrackers={enabledTrackers}
           />
         </div>
       </aside>
@@ -216,6 +240,7 @@ export function Sidebar({ isOpen, onClose, isDemo, collapsed, sidebarWidth }: Si
           handleSignOut={handleSignOut}
           shouldReduceMotion={shouldReduceMotion}
           isDemo={isDemo}
+          enabledTrackers={enabledTrackers}
         />
       </aside>
     </>

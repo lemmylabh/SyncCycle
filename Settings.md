@@ -54,3 +54,27 @@
 - Clicking a category updates the main content area.
 - Sections are built one by one — no need to design all at once.
 - Mobile: secondary sidebar collapses into a top tab strip or drawer.
+
+
+APP SETTINGS
+
+# App Settings – Trackers Control
+
+| Tracker       | Enabled | AI Access |
+|---------------|---------|-----------|
+| Period        | 🔘       | 🔘         |
+| Mood          | 🔘       | 🔘         |
+| Sleep         | 🔘       | 🔘         |
+| Nutrition     | 🔘       | 🔘         |
+| Exercise      | 🔘       | 🔘         |
+| Symptoms      | 🔘       | 🔘         |
+
+**Behavior Notes:**
+- **Enabled toggle:** Turns the tracker on/off.  
+- **AI Access toggle:** Gives AI access to that tracker.  
+- **Rule:** If a tracker is disabled, AI access is automatically disabled.  
+- **Optional:** AI Access can be disabled independently without affecting the tracker itself.  
+
+Add save changes button, else changes are not saved
+
+and not to forget, if trackers are disabled then the related card also disappears from the dashboard.

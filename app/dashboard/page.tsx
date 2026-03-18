@@ -1,6 +1,7 @@
 "use client";
 
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
+import { useTrackerSettings } from "@/hooks/useTrackerSettings";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { CyclePhaseCard } from "@/components/dashboard/CyclePhaseCard";
 import { Vibe } from "@/components/dashboard/Vibe";
@@ -11,22 +12,25 @@ import { SleepCard } from "@/components/dashboard/SleepCard";
 
 export default function DashboardPage() {
   const cellSize = useDashboardLayout();
+  const { enabledTrackers } = useTrackerSettings();
+
+  const has = (t: string) => enabledTrackers.includes(t);
 
   return (
     <>
-      {/* ── Mobile view (< lg) — 6 cards scrollable ─────────────── */}
+      {/* ── Mobile view (< lg) — scrollable ──────────────────────── */}
       <div className="lg:hidden overflow-y-auto h-[calc(100vh-64px)]">
         <div className="p-4 grid grid-cols-1 gap-4" style={{ gridAutoRows: "300px" }}>
           <CyclePhaseCard />
-          <Vibe />
-          <SymptomHeatmap />
-          <NutritionCard />
-          <FitnessCard />
-          <SleepCard />
+          {has("mood")      && <Vibe />}
+          {has("symptoms")  && <SymptomHeatmap />}
+          {has("nutrition") && <NutritionCard />}
+          {has("fitness")   && <FitnessCard />}
+          {has("sleep")     && <SleepCard />}
         </div>
       </div>
 
-      {/* ── Desktop view (≥ lg) — always 4×2, square cells ──────── */}
+      {/* ── Desktop view (≥ lg) — 4×2 grid ──────────────────────── */}
       <div className="hidden lg:flex items-center justify-center p-4 h-[calc(100vh-72px)] overflow-hidden">
         <div
           className="grid gap-4"
@@ -38,11 +42,11 @@ export default function DashboardPage() {
         >
           <ProfileCard />
           <CyclePhaseCard />
-          <Vibe />
-          <SymptomHeatmap />
-          <NutritionCard />
-          <FitnessCard />
-          <SleepCard />
+          {has("mood")      && <Vibe />}
+          {has("symptoms")  && <SymptomHeatmap />}
+          {has("nutrition") && <NutritionCard />}
+          {has("fitness")   && <FitnessCard />}
+          {has("sleep")     && <SleepCard />}
         </div>
       </div>
     </>
