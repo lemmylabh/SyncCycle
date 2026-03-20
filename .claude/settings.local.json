@@ -43,7 +43,8 @@
       "Bash(grep -r \"react-beautiful-dnd\\\\|react-dnd\\\\|@dnd-kit\" /c/Users/Lemmy/Music/synccycle --include=*.json --include=*.ts --include=*.tsx)",
       "Bash(ls -la \"c:\\\\Users\\\\Lemmy\\\\Music\\\\synccycle\\\\app\\\\dashboard\\\\settings\\\\dashboard\"\" 2>/dev/null || echo \"Directory listing failed \")",
       "Bash(find /c/Users/Lemmy/Music/synccycle/components -name *nsight* -o -name *Feed*)",
-      "Bash(find /c/Users/Lemmy/Music/synccycle/app -name *insight* -o -name *fiona*)"
+      "Bash(find /c/Users/Lemmy/Music/synccycle/app -name *insight* -o -name *fiona*)",
+      "Bash(find /c/Users/Lemmy/Music/synccycle/hooks -type f -name *.ts -o -name *.tsx)"
     ]
   }
 }

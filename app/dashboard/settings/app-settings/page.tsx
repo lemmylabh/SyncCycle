@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { computeAutoArrange } from "@/hooks/useDashboardCardOrder";
 import {
   Droplets, Smile, Moon, UtensilsCrossed, Dumbbell, HeartPulse,
   Lock, Sparkles, type LucideIcon,
@@ -166,13 +167,27 @@ export default function AppSettingsPage() {
     if (!isDirty || saving) return;
     setSaving(true);
 
+    const dashLayout = computeAutoArrange(enabled);
+
     if (isDemo) {
       // Session-only for demo — persist to sessionStorage
       sessionStorage.setItem("demo-tracker-settings", JSON.stringify({ enabled, fionaAccess, timezone }));
+      sessionStorage.setItem("demo-dashboard-order", JSON.stringify({
+        cardOrder: dashLayout.cardOrder,
+        profileCardSize: dashLayout.profileCardSize,
+        insightsCardSize: dashLayout.insightsCardSize,
+      }));
     } else if (userId) {
       await supabase
         .from("user_profiles")
-        .update({ enabled_trackers: enabled, fiona_tracker_access: fionaAccess, timezone })
+        .update({
+          enabled_trackers: enabled,
+          fiona_tracker_access: fionaAccess,
+          timezone,
+          dashboard_card_order: dashLayout.cardOrder,
+          profile_card_size: dashLayout.profileCardSize,
+          insights_card_size: dashLayout.insightsCardSize,
+        })
         .eq("id", userId);
     }
 
@@ -186,6 +201,14 @@ export default function AppSettingsPage() {
     // Notify all useTrackerSettings consumers immediately (sidebar, dashboard)
     window.dispatchEvent(new CustomEvent("tracker-settings-changed", {
       detail: { enabled, fionaAccess },
+    }));
+    // Notify any mounted useDashboardCardOrder instances (real-time update)
+    window.dispatchEvent(new CustomEvent("dashboard-order-changed", {
+      detail: {
+        cardOrder: dashLayout.cardOrder,
+        profileCardSize: dashLayout.profileCardSize,
+        insightsCardSize: dashLayout.insightsCardSize,
+      },
     }));
   }
 

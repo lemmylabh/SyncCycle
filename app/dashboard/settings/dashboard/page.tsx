@@ -23,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useTrackerSettings } from "@/hooks/useTrackerSettings";
 import {
-  useDashboardCardOrder, DEFAULT_ORDER,
+  useDashboardCardOrder, computeAutoArrange,
   type InsightsCardSize, type ProfileCardSize,
   profileCells, insightsCells, maxCardSlots, adjustCardOrder,
 } from "@/hooks/useDashboardCardOrder";
@@ -297,8 +297,7 @@ export default function DashboardSettingsPage() {
   }
 
   function handleAutoArrange() {
-    // Reset sizes to defaults so DEFAULT_ORDER (6 slots) fits cleanly
-    batchUpdate({ profileCardSize: "1x2", insightsCardSize: "1x1", cardOrder: [...DEFAULT_ORDER] });
+    batchUpdate(computeAutoArrange(enabledTrackers));
     setArranged(true);
     setTimeout(() => setArranged(false), 1500);
   }
