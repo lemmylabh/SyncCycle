@@ -196,16 +196,6 @@ export default function FionaPage() {
     if (userId) loadSessions();
   }, [userId, loadSessions]);
 
-  // Auto-send prefill question from FionaCard quick chips
-  const prefillSent = useRef(false);
-  useEffect(() => {
-    if (!prefillQuestion || prefillSent.current) return;
-    const ready = isDemo || (userId && accessToken);
-    if (!ready) return;
-    prefillSent.current = true;
-    handleSend(prefillQuestion);
-  }, [prefillQuestion, isDemo, userId, accessToken, handleSend]);
-
   const loadSession = useCallback(
     async (id: string) => {
       if (isDemo) {
@@ -319,6 +309,16 @@ export default function FionaPage() {
     },
     [isStreaming, messages, activeSessionId, accessToken, userId, isDemo, loadSessions]
   );
+
+  // Auto-send prefill question from FionaCard quick chips
+  const prefillSent = useRef(false);
+  useEffect(() => {
+    if (!prefillQuestion || prefillSent.current) return;
+    const ready = isDemo || (userId && accessToken);
+    if (!ready) return;
+    prefillSent.current = true;
+    handleSend(prefillQuestion);
+  }, [prefillQuestion, isDemo, userId, accessToken, handleSend]);
 
   // ── Swipe gestures (mobile) ──
   const handleTouchStart = (e: React.TouchEvent) => {
