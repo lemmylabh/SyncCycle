@@ -154,11 +154,11 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-2">
+        <div className={`flex-1 min-h-0 ${maxCards > 2 ? "overflow-y-auto" : "overflow-hidden"} px-4 pb-4 flex flex-col gap-2`}>
           {loading ? (
             <Skeleton />
           ) : cards.length > 0 ? (
-            cards.map((card, i) => <MiniInsightCard key={i} card={card} />)
+            cards.slice(0, maxCards).map((card, i) => <MiniInsightCard key={i} card={card} />)
           ) : noFeed ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
               <Sparkles size={20} className="text-violet-400/30" />
