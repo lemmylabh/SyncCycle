@@ -81,6 +81,7 @@ export default function FionaPage() {
   const isDemo =
     searchParams.get("demo") === "true" ||
     (typeof window !== "undefined" && sessionStorage.getItem("demo") === "true");
+  const prefillQuestion = searchParams.get("q") ?? null;
 
   // Auth state
   const [userId, setUserId] = useState<string | null>(null);
@@ -194,6 +195,16 @@ export default function FionaPage() {
   useEffect(() => {
     if (userId) loadSessions();
   }, [userId, loadSessions]);
+
+  // Auto-send prefill question from FionaCard quick chips
+  const prefillSent = useRef(false);
+  useEffect(() => {
+    if (!prefillQuestion || prefillSent.current) return;
+    const ready = isDemo || (userId && accessToken);
+    if (!ready) return;
+    prefillSent.current = true;
+    handleSend(prefillQuestion);
+  }, [prefillQuestion, isDemo, userId, accessToken, handleSend]);
 
   const loadSession = useCallback(
     async (id: string) => {

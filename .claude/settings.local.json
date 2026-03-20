@@ -39,7 +39,11 @@
       "Bash(wait buxayfv8s:*)",
       "Bash(find c:UsersLemmyMusicsynccycle -type f -iname *pricing*)",
       "Bash(find c:/Users/Lemmy/Music/synccycle -type f -name *settings* -o -name *Settings*)",
-      "Bash(grep -n \"enabled_trackers\\\\|baseline_symptoms\\\\|diagnosed_conditions\\\\|notification\" /c/Users/Lemmy/Music/synccycle/UserOnboarding*.sql)"
+      "Bash(grep -n \"enabled_trackers\\\\|baseline_symptoms\\\\|diagnosed_conditions\\\\|notification\" /c/Users/Lemmy/Music/synccycle/UserOnboarding*.sql)",
+      "Bash(grep -r \"react-beautiful-dnd\\\\|react-dnd\\\\|@dnd-kit\" /c/Users/Lemmy/Music/synccycle --include=*.json --include=*.ts --include=*.tsx)",
+      "Bash(ls -la \"c:\\\\Users\\\\Lemmy\\\\Music\\\\synccycle\\\\app\\\\dashboard\\\\settings\\\\dashboard\"\" 2>/dev/null || echo \"Directory listing failed \")",
+      "Bash(find /c/Users/Lemmy/Music/synccycle/components -name *nsight* -o -name *Feed*)",
+      "Bash(find /c/Users/Lemmy/Music/synccycle/app -name *insight* -o -name *fiona*)"
     ]
   }
 }

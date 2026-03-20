@@ -100,7 +100,7 @@ export function SymptomHeatmap() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-6 animate-pulse">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass p-6 h-full overflow-hidden flex flex-col animate-pulse">
         <div className="h-2.5 w-24 bg-white/10 rounded mb-2" />
         <div className="h-5 w-40 bg-white/10 rounded mb-6" />
         <div className="space-y-3">
