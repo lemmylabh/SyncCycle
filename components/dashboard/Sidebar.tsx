@@ -18,6 +18,7 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
+import { SmartTipsCard } from "@/components/dashboard/SmartTipsCard";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -159,6 +160,8 @@ function SidebarContent({ instanceId, pathname, suffix, onClose, handleSignOut, 
         ))}
       </nav>
 
+      {/* Smart tip */}
+      <SmartTipsCard collapsed={collapsed} />
 
       {/* Bottom items */}
       <div className={`pb-2 border-t border-white/5 pt-2 space-y-0.5 ${collapsed ? "px-1" : "px-3"}`}>
