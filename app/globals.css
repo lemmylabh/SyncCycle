@@ -21,7 +21,7 @@ body {
 
 /* ── Theme tokens ───────────────────────────────────────── */
 :root,
-[data-theme="glass"] {
+[data-theme="dark"] {
   --page-bg: #000000;
   --sidebar-bg: rgba(255, 255, 255, 0.06);
   --navbar-bg: rgba(0, 0, 0, 0.55);
@@ -30,14 +30,14 @@ body {
   --border-md: rgba(255, 255, 255, 0.18);
 }
 
-/* Glass: backdrop-blur on structural panels */
-[data-theme="glass"] .navbar-panel {
+/* Dark: backdrop-blur on structural panels */
+[data-theme="dark"] .navbar-panel {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 32px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="glass"] .sidebar-panel {
+[data-theme="dark"] .sidebar-panel {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow:
@@ -47,8 +47,8 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Glass: frosted card treatment */
-[data-theme="glass"] .card-glass {
+/* Dark: frosted card treatment */
+[data-theme="dark"] .card-glass {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-color: rgba(255, 255, 255, 0.10) !important;
@@ -58,15 +58,94 @@ body {
     inset 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* Glass: profile card image overlay — fade to black instead of card color */
-[data-theme="glass"] .profile-overlay {
+/* Dark: profile card image overlay — fade to black */
+[data-theme="dark"] .profile-overlay {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.12) 55%, transparent 100%) !important;
 }
 
-/* Glass: page background — premium black with subtle center depth */
-[data-theme="glass"] .page-shell {
+/* Dark: page background — premium black with subtle center depth */
+[data-theme="dark"] .page-shell {
   background-color: #000000;
   background-image: radial-gradient(ellipse at 50% 35%, #111111 0%, #000000 70%);
+}
+
+/* ── Aurora theme ───────────────────────────────────────── */
+[data-theme="aurora"] {
+  --page-bg: hsl(250, 50%, 7%);
+  --sidebar-bg: rgba(30, 20, 60, 0.70);
+  --navbar-bg: rgba(10, 8, 20, 0.60);
+  --card-bg: rgba(100, 80, 180, 0.08);
+  --border: rgba(160, 130, 255, 0.15);
+  --border-md: rgba(160, 130, 255, 0.25);
+}
+
+/* Aurora: page background — diagonal gradient + 3 ambient radial glow blobs */
+[data-theme="aurora"] .page-shell {
+  background-color: hsl(250, 50%, 7%);
+  background-image:
+    radial-gradient(ellipse 700px 700px at 30% -10%, hsla(260, 80%, 50%, 0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 500px 500px at 85% 90%, hsla(280, 70%, 45%, 0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 350px 350px at -5% 45%, hsla(220, 80%, 40%, 0.08) 0%, transparent 65%),
+    linear-gradient(145deg, hsl(250, 50%, 7%) 0%, hsl(260, 45%, 5%) 40%, hsl(240, 40%, 8%) 100%);
+}
+
+/* Aurora: navbar — subtle purple-tinted border bottom */
+[data-theme="aurora"] .navbar-panel {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 1px 0 rgba(160, 130, 255, 0.10),
+    0 4px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Aurora: sidebar — deep purple frosted glass */
+[data-theme="aurora"] .sidebar-panel {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    1px 0 0 rgba(160, 130, 255, 0.12),
+    4px 0 32px rgba(0, 0, 0, 0.5),
+    inset -1px 0 0 rgba(160, 130, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Aurora: cards — purple-tinted frosted glass */
+[data-theme="aurora"] .card-glass {
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border-color: rgba(160, 130, 255, 0.15) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(160, 130, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Aurora: profile card overlay — fade to page bg */
+[data-theme="aurora"] .profile-overlay {
+  background: linear-gradient(to top, hsl(250, 50%, 7%) 0%, hsla(250, 50%, 7%, 0.12) 55%, transparent 100%) !important;
+}
+
+/* Aurora: sidebar nav — active/hover states in purple tint */
+[data-theme="aurora"] .sidebar-panel .bg-violet-500\/20 {
+  background-color: rgba(130, 100, 220, 0.15) !important;
+}
+[data-theme="aurora"] .sidebar-panel .bg-violet-500 {
+  background-color: rgba(160, 130, 255, 0.90) !important;
+}
+[data-theme="aurora"] .sidebar-panel .hover\:bg-white\/5:hover {
+  background-color: rgba(100, 80, 180, 0.15) !important;
+}
+
+/* Aurora: dropdowns — purple-tinted glass */
+[data-theme="aurora"] .dropdown-panel {
+  background-color: rgb(20, 14, 45);
+  border-color: rgba(160, 130, 255, 0.18) !important;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(160, 130, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* ── Landing page ───────────────────────────────────────── */

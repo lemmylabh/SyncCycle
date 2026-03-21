@@ -135,7 +135,7 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: Navbar
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-[#0a0a0a] border border-white/8 shadow-[0_8px_40px_rgba(0,0,0,0.7)] overflow-hidden z-50">
+            <div className="dropdown-panel absolute right-0 mt-2 w-52 rounded-2xl bg-[#0a0a0a] border border-white/8 shadow-[0_8px_40px_rgba(0,0,0,0.7)] overflow-hidden z-50">
               {/* User identity header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
                 <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/10 flex-shrink-0 flex items-center justify-center">

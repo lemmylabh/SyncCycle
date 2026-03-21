@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "@/lib/themeContext";
 import { computeAutoArrange } from "@/hooks/useDashboardCardOrder";
 import {
   Droplets, Smile, Moon, UtensilsCrossed, Dumbbell, HeartPulse,
@@ -91,6 +92,7 @@ function Toggle({
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export default function AppSettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [enabled, setEnabled] = useState<string[]>(TRACKERS.map(t => t.value));
   const [fionaAccess, setFionaAccess] = useState<string[]>(TRACKERS.map(t => t.value));
   const [origEnabled, setOrigEnabled] = useState<string[]>(TRACKERS.map(t => t.value));
@@ -343,11 +345,14 @@ export default function AppSettingsPage() {
             <h2 className="text-white font-semibold text-sm">Appearance</h2>
             <p className="text-white/35 text-xs mt-0.5">Theme</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
 
-            {/* Glass — active */}
+            {/* Dark */}
             <div className="flex flex-col items-center gap-1.5">
-              <div className="w-[88px] h-[60px] rounded-xl border-2 border-violet-500 bg-[#0d0d12] p-2 flex flex-col gap-1 cursor-pointer">
+              <button
+                onClick={() => setTheme("dark")}
+                className={`w-[88px] h-[60px] rounded-xl p-2 flex flex-col gap-1 cursor-pointer border-2 transition-colors ${theme === "dark" ? "border-violet-500" : "border-white/10 hover:border-white/20"} bg-[#0d0d12]`}
+              >
                 <div className="flex gap-1 items-center">
                   <div className="w-3 h-3 rounded bg-white/10" />
                   <div className="flex-1 h-2 rounded bg-white/[0.06]" />
@@ -357,27 +362,50 @@ export default function AppSettingsPage() {
                   <div className="flex-1 h-4 rounded bg-white/[0.06]" />
                   <div className="flex-1 h-4 rounded bg-violet-500/20" />
                 </div>
-              </div>
-              <span className="text-violet-400 text-[10px] font-medium">Glass ✓</span>
+              </button>
+              <span className={`text-[10px] font-medium ${theme === "dark" ? "text-violet-400" : "text-white/30"}`}>
+                Dark{theme === "dark" ? " ✓" : ""}
+              </span>
             </div>
 
-            {/* Dark — coming soon */}
-            <div className="flex flex-col items-center gap-1.5 opacity-40">
-              <div className="relative w-[88px] h-[60px] rounded-xl border border-white/10 bg-[#080808] p-2 flex flex-col gap-1 cursor-not-allowed overflow-hidden">
+            {/* Aurora */}
+            <div className="flex flex-col items-center gap-1.5">
+              <button
+                onClick={() => setTheme("aurora")}
+                className={`w-[88px] h-[60px] rounded-xl p-2 flex flex-col gap-1 cursor-pointer border-2 transition-colors ${theme === "aurora" ? "border-violet-500" : "border-white/10 hover:border-white/20"} bg-[#0d0820]`}
+              >
                 <div className="flex gap-1 items-center">
-                  <div className="w-3 h-3 rounded bg-white/5" />
-                  <div className="flex-1 h-2 rounded bg-white/[0.03]" />
+                  <div className="w-3 h-3 rounded bg-[#a07be8]/20" />
+                  <div className="flex-1 h-2 rounded bg-[#a07be8]/10" />
                 </div>
-                <div className="w-full h-1.5 rounded bg-white/[0.03]" />
+                <div className="w-full h-1.5 rounded bg-[#a07be8]/10" />
                 <div className="flex gap-1">
-                  <div className="flex-1 h-4 rounded bg-white/[0.03]" />
-                  <div className="flex-1 h-4 rounded bg-white/[0.03]" />
+                  <div className="flex-1 h-4 rounded bg-[#a07be8]/10" />
+                  <div className="flex-1 h-4 rounded bg-[#a07be8]/20" />
+                </div>
+              </button>
+              <span className={`text-[10px] font-medium ${theme === "aurora" ? "text-violet-400" : "text-white/30"}`}>
+                Aurora{theme === "aurora" ? " ✓" : ""}
+              </span>
+            </div>
+
+            {/* Light — disabled */}
+            <div className="flex flex-col items-center gap-1.5 opacity-40">
+              <div className="relative w-[88px] h-[60px] rounded-xl border border-white/10 bg-[#f5f4ff] p-2 flex flex-col gap-1 cursor-not-allowed overflow-hidden">
+                <div className="flex gap-1 items-center">
+                  <div className="w-3 h-3 rounded bg-black/10" />
+                  <div className="flex-1 h-2 rounded bg-black/[0.06]" />
+                </div>
+                <div className="w-full h-1.5 rounded bg-black/[0.06]" />
+                <div className="flex gap-1">
+                  <div className="flex-1 h-4 rounded bg-black/[0.06]" />
+                  <div className="flex-1 h-4 rounded bg-violet-400/25" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center rounded-xl">
-                  <span className="text-[9px] text-white/50 bg-black/50 px-1.5 py-0.5 rounded-md">Soon</span>
+                  <span className="text-[9px] text-black/50 bg-white/60 px-1.5 py-0.5 rounded-md">Soon</span>
                 </div>
               </div>
-              <span className="text-white/30 text-[10px]">Dark</span>
+              <span className="text-white/30 text-[10px]">Light</span>
             </div>
           </div>
         </div>
