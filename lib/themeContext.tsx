@@ -11,7 +11,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "dark",
+  theme: "aurora",
   setTheme: () => {},
 });
 
@@ -22,13 +22,13 @@ function applyTheme(t: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("aurora");
 
   useEffect(() => {
     // 1. Apply localStorage instantly (no flash)
     const saved = localStorage.getItem("synccycle-theme");
     const normalized = saved === "glass" ? "dark" : saved;
-    const local: Theme = VALID_THEMES.includes(normalized as Theme) ? (normalized as Theme) : "dark";
+    const local: Theme = VALID_THEMES.includes(normalized as Theme) ? (normalized as Theme) : "aurora";
     setThemeState(local);
     applyTheme(local);
 

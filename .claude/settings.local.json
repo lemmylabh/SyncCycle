@@ -45,7 +45,11 @@
       "Bash(find /c/Users/Lemmy/Music/synccycle/components -name *nsight* -o -name *Feed*)",
       "Bash(find /c/Users/Lemmy/Music/synccycle/app -name *insight* -o -name *fiona*)",
       "Bash(find /c/Users/Lemmy/Music/synccycle/hooks -type f -name *.ts -o -name *.tsx)",
-      "Bash(find /c/Users/Lemmy/Music/synccycle -name *.config.*)"
+      "Bash(find /c/Users/Lemmy/Music/synccycle -name *.config.*)",
+      "Bash(grep -r \"theme\" /c/Users/Lemmy/Music/synccycle/*.sql)",
+      "Bash(ls -la /c/Users/Lemmy/Music/synccycle/*.sql)",
+      "Bash(git log:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }
