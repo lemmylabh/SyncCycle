@@ -21,7 +21,7 @@ export function InsightsFeed() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => localDateStr(new Date()));
   const [pastDates, setPastDates] = useState<string[]>([]);
-  const [feedCount, setFeedCount] = useState<FeedCount>(20);
+  const [feedCount, setFeedCount] = useState<FeedCount>(10);
   const [userId, setUserId] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState("");
   const [isDemo] = useState(

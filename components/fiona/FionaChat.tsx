@@ -127,7 +127,7 @@ export function FionaChat({
           ) : (
             <>
               {messages.map((msg) => (
-                <FionaMessage key={msg.id} role={msg.role} content={msg.content} userName={userName} avatarUrl={avatarUrl} />
+                <FionaMessage key={msg.id} role={msg.role} content={msg.content} citations={msg.citations} userName={userName} avatarUrl={avatarUrl} />
               ))}
               {isStreaming && streamingContent && (
                 <FionaMessage

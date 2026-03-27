@@ -10,6 +10,7 @@ interface ChatMsg {
   id: string;
   role: "user" | "assistant";
   content: string;
+  citations?: string[];
 }
 
 interface InsightFionaChatProps {
@@ -121,6 +122,7 @@ export function InsightFionaChat({
         currentSessionId.current = newSessionId;
         onSessionCreated(newSessionId);
       }
+      const citations: string[] = JSON.parse(res.headers.get("X-Citations") ?? "[]");
 
       if (!res.body) return;
 
@@ -136,6 +138,10 @@ export function InsightFionaChat({
           prev.map(m => m.id === assistantId ? { ...m, content } : m)
         );
       }
+      // Attach citations to the completed message
+      setDisplayMessages(prev =>
+        prev.map(m => m.id === assistantId ? { ...m, citations } : m)
+      );
       onComplete(content);
     } catch (err) {
       console.error("[InsightFionaChat]", err);
@@ -176,6 +182,7 @@ export function InsightFionaChat({
             key={m.id}
             role={m.role}
             content={m.content}
+            citations={m.citations}
             isStreaming={isStreaming && i === displayMessages.length - 1 && m.role === "assistant"}
           />
         ))}

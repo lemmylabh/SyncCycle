@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/fionaUtils";
-import {
-  buildInsightContext,
-  buildInsightPrompt,
-  parseInsightResponse,
-  localDateStr,
-  DEMO_FEED,
-  InsightCardData,
-} from "@/lib/insightUtils";
+import { buildInsightContext, buildInsightPrompt, parseInsightResponse } from "@/lib/insightServerUtils";
+import { localDateStr, DEMO_FEED, InsightCardData } from "@/lib/insightUtils";
 
 export const runtime = "nodejs";
 

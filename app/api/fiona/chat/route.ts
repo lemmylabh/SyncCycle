@@ -85,8 +85,7 @@ async function streamOpenRouter(
       "X-Title": "SyncCycle - Ask Fiona",
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
-      stream: true,
+      model: "perplexity/sonar-pro",
       messages: [{ role: "system", content: systemPrompt }, ...messages],
       max_tokens: 1024,
       temperature: 0.7,
@@ -102,33 +101,31 @@ async function streamOpenRouter(
     );
   }
 
+  // Parse the full response BEFORE creating the TransformStream so citations
+  // are available for the response headers (avoids sentinel-in-stream approach).
+  const data = await openRouterRes.json() as Record<string, unknown>;
+  const rawContent: string =
+    ((data.choices as Array<Record<string, unknown>>)?.[0]?.message as Record<string, unknown>)
+      ?.content as string ?? "";
+
+  // Prefer Perplexity's native citations array; fall back to parsing a [SOURCES] block
+  const nativeCitations: string[] = Array.isArray(data.citations) ? data.citations as string[] : [];
+  const sourcesMatch = rawContent.match(/\[SOURCES\]\n([\s\S]+)$/);
+  const parsedCitations: string[] = sourcesMatch
+    ? sourcesMatch[1].split("\n").map((l) => l.replace(/^\d+:\s*/, "").trim()).filter((u) => u.startsWith("http"))
+    : [];
+  const finalCitations = nativeCitations.length > 0 ? nativeCitations : parsedCitations;
+  const assistantContent = sourcesMatch ? rawContent.slice(0, sourcesMatch.index).trim() : rawContent;
+
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
 
   (async () => {
-    let assistantContent = "";
     try {
-      const reader = openRouterRes.body!.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(data);
-            const delta: string = parsed.choices?.[0]?.delta?.content ?? "";
-            if (delta) {
-              assistantContent += delta;
-              await writer.write(encoder.encode(delta));
-            }
-          } catch { /* skip malformed SSE */ }
-        }
+      // Simulate streaming word-by-word so the UI animates naturally
+      for (const word of assistantContent.split(" ")) {
+        await writer.write(encoder.encode(word + " "));
       }
     } finally {
       await writer.close();
@@ -150,6 +147,7 @@ async function streamOpenRouter(
       "Cache-Control": "no-cache",
       "Transfer-Encoding": "chunked",
       "X-Session-Id": sessionId,
+      "X-Citations": JSON.stringify(finalCitations),
     },
   });
 }

@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Phase, computePhase, PHASE_CONFIG } from "@/lib/cycleUtils";
+import { loadResearchContext, loadPromptFile } from "@/lib/promptUtils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   created_at?: string;
+  citations?: string[];
 }
 
 // ── Phase coaching constants ──────────────────────────────────────────────────
@@ -334,20 +336,7 @@ export function buildSystemPrompt(ctx: FionaUserContext): string {
       ? ctx.recentNotes.map((n) => `- ${n.date}: "${n.excerpt}"`).join("\n")
       : "No recent journal entries.";
 
-  return `You are Fiona, a warm and empathetic AI wellness coach built into SyncCycle — a menstrual cycle tracking app.
-
-## Your Identity & Rules
-- You are NOT a doctor, therapist, nurse, or any kind of medical professional
-- NEVER diagnose symptoms, prescribe treatments, or give medical advice
-- Always direct serious health concerns to a qualified healthcare provider
-- You are a supportive wellness companion who helps users understand and work with their cycle
-- Tone: warm, empowering, curious, non-judgmental, science-informed but accessible
-- Keep responses conversational and under 300 words unless specifically asked to elaborate
-- Use empowering language — phases are natural rhythms and strengths, not obstacles
-- Do NOT list back the user's data robotically; weave insights naturally into conversation
-- Address the user by first name (${ctx.profile.displayName}) occasionally but not every message
-
-## Current User Context
+  const dynamicSection = `## Current User Context
 **Name:** ${ctx.profile.displayName}
 **Time of day:** ${timeOfDay}
 **App goal:** ${ctx.profile.appGoal ?? "general cycle awareness"}
@@ -392,14 +381,13 @@ ${workoutSection}
 ${nutritionSection}
 
 ### Journal Notes
-${notesSection}
+${notesSection}`;
 
-## Response Style
-- Start fresh responses naturally without always re-greeting
-- When relevant, connect what they share to their current phase
-- Offer 1-2 concrete, actionable suggestions when appropriate
-- Ask a thoughtful follow-up question if it would add value
-- Use bullet points sparingly — prefer flowing, conversational prose`;
+  const template = loadPromptFile("fiona-system.md");
+  const prompt = template.replace("{{USER_DATA}}", dynamicSection);
+
+  const research = loadResearchContext();
+  return prompt + (research ? `\n\n## Research Reference\n${research}` : "");
 }
 
 // ── Server-side Supabase client factory (for API route) ───────────────────────

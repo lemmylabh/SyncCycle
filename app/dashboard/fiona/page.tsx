@@ -30,7 +30,7 @@ async function streamFionaResponse(
   userId: string,
   isDemo: boolean,
   onDelta: (delta: string) => void,
-  onComplete: (fullContent: string, newSessionId: string) => void,
+  onComplete: (fullContent: string, newSessionId: string, citations: string[]) => void,
   onError: () => void
 ) {
   try {
@@ -55,6 +55,7 @@ async function streamFionaResponse(
 
     const returnedSessionId =
       res.headers.get("X-Session-Id") ?? sessionId ?? `temp-${Date.now()}`;
+    const headerCitations: string[] = JSON.parse(res.headers.get("X-Citations") ?? "[]");
 
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
@@ -68,7 +69,7 @@ async function streamFionaResponse(
       onDelta(chunk);
     }
 
-    onComplete(fullContent, returnedSessionId);
+    onComplete(fullContent, returnedSessionId, headerCitations);
   } catch {
     onError();
   }
@@ -283,11 +284,12 @@ export default function FionaPage() {
         userId ?? "",
         isDemo,
         (delta) => setStreamingContent((prev) => prev + delta),
-        (fullContent, newSessionId) => {
+        (fullContent, newSessionId, citations) => {
           const assistantMsg: ChatMessage = {
             id: `assistant-${Date.now()}`,
             role: "assistant",
             content: fullContent,
+            citations,
           };
           setMessages((prev) => [...prev, assistantMsg]);
           setStreamingContent("");

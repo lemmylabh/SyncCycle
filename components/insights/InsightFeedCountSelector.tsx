@@ -3,7 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-const COUNTS = [20, 30, 40, 50] as const;
+const COUNTS = [10, 20, 30, 40, 50] as const;
 type FeedCount = typeof COUNTS[number];
 
 interface InsightFeedCountSelectorProps {
