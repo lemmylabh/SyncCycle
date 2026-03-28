@@ -1,15 +1,14 @@
 "use client";
 
-import { Calendar, Leaf, Shield, Activity, HeartPulse } from "lucide-react";
+import { Calendar, HeartPulse, Dumbbell, CheckCircle } from "lucide-react";
 import { AvatarUpload } from "../AvatarUpload";
 import type { OnboardingData } from "../OnboardingModal";
 
 const GOALS = [
-  { value: "track_health",           label: "Track my cycle",           Icon: Calendar },
-  { value: "conceive",               label: "Trying to conceive",       Icon: Leaf },
-  { value: "avoid_pregnancy",        label: "Avoid pregnancy",          Icon: Shield },
-  { value: "perimenopause_tracking", label: "Perimenopause tracking",   Icon: Activity },
-  { value: "manage_symptoms",        label: "General health awareness", Icon: HeartPulse },
+  { value: "track_health",      label: "Track my cycle",            Icon: Calendar },
+  { value: "manage_symptoms",   label: "General health awareness",  Icon: HeartPulse },
+  { value: "optimize_fitness",  label: "Align workouts with cycle", Icon: Dumbbell },
+  { value: "build_routine",     label: "Build better routines",     Icon: CheckCircle },
 ];
 
 const PRONOUNS = [

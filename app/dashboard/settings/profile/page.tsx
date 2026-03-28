@@ -6,9 +6,9 @@ import { Camera } from "lucide-react";
 
 const GOAL_OPTIONS = [
   { value: "track_health",     label: "Track Health" },
-  { value: "avoid_pregnancy",  label: "Avoid Pregnancy" },
-  { value: "conceive",         label: "Conceive" },
-  { value: "manage_symptoms",  label: "Manage Symptoms" },
+  { value: "manage_symptoms",  label: "General Health Awareness" },
+  { value: "optimize_fitness", label: "Align Workouts with Cycle" },
+  { value: "build_routine",    label: "Build Better Routines" },
 ];
 
 const inputCls =
