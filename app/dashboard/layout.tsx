@@ -34,6 +34,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isMobileSwipeRoute =
     pathname === "/dashboard" || pathname === "/dashboard/insights";
 
+  const isSettingsRoute = pathname.startsWith("/dashboard/settings");
+
   useEffect(() => {
     // Demo mode: bypass auth for development purposes
     const demoInUrl = window.location.search.includes("demo=true");
@@ -116,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ThemeProvider>
       {/* ── Mobile Shell (< lg) ─────────────────────────────────── */}
       <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-[var(--page-bg)] page-shell text-white">
-        <MobileTopBar initials={userInitials} isDemo={isDemo} />
+        <MobileTopBar initials={userInitials} isDemo={isDemo} avatarUrl={avatarUrl} />
 
         {isMobileSwipeRoute && (
           <MobilePageIndicator pathname={pathname} />
@@ -138,13 +140,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
               className="absolute inset-0 bg-[var(--page-bg)] overflow-y-auto premium-scroll z-10"
             >
-              {/* Floating close button */}
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-colors"
-              >
-                <X size={16} />
-              </button>
+              {/* Floating close button — hidden on settings routes (settings has its own) */}
+              {!isSettingsRoute && (
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              )}
               {children}
             </motion.div>
           )}

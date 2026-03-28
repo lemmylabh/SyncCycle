@@ -12,10 +12,10 @@ const FREE_FEATURES = [
 
 export default function SubscriptionSettingsPage() {
   return (
-    <div className="h-full flex flex-col p-6 overflow-hidden gap-4">
+    <div className="flex flex-col p-4 lg:p-6 lg:h-full lg:overflow-hidden overflow-y-auto gap-4">
 
       {/* ── TOP ROW — natural height so right column aligns with upgrade card ── */}
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
 
         {/* LEFT */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -66,7 +66,7 @@ export default function SubscriptionSettingsPage() {
         </div>
 
         {/* RIGHT */}
-        <div className="w-72 flex-shrink-0 flex flex-col gap-4">
+        <div className="w-full lg:w-72 flex-shrink-0 flex flex-col gap-4">
 
           {/* Billing */}
           <div>
@@ -88,7 +88,7 @@ export default function SubscriptionSettingsPage() {
           {/* Invoice History — flex-1 so it stretches to match left column bottom */}
           <div className="flex-1 min-h-0 flex flex-col">
             <p className="text-white/50 text-xs uppercase tracking-widest mb-3">Invoice History</p>
-            <div className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl flex flex-col items-center justify-center gap-2">
+            <div className="flex-1 min-h-[80px] bg-white/[0.03] border border-white/[0.08] rounded-xl flex flex-col items-center justify-center gap-2">
               <Receipt size={18} className="text-white/10" />
               <p className="text-white/25 text-xs">No invoices yet.</p>
             </div>

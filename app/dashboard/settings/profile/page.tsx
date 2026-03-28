@@ -115,7 +115,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 space-y-6 max-w-2xl">
+      <div className="p-4 lg:p-6 space-y-5 lg:space-y-6 max-w-2xl">
 
         {/* Header */}
         <div>
@@ -171,7 +171,7 @@ export default function ProfileSettingsPage() {
         {/* Personal */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4">
           <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Personal</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-white/40 text-xs mb-1.5 block">Display Name</label>
               <input
@@ -253,7 +253,7 @@ export default function ProfileSettingsPage() {
               </svg>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-white/40 text-xs mb-1.5 block">
                 Avg Cycle Length <span className="text-white/20">(days)</span>

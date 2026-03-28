@@ -1,39 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, User, Lock, Palette, CreditCard, Plug, HelpCircle, type LucideIcon } from "lucide-react";
 
-const TRACKER_GROUPS = [
-  {
-    label: "Cycle",
-    items: [{ label: "Period", href: "/dashboard/period" }],
-  },
-  {
-    label: "Health",
-    items: [
-      { label: "Symptoms", href: "/dashboard/symptoms" },
-      { label: "Vibe Check", href: "/dashboard/vibe-check" },
-    ],
-  },
-  {
-    label: "Lifestyle",
-    items: [
-      { label: "Nutrition", href: "/dashboard/nutrition" },
-      { label: "Fitness", href: "/dashboard/fitness" },
-      { label: "Sleep", href: "/dashboard/sleep" },
-    ],
-  },
-  {
-    label: "Reflection",
-    items: [{ label: "Journal", href: "/dashboard/journal" }],
-  },
+interface SettingsItem {
+  label: string;
+  href: string;
+  Icon: LucideIcon;
+}
+
+const SETTINGS_ITEMS: SettingsItem[] = [
+  { label: "Profile",       href: "/dashboard/settings/profile",      Icon: User },
+  { label: "Account",       href: "/dashboard/settings/account",      Icon: Lock },
+  { label: "App Settings",  href: "/dashboard/settings/app-settings", Icon: Palette },
+  { label: "Subscription",  href: "/dashboard/settings/subscription", Icon: CreditCard },
+  { label: "Connections",   href: "/dashboard/settings/connections",  Icon: Plug },
+  { label: "Help & Support",href: "/dashboard/settings/help",         Icon: HelpCircle },
 ];
 
-export function TrackerDropdown() {
+const LABEL_MAP: Record<string, string> = {
+  "/dashboard/settings/profile":      "Profile",
+  "/dashboard/settings/account":      "Account",
+  "/dashboard/settings/app-settings": "App Settings",
+  "/dashboard/settings/subscription": "Subscription",
+  "/dashboard/settings/connections":  "Connections",
+  "/dashboard/settings/help":         "Help & Support",
+};
+
+export function SettingsDropdown() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const currentLabel = LABEL_MAP[pathname] ?? "Settings";
 
   const handleNavigate = (href: string) => {
     setOpen(false);
@@ -46,7 +47,7 @@ export function TrackerDropdown() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold text-white hover:bg-white/5 transition-colors"
       >
-        Trackers
+        {currentLabel}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -79,24 +80,25 @@ export function TrackerDropdown() {
               transition={{ duration: 0.18, type: "spring", stiffness: 400, damping: 28 }}
               className="dropdown-panel absolute left-1/2 -translate-x-1/2 top-full mt-2 w-52 bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-2xl z-50"
             >
-              {TRACKER_GROUPS.map((group, gi) => (
-                <div key={group.label}>
-                  {gi > 0 && <div className="border-t border-white/5" />}
-                  <p className="text-gray-600 text-[10px] uppercase tracking-widest px-4 pt-3 pb-1">
-                    {group.label}
-                  </p>
-                  {group.items.map((item) => (
+              <div className="py-2">
+                {SETTINGS_ITEMS.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
                     <button
                       key={item.href}
                       onClick={() => handleNavigate(item.href)}
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                        isActive
+                          ? "text-violet-400 bg-violet-500/10"
+                          : "text-gray-300 hover:text-white hover:bg-white/5"
+                      }`}
                     >
+                      <item.Icon size={14} className="flex-shrink-0" />
                       {item.label}
                     </button>
-                  ))}
-                  {gi === TRACKER_GROUPS.length - 1 && <div className="pb-2" />}
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </motion.div>
           </>
         )}

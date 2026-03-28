@@ -91,7 +91,7 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 space-y-6 max-w-2xl">
+      <div className="p-4 lg:p-6 space-y-5 lg:space-y-6 max-w-2xl">
 
         {/* Header */}
         <div>
@@ -102,7 +102,7 @@ export default function AccountSettingsPage() {
         {/* Account Info */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4">
           <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Account Info</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-white/40 text-xs mb-1.5 block">Email Address</label>
               <div className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-3 py-2 text-white/40 text-sm truncate">
@@ -122,7 +122,7 @@ export default function AccountSettingsPage() {
         {/* Change Password */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4">
           <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Change Password</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-white/40 text-xs mb-1.5 block">New Password</label>
               <div className="relative">

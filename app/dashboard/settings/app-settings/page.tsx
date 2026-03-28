@@ -223,7 +223,7 @@ export default function AppSettingsPage() {
   }
 
   return (
-    <div className="h-full flex gap-6 p-6 overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 p-4 lg:p-6 lg:h-full lg:overflow-hidden overflow-y-auto">
 
       {/* ── LEFT: Trackers ──────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -337,7 +337,7 @@ export default function AppSettingsPage() {
       </div>
 
       {/* ── RIGHT: Appearance + Preferences ─────────────────────────── */}
-      <div className="w-60 flex flex-col gap-6 flex-shrink-0">
+      <div className="w-full lg:w-60 flex flex-col gap-6 flex-shrink-0">
 
         {/* Appearance — header uses same mb-4 as left col so cards align with tracker table */}
         <div>

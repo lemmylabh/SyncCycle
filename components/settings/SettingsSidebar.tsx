@@ -18,7 +18,7 @@ export function SettingsSidebar() {
 
   return (
     <aside
-      className="w-[220px] flex-shrink-0 sticky top-0 border-r border-white/10 bg-white/[0.025] flex flex-col"
+      className="hidden lg:flex w-[220px] flex-shrink-0 sticky top-0 border-r border-white/10 bg-white/[0.025] flex-col"
       style={{ height: "calc(100vh - 64px)" }}
     >
       <nav className="flex-1 px-2 pt-3 space-y-0.5 overflow-y-auto">

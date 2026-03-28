@@ -63,10 +63,10 @@ export default function HelpSettingsPage() {
   }
 
   return (
-    <div className="h-full flex gap-6 p-6 overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 p-4 lg:p-6 lg:h-full lg:overflow-hidden overflow-y-auto">
 
       {/* ── LEFT — FAQ ───────────────────────────────────────────────────── */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-0">
+      <div className="flex-1 min-w-0 flex flex-col lg:min-h-0">
         <p className="text-white/50 text-xs uppercase tracking-widest mb-3 flex-shrink-0">
           Frequently Asked Questions
         </p>
@@ -106,9 +106,9 @@ export default function HelpSettingsPage() {
       </div>
 
       {/* ── RIGHT — Feedback ─────────────────────────────────────────────── */}
-      <div className="w-72 flex-shrink-0 flex flex-col min-h-0">
+      <div className="w-full lg:w-72 flex-shrink-0 flex flex-col lg:min-h-0">
         <p className="text-white/50 text-xs uppercase tracking-widest mb-3 flex-shrink-0">Help Us Improve</p>
-        <div className="flex-1 min-h-0 bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 flex flex-col">
+        <div className="lg:flex-1 lg:min-h-0 bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 flex flex-col">
           {submitted ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
               <Check size={20} className="text-violet-400" />
@@ -137,7 +137,8 @@ export default function HelpSettingsPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Tell us more..."
-                className="flex-1 min-h-0 mt-3 bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 text-white/60 text-sm w-full resize-none placeholder:text-white/20 focus:outline-none focus:border-white/20"
+                rows={5}
+                className="lg:flex-1 lg:min-h-0 mt-3 bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 text-white/60 text-sm w-full resize-none placeholder:text-white/20 focus:outline-none focus:border-white/20"
               />
 
               <label className="flex items-center gap-2 cursor-pointer select-none mt-3 flex-shrink-0">

@@ -136,6 +136,13 @@ body {
   background-color: rgba(100, 80, 180, 0.15) !important;
 }
 
+/* Dark: dropdowns — solid dark panel */
+[data-theme="dark"] .dropdown-panel {
+  background-color: #12121c;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.75);
+}
+
 /* Aurora: dropdowns — purple-tinted glass */
 [data-theme="aurora"] .dropdown-panel {
   background-color: rgb(20, 14, 45);
