@@ -1,3 +1,12 @@
+-- =============================================================================
+-- SyncCycle — tips table
+-- Global tips/advice shown to all users. Not user-specific.
+-- Public read when is_active = true.
+-- Requires: nothing (standalone table)
+-- =============================================================================
+
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS tips (
   id          uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
   title       varchar(40)  NOT NULL CHECK (char_length(title) <= 40),
@@ -6,8 +15,10 @@ CREATE TABLE IF NOT EXISTS tips (
   created_at  timestamptz  NOT NULL DEFAULT now()
 );
 
--- Public read — tips are global content, not user-specific
+-- RLS — public read for active tips only
 ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "tips_public_read" ON tips;
 CREATE POLICY "tips_public_read" ON tips FOR SELECT USING (is_active = true);
 
 -- Seed tips
@@ -21,3 +32,5 @@ INSERT INTO tips (title, description) VALUES
   ('Check in with Fiona',      'Ask Fiona anything — she knows your cycle inside out.'),
   ('Sleep shapes your cycle',  'Poor sleep lengthens the luteal phase and worsens PMS.'),
   ('Patterns take time',       'After 2–3 cycles, SyncCycle''s predictions get much more accurate.');
+
+COMMIT;

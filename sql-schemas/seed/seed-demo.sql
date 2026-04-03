@@ -3,6 +3,8 @@
 -- Demo user: demo@syncycle.ai  UUID: f7750356-6363-40f6-86da-4f112d9cb0a9
 -- Generates 6 months of realistic, phase-appropriate data.
 -- Safe to re-run: cleans and repopulates the demo account.
+--
+-- IMPORTANT: Run ALL schema files (01–18) before running this seed.
 -- Run in: Supabase Dashboard → SQL Editor
 -- =============================================================================
 
