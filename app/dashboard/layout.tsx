@@ -68,13 +68,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUserInitials(initials || email[0]?.toUpperCase() || "U");
       setUserId(session.user.id);
 
+      // Check for a pending partner invite token (from invite link flow)
+      const pendingToken = sessionStorage.getItem("pendingInviteToken");
+      if (pendingToken) {
+        sessionStorage.removeItem("pendingInviteToken");
+        await fetch("/api/partner/invite/accept", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ token: pendingToken }),
+        });
+        router.replace("/partner");
+        return;
+      }
+
       // try/finally guarantees setReady(true) even if the DB query fails
       try {
         const { data: profile } = await supabase
           .from("user_profiles")
-          .select("onboarding_completed,avatar_url")
+          .select("onboarding_completed,avatar_url,role")
           .eq("id", session.user.id)
           .single();
+
+        // Redirect partner accounts to their own area
+        if (profile?.role === "partner") {
+          router.replace("/partner");
+          return;
+        }
 
         if (!profile?.onboarding_completed) {
           setShowOnboarding(true);

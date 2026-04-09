@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, LogOut, Trash2, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, LogOut, Trash2, AlertTriangle, Users, Copy, Check } from "lucide-react";
 
 const inputCls =
   "w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-white/80 text-sm focus:outline-none focus:border-violet-500/50 transition-colors placeholder:text-white/20";
@@ -20,6 +20,13 @@ export default function AccountSettingsPage() {
   const [pwSaving, setPwSaving]             = useState(false);
   const [pwError, setPwError]               = useState("");
   const [pwSaved, setPwSaved]               = useState(false);
+
+  // Invite partner
+  const [inviteEmail, setInviteEmail]     = useState("");
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteLink, setInviteLink]       = useState<string | null>(null);
+  const [inviteError, setInviteError]     = useState("");
+  const [copied, setCopied]               = useState(false);
 
   // Danger zone
   const [deleteInput, setDeleteInput]             = useState("");
@@ -66,6 +73,43 @@ export default function AccountSettingsPage() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     window.location.href = "/";
+  }
+
+  async function handleSendInvite() {
+    setInviteError("");
+    setInviteLink(null);
+    if (!inviteEmail.trim()) return;
+    setInviteSending(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setInviteSending(false); return; }
+    try {
+      const res = await fetch("/api/partner/invite/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ email: inviteEmail.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInviteLink(data.inviteUrl);
+        setInviteEmail("");
+      } else {
+        setInviteError(data.error || "Failed to create invite.");
+      }
+    } catch {
+      setInviteError("Something went wrong. Please try again.");
+    }
+    setInviteSending(false);
+  }
+
+  function handleCopyLink() {
+    if (!inviteLink) return;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   async function handleDeleteAccount() {
@@ -117,6 +161,66 @@ export default function AccountSettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Invite a Partner */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Users size={13} className="text-violet-400/80" />
+            <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Invite a Partner</p>
+          </div>
+          <p className="text-white/40 text-xs leading-relaxed">
+            Give a partner read-only access to your dashboard and insights. They&apos;ll skip onboarding and get their own account.
+          </p>
+
+          {inviteLink ? (
+            <div className="space-y-2">
+              <p className="text-white/50 text-xs">Share this link — it expires in 72 hours.</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-white/50 text-xs font-mono truncate">
+                  {inviteLink}
+                </div>
+                <button
+                  onClick={handleCopyLink}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs hover:bg-violet-500/30 transition-colors"
+                >
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <button
+                onClick={() => setInviteLink(null)}
+                className="text-white/30 text-xs hover:text-white/50 transition-colors"
+              >
+                Send another invite
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSendInvite()}
+                  className={inputCls + " flex-1"}
+                  placeholder="partner@email.com"
+                />
+                <button
+                  onClick={handleSendInvite}
+                  disabled={!inviteEmail.trim() || inviteSending}
+                  className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    inviteEmail.trim() && !inviteSending
+                      ? "bg-violet-500 hover:bg-violet-400 text-white cursor-pointer"
+                      : "bg-white/5 text-white/25 cursor-not-allowed"
+                  }`}
+                >
+                  {inviteSending ? "Sending…" : "Send Invite"}
+                </button>
+              </div>
+              {inviteError && <p className="text-rose-400 text-xs">{inviteError}</p>}
+            </div>
+          )}
         </div>
 
         {/* Change Password */}

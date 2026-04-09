@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Settings, LogOut, Zap } from "lucide-react";
+import { Settings, LogOut, Zap, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/lib/themeContext";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
@@ -127,6 +127,19 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: Navbar
             )}
           </button>
         </div>
+        {/* Partner View */}
+        {!isDemo && (
+          <a
+            href="/partner"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Partner View"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <Users size={18} />
+          </a>
+        )}
+
         {/* Notification bell */}
         <button className="relative text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
