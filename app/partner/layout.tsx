@@ -24,7 +24,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
 
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("role, avatar_url, display_name")
+        .select("role, avatar_url, display_name, linked_to")
         .eq("id", session.user.id)
         .single();
 
