@@ -12,7 +12,7 @@ import { InsightEmptyState } from "./InsightEmptyState";
 import { InsightLoadPrevious } from "./InsightLoadPrevious";
 import { InsightFeedCountSelector, FeedCount } from "./InsightFeedCountSelector";
 
-export function InsightsFeed() {
+export function InsightsFeed({ compact = false }: { compact?: boolean }) {
   const viewedUserId = useContext(ViewedUserContext);
   const [feed, setFeed] = useState<InsightFeed | null>(null);
   const [feedback, setFeedback] = useState<Record<number, "helpful" | "not_helpful">>({});
@@ -334,6 +334,7 @@ export function InsightsFeed() {
                 userId={userId}
                 accessToken={accessToken}
                 isDemo={isDemo}
+                compact={compact}
               />
             </motion.div>
           ))}

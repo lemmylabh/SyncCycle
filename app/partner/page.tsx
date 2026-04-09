@@ -63,7 +63,16 @@ export default function PartnerPage() {
 
   return (
     <>
-      {/* ── Mobile (< lg) — stacked scrollable ──────────────────────── */}
+      {/* Mission banner */}
+      <div className="text-center pt-5 pb-1 px-6">
+        <p className="text-white/30 uppercase tracking-[0.25em] text-[10px] font-light mb-1">Partner View</p>
+        <p className="text-white/50 text-sm font-light leading-relaxed max-w-lg mx-auto">
+          Understand her cycle, anticipate energy shifts, emotional patterns, and the moments she needs support most.{" "}
+          <span className="italic text-white/30">This is her world, shared with you.</span>
+        </p>
+      </div>
+
+      {/* Mobile stacked scrollable */}
       <div className="lg:hidden overflow-y-auto h-[calc(100vh-72px)]">
         <div className="p-4 grid grid-cols-1 gap-4" style={{ gridAutoRows: "300px" }}>
           <ProfileCard size={profileCardSize} />
@@ -76,7 +85,7 @@ export default function PartnerPage() {
         </div>
       </div>
 
-      {/* ── Desktop (≥ lg) — 5-col layout ───────────────────────────── */}
+      {/* Desktop 5-col layout */}
       <div className="hidden lg:flex items-center justify-center p-4 h-[calc(100vh-72px)] overflow-hidden">
         <div className="flex gap-4" style={{ height: gridH }}>
 
@@ -99,12 +108,12 @@ export default function PartnerPage() {
             ))}
           </div>
 
-          {/* Right: InsightsFeed full height */}
+          {/* Right: InsightsFeed full height, scrollable */}
           <div
-            className="flex-shrink-0 overflow-hidden rounded-2xl"
+            className="flex-shrink-0 overflow-y-auto rounded-2xl"
             style={{ width: rightPanelW, height: gridH }}
           >
-            <InsightsFeed />
+            <InsightsFeed compact />
           </div>
 
         </div>

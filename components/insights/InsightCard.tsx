@@ -16,6 +16,7 @@ interface InsightCardProps {
   userId: string | null;
   accessToken: string;
   isDemo: boolean;
+  compact?: boolean;
 }
 
 export function InsightCard({
@@ -28,6 +29,7 @@ export function InsightCard({
   userId,
   accessToken,
   isDemo,
+  compact = false,
 }: InsightCardProps) {
   const typeConfig = CARD_TYPE_CONFIG[card.cardType];
   const [fionaSessionId, setFionaSessionId] = useState<string | null>(null);
@@ -41,29 +43,31 @@ export function InsightCard({
         transition={{ duration: 0.25, ease: "easeInOut" }}
       >
         {/* Header: hashtags + Ask Fiona */}
-        <div className="flex items-start justify-between gap-3 px-4 pt-4">
-          <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+        <div className={`flex items-start justify-between gap-3 ${compact ? "px-3 pt-3" : "px-4 pt-4"}`}>
+          <div className="flex flex-wrap gap-1 flex-1 min-w-0">
             {card.hashtags.map(h => (
               <InsightHashtagBadge key={h} hashtag={h} />
             ))}
           </div>
-          <button
-            onClick={onAskFiona}
-            className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${
-              isExpanded
-                ? "bg-rose-500/15 text-rose-300 border-rose-500/25"
-                : "bg-white/5 text-gray-400 border-white/8 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            {isExpanded ? "Close ✕" : "Ask Fiona ›"}
-          </button>
+          {!compact && (
+            <button
+              onClick={onAskFiona}
+              className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${
+                isExpanded
+                  ? "bg-rose-500/15 text-rose-300 border-rose-500/25"
+                  : "bg-white/5 text-gray-400 border-white/8 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {isExpanded ? "Close ✕" : "Ask Fiona ›"}
+            </button>
+          )}
         </div>
 
         {/* Body */}
-        <div className="px-4 pt-3 pb-4">
-          <p className="text-gray-200 text-sm leading-relaxed">{card.body}</p>
+        <div className={compact ? "px-3 pt-2 pb-3" : "px-4 pt-3 pb-4"}>
+          <p className={`text-gray-200 leading-relaxed ${compact ? "text-xs" : "text-sm"}`}>{card.body}</p>
           {card.suggestion && (
-            <p className="text-gray-400 text-sm mt-2 leading-relaxed border-l-2 border-white/10 pl-3">
+            <p className={`text-gray-400 mt-1.5 leading-relaxed border-l-2 border-white/10 pl-2.5 ${compact ? "text-xs" : "text-sm mt-2"}`}>
               {card.suggestion}
             </p>
           )}

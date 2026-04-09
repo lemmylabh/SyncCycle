@@ -28,13 +28,18 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
         .eq("id", session.user.id)
         .single();
 
-      if (!profile || profile.role !== "partner") {
+      if (!profile) {
         router.replace("/dashboard");
         return;
       }
 
       if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-      if (profile.linked_to) setLinkedToId(profile.linked_to as string);
+      // Partner sees their inviter's data; primary user previews their own data
+      if (profile.role === "partner" && profile.linked_to) {
+        setLinkedToId(profile.linked_to as string);
+      } else {
+        setLinkedToId(session.user.id);
+      }
 
       const name = (profile.display_name as string) || (session.user.user_metadata?.full_name as string) || session.user.email || "";
       const initials = name
