@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { cycleDay, computePhase, PHASE_CONFIG, type Phase } from "@/lib/cycleUtils";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -20,6 +21,7 @@ const TIMELINE_PHASES: { key: Phase; abbr: string; color: string }[] = [
 ];
 
 export function CyclePhaseCard() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [day, setDay] = useState(1);
   const [cycleLen, setCycleLen] = useState(28);
@@ -30,16 +32,17 @@ export function CyclePhaseCard() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const targetId = viewedUserId ?? user?.id;
+      if (!targetId) { setLoading(false); return; }
 
       const today = new Date().toISOString().split("T")[0];
       const [{ data: cycle }, { data: profile }] = await Promise.all([
         supabase.from("cycles").select("start_date,cycle_length")
-          .eq("user_id", user.id).lte("start_date", today)
+          .eq("user_id", targetId).lte("start_date", today)
           .order("start_date", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("user_profiles")
           .select("average_cycle_length,average_period_length")
-          .eq("id", user.id).maybeSingle(),
+          .eq("id", targetId).maybeSingle(),
       ]);
 
       if (cycle) {

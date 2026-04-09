@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -31,6 +32,7 @@ function freshnessColor(hasData: boolean, today: string, logDate: string | null)
 }
 
 export function NutritionCard() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [logDate, setLogDate] = useState<string | null>(null);
   const [calories, setCalories] = useState<number | null>(null);
@@ -42,13 +44,14 @@ export function NutritionCard() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const targetId = viewedUserId ?? user?.id;
+      if (!targetId) { setLoading(false); return; }
 
       const today = new Date().toISOString().split("T")[0];
       const { data } = await supabase
         .from("nutrition_logs")
         .select("log_date,calories_kcal,water_ml,protein_g,carbs_g,fat_g")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .eq("log_date", today)
         .maybeSingle();
 

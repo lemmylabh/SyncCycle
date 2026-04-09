@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { supabase } from "@/lib/supabase";
 import { Pencil } from "lucide-react";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { EditProfileModal, type ProfileFields } from "./EditProfileModal";
 
 interface UserProfile extends ProfileFields {
@@ -33,6 +34,7 @@ function getInitials(name: string | null, email?: string): string {
 export type ProfileCardSize = "1x2" | "1x1" | "2x1";
 
 export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -41,14 +43,15 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
 
   const fetchProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    setUserId(user.id);
-    setUserEmail(user.email ?? null);
+    const targetId = viewedUserId ?? user?.id;
+    if (!targetId) { setLoading(false); return; }
+    setUserId(targetId);
+    setUserEmail(user?.email ?? null);
 
     const { data } = await supabase
       .from("user_profiles")
       .select("display_name,avatar_url,date_of_birth,pronouns,about_me,interests,app_goal,average_cycle_length,average_period_length,tracking_start_date")
-      .eq("id", user.id)
+      .eq("id", targetId)
       .maybeSingle();
 
     setProfile(data ?? null);
@@ -116,8 +119,8 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
     </div>
   );
 
-  // ── Edit button (shared) ──────────────────────────────────────────────────
-  const editBtn = (
+  // ── Edit button (hidden in partner/read-only view) ───────────────────────
+  const editBtn = !viewedUserId ? (
     <button
       onClick={() => setShowModal(true)}
       className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm hover:bg-white/20 flex items-center justify-center transition-colors"
@@ -125,7 +128,7 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
     >
       <Pencil size={12} className="text-white/80" />
     </button>
-  );
+  ) : null;
 
   // ── Bio + interests block (used in 1x2 and 2x1) ──────────────────────────
   const bioBlock = (

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { InsightFeed, InsightCardData, localDateStr } from "@/lib/insightUtils";
 import { PHASE_CONFIG } from "@/lib/cycleUtils";
 import { InsightCard } from "./InsightCard";
@@ -12,6 +13,7 @@ import { InsightLoadPrevious } from "./InsightLoadPrevious";
 import { InsightFeedCountSelector, FeedCount } from "./InsightFeedCountSelector";
 
 export function InsightsFeed() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [feed, setFeed] = useState<InsightFeed | null>(null);
   const [feedback, setFeedback] = useState<Record<number, "helpful" | "not_helpful">>({});
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
@@ -40,10 +42,11 @@ export function InsightsFeed() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) return;
-      setUserId(session.user.id);
+      const targetId = viewedUserId ?? session.user.id;
+      setUserId(targetId);
       setAccessToken(session.access_token);
-      loadFeed(session.user.id, session.access_token, today, true);
-      loadPastDates(session.user.id, session.access_token);
+      loadFeed(targetId, session.access_token, today, true);
+      loadPastDates(targetId, session.access_token);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

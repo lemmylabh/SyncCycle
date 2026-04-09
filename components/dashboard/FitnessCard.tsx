@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -43,6 +44,7 @@ const CustomBar = (props: any) => {
 };
 
 export function FitnessCard() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<{ day: string; minutes: number }[]>([]);
   const [lastWorkout, setLastWorkout] = useState<{ type: string; minutes: number; intensity: number } | null>(null);
@@ -52,13 +54,14 @@ export function FitnessCard() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const targetId = viewedUserId ?? user?.id;
+      if (!targetId) { setLoading(false); return; }
 
       const days = getLast7Days();
       const { data } = await supabase
         .from("workout_logs")
         .select("log_date,duration_minutes,intensity,workout_types(label)")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .gte("log_date", days[0].iso)
         .lte("log_date", days[6].iso)
         .order("log_date", { ascending: false });

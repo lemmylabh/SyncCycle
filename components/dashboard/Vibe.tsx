@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -37,6 +38,7 @@ function ScoreRing({ score, ring }: { score: number | null; ring: Ring }) {
 }
 
 export function Vibe() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [avgs, setAvgs] = useState<{ mood: number | null; energy: number | null; libido: number | null }>({ mood: null, energy: null, libido: null });
   const [lastDate, setLastDate] = useState<string | null>(null);
@@ -44,7 +46,8 @@ export function Vibe() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const targetId = viewedUserId ?? user?.id;
+      if (!targetId) { setLoading(false); return; }
 
       const today = new Date().toISOString().split("T")[0];
       const week = new Date(Date.now() - 6 * 86400000).toISOString().split("T")[0];
@@ -52,7 +55,7 @@ export function Vibe() {
       const { data } = await supabase
         .from("mood_logs")
         .select("log_date,mood_score,energy_score,libido_score")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .gte("log_date", week)
         .lte("log_date", today)
         .order("log_date", { ascending: false });

@@ -6,11 +6,13 @@ import Image from "next/image";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ThemeProvider } from "@/lib/themeContext";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 
 export default function PartnerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [userInitials, setUserInitials] = useState("P");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [linkedToId, setLinkedToId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
       }
 
       if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+      if (profile.linked_to) setLinkedToId(profile.linked_to as string);
 
       const name = (profile.display_name as string) || (session.user.user_metadata?.full_name as string) || session.user.email || "";
       const initials = name
@@ -65,6 +68,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
   }
 
   return (
+    <ViewedUserContext.Provider value={linkedToId}>
     <ThemeProvider>
       <div className="min-h-screen flex flex-col bg-[var(--page-bg)] page-shell text-white">
         {/* Top bar */}
@@ -102,5 +106,6 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
         </main>
       </div>
     </ThemeProvider>
+    </ViewedUserContext.Provider>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/lib/supabase";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
 
 interface HeatmapData {
   symptoms: string[];
@@ -36,13 +37,15 @@ const severityClasses = [
 ];
 
 export function SymptomHeatmap() {
+  const viewedUserId = useContext(ViewedUserContext);
   const [loading, setLoading] = useState(true);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
 
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const targetId = viewedUserId ?? user?.id;
+      if (!targetId) { setLoading(false); return; }
 
       const weekDates = getWeekDates();
       const monday = weekDates[0].iso;
@@ -51,7 +54,7 @@ export function SymptomHeatmap() {
       const { data: logs } = await supabase
         .from("symptom_logs")
         .select("log_date, severity, symptom_types(label)")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .gte("log_date", monday)
         .lte("log_date", sunday);
 

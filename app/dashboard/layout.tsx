@@ -26,6 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userInitials, setUserInitials] = useState("U");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [fionaOpen, setFionaOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -94,6 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         // Redirect partner accounts to their own area
         if (profile?.role === "partner") {
+          setRedirecting(true);
           router.replace("/partner");
           return;
         }
@@ -128,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener("resize", updateSidebar);
   }, []);
 
-  if (!ready) {
+  if (!ready || redirecting) {
     return (
       <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
