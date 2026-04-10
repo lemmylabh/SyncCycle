@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { CyclePhaseCard } from "@/components/dashboard/CyclePhaseCard";
 import { Vibe } from "@/components/dashboard/Vibe";
@@ -10,10 +10,41 @@ import { FitnessCard } from "@/components/dashboard/FitnessCard";
 import { SleepCard } from "@/components/dashboard/SleepCard";
 import { FionaCard } from "@/components/dashboard/FionaCard";
 import { InsightsFeed } from "@/components/insights/InsightsFeed";
-import { useDashboardCardOrder } from "@/hooks/useDashboardCardOrder";
+import { ViewedUserContext } from "@/lib/viewedUserContext";
+import { supabase } from "@/lib/supabase";
 
 const GAP = 16;
 const PAD = 32;
+
+// All cards shown in partner view by default, in display order.
+// "mood"/Vibe is placed manually below ProfileCard so it's excluded here.
+// "period" is always shown (no tracker toggle). "fiona" is excluded.
+const ALL_PARTNER_CARDS = ["period", "symptoms", "sleep", "fitness"];
+// Cards that require a tracker to be enabled (period is always on)
+const TRACKER_GATED = new Set(["symptoms", "fitness", "sleep", "mood"]);
+
+function useViewedEnabledTrackers(): { enabled: Set<string>; loading: boolean } {
+  const viewedUserId = useContext(ViewedUserContext);
+  const [enabled, setEnabled] = useState<Set<string>>(new Set(["period", "symptoms", "nutrition", "fitness", "sleep", "mood"]));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!viewedUserId) { setLoading(false); return; }
+    supabase
+      .from("user_profiles")
+      .select("enabled_trackers")
+      .eq("id", viewedUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.enabled_trackers?.length) {
+          setEnabled(new Set(data.enabled_trackers));
+        }
+        setLoading(false);
+      });
+  }, [viewedUserId]);
+
+  return { enabled, loading };
+}
 
 function usePartnerCellSize() {
   const [cellSize, setCellSize] = useState(240);
@@ -51,11 +82,12 @@ function renderCard(key: string): React.ReactNode {
 
 export default function PartnerPage() {
   const cellSize = usePartnerCellSize();
-  const { cardOrder } = useDashboardCardOrder();
+  const { enabled } = useViewedEnabledTrackers();
 
-  // Exclude "insights" (replaced by InsightsFeed panel) and "mood" (placed manually below profile)
-  const VALID_KEYS = new Set(["period", "symptoms", "nutrition", "fitness", "sleep", "fiona"]);
-  const orderedCards = cardOrder.filter(k => k && VALID_KEYS.has(k));
+  // Show all partner cards unless the viewed user has explicitly disabled that tracker
+  const orderedCards = ALL_PARTNER_CARDS.filter(
+    k => !TRACKER_GATED.has(k) || enabled.has(k)
+  );
 
   const leftPanelW = 3 * cellSize + 2 * GAP;
   const rightPanelW = 2 * cellSize + GAP;

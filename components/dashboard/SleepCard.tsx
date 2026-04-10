@@ -129,13 +129,15 @@ export function SleepCard() {
             className={`w-2 h-2 rounded-full ${freshnessColor(lastDate)}`}
             title={lastDate ? "Last logged: " + lastDate : "No sleep logged"}
           />
-          <Link
-            href="/dashboard/sleep"
-            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            aria-label="Log sleep"
-          >
-            <Plus size={12} className="text-gray-400" />
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/sleep"
+              className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Log sleep"
+            >
+              <Plus size={12} className="text-gray-400" />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -200,12 +202,14 @@ export function SleepCard() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-end">
-          <Link
-            href="/dashboard/sleep"
-            className="block text-center py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-colors"
-          >
-            Log Sleep →
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/sleep"
+              className="block text-center py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-colors"
+            >
+              Log Sleep →
+            </Link>
+          )}
         </div>
       )}
     </div>

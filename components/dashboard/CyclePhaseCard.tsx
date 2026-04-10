@@ -92,13 +92,15 @@ export function CyclePhaseCard() {
         <p className="text-gray-400 text-xs uppercase tracking-widest">Current Phase</p>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${hasCycle ? "bg-green-400" : "bg-white/20"}`} />
-          <Link
-            href="/dashboard/period"
-            className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            aria-label="Go to period tracker"
-          >
-            <Plus size={12} className="text-white/70" />
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/period"
+              className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              aria-label="Go to period tracker"
+            >
+              <Plus size={12} className="text-white/70" />
+            </Link>
+          )}
         </div>
       </div>
 

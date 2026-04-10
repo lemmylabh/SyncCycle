@@ -137,13 +137,15 @@ export function SymptomHeatmap() {
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${freshnessClass}`} />
-          <a
-            href="/dashboard/symptoms"
-            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            aria-label="Log symptoms"
-          >
-            <span className="text-gray-400 text-xs font-bold leading-none">+</span>
-          </a>
+          {!viewedUserId && (
+            <a
+              href="/dashboard/symptoms"
+              className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Log symptoms"
+            >
+              <span className="text-gray-400 text-xs font-bold leading-none">+</span>
+            </a>
+          )}
         </div>
       </div>
 
@@ -151,9 +153,11 @@ export function SymptomHeatmap() {
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
           <p className="text-gray-400 text-sm font-medium">Feeling good this week ✓</p>
           <p className="text-gray-600 text-xs">No symptoms logged</p>
-          <a href="/dashboard/symptoms" className="mt-2 text-rose-400 text-xs hover:text-rose-300 transition-colors">
-            Log Symptoms →
-          </a>
+          {!viewedUserId && (
+            <a href="/dashboard/symptoms" className="mt-2 text-rose-400 text-xs hover:text-rose-300 transition-colors">
+              Log Symptoms →
+            </a>
+          )}
         </div>
       ) : (
         <div className="flex-1 min-h-0">

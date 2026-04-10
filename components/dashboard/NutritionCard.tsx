@@ -105,13 +105,15 @@ export function NutritionCard() {
             className={`w-2 h-2 rounded-full ${freshnessColor(hasData, today, logDate)}`}
             title={logDate === today ? "Logged today" : "Not logged today"}
           />
-          <Link
-            href="/dashboard/nutrition"
-            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            aria-label="Log nutrition"
-          >
-            <Plus size={12} className="text-gray-400" />
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/nutrition"
+              className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Log nutrition"
+            >
+              <Plus size={12} className="text-gray-400" />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -151,12 +153,14 @@ export function NutritionCard() {
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
           <p className="text-gray-500 text-sm">Nothing logged today</p>
-          <Link
-            href="/dashboard/nutrition"
-            className="block text-center py-2 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
-          >
-            Log Nutrition →
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/nutrition"
+              className="block text-center py-2 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
+            >
+              Log Nutrition →
+            </Link>
+          )}
         </div>
       )}
     </div>

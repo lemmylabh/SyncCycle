@@ -120,13 +120,15 @@ export function Vibe() {
             className={`w-2 h-2 rounded-full ${freshnessColor(lastDate)}`}
             title={lastDate === today ? "Logged today" : lastDate ? "Not logged today" : "Never logged"}
           />
-          <Link
-            href="/dashboard/vibe-check"
-            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            aria-label="Log vibe check"
-          >
-            <Plus size={12} className="text-gray-400" />
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/vibe-check"
+              className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Log vibe check"
+            >
+              <Plus size={12} className="text-gray-400" />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -156,12 +158,14 @@ export function Vibe() {
       ) : (
         <div className="flex-1 flex flex-col justify-center gap-2">
           <p className="text-gray-500 text-xs text-center">No data this week</p>
-          <Link
-            href="/dashboard/vibe-check"
-            className="block text-center py-2.5 rounded-xl bg-gradient-to-r from-violet-500/20 to-pink-500/20 border border-violet-500/20 text-violet-400 text-xs font-medium hover:from-violet-500/30 hover:to-pink-500/30 transition-all"
-          >
-            Log Today →
-          </Link>
+          {!viewedUserId && (
+            <Link
+              href="/dashboard/vibe-check"
+              className="block text-center py-2.5 rounded-xl bg-gradient-to-r from-violet-500/20 to-pink-500/20 border border-violet-500/20 text-violet-400 text-xs font-medium hover:from-violet-500/30 hover:to-pink-500/30 transition-all"
+            >
+              Log Today →
+            </Link>
+          )}
         </div>
       )}
     </div>
