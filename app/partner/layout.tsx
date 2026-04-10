@@ -78,13 +78,18 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
       <div className="min-h-screen flex flex-col bg-[var(--page-bg)] page-shell text-white">
         {/* Top bar */}
         <header className="flex items-center justify-between px-6 h-[72px] flex-shrink-0 bg-[var(--page-bg)] border-b border-white/[0.06]">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <Image src="/logo-dark.png" alt="SyncCycle" width={32} height={32} className="rounded-lg" />
             <span className="text-white font-semibold text-base hidden sm:block">SyncCycle</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 font-medium">
               Partner View
             </span>
           </div>
+
+          {/* Center mission text */}
+          <p className="hidden lg:block text-white/35 text-xl font-light italic text-center">
+            Her world, shared with you.
+          </p>
 
           <div className="flex items-center gap-3">
             {/* Avatar */}

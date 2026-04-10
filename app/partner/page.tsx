@@ -51,10 +51,10 @@ function renderCard(key: string): React.ReactNode {
 
 export default function PartnerPage() {
   const cellSize = usePartnerCellSize();
-  const { cardOrder, profileCardSize } = useDashboardCardOrder();
+  const { cardOrder } = useDashboardCardOrder();
 
-  const VALID_KEYS = new Set(["period", "mood", "symptoms", "nutrition", "fitness", "sleep", "fiona"]);
-  // Exclude "insights" — InsightsFeed occupies the right panel instead
+  // Exclude "insights" (replaced by InsightsFeed panel) and "mood" (placed manually below profile)
+  const VALID_KEYS = new Set(["period", "symptoms", "nutrition", "fitness", "sleep", "fiona"]);
   const orderedCards = cardOrder.filter(k => k && VALID_KEYS.has(k));
 
   const leftPanelW = 3 * cellSize + 2 * GAP;
@@ -63,19 +63,11 @@ export default function PartnerPage() {
 
   return (
     <>
-      {/* Mission banner */}
-      <div className="text-center pt-5 pb-1 px-6">
-        <p className="text-white/30 uppercase tracking-[0.25em] text-[10px] font-light mb-1">Partner View</p>
-        <p className="text-white/50 text-sm font-light leading-relaxed max-w-lg mx-auto">
-          Understand her cycle, anticipate energy shifts, emotional patterns, and the moments she needs support most.{" "}
-          <span className="italic text-white/30">This is her world, shared with you.</span>
-        </p>
-      </div>
-
       {/* Mobile stacked scrollable */}
       <div className="lg:hidden overflow-y-auto h-[calc(100vh-72px)]">
         <div className="p-4 grid grid-cols-1 gap-4" style={{ gridAutoRows: "300px" }}>
-          <ProfileCard size={profileCardSize} />
+          <ProfileCard size="1x1" />
+          <Vibe />
           {orderedCards.map(k => (
             <React.Fragment key={k}>{renderCard(k)}</React.Fragment>
           ))}
@@ -100,7 +92,10 @@ export default function PartnerPage() {
               gridAutoFlow: "row dense",
             }}
           >
-            <ProfileCard size={profileCardSize} />
+            {/* Col 1, Row 1: compact profile (1×1, photo only) */}
+            <ProfileCard size="1x1" />
+            {/* Col 1, Row 2: Vibe card fills the space below profile */}
+            <div className="h-full overflow-hidden"><Vibe /></div>
             {orderedCards.map(k => (
               <div key={k} className="h-full overflow-hidden">
                 {renderCard(k)}
