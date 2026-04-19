@@ -23,6 +23,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/dashboard/community": "Community",
   "/dashboard/marketplace": "Marketplace",
   "/dashboard/whats-next": "What's Next",
+  "/dashboard/gdpr": "GDPR Strategy",
 };
 
 interface NavbarProps {
@@ -98,6 +99,18 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
             {label}
           </a>
         ))}
+        {isAdmin && (
+          <a
+            href="/dashboard/gdpr"
+            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              pathname === "/dashboard/gdpr"
+                ? "text-amber-400 bg-amber-500/10"
+                : "text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10"
+            }`}
+          >
+            GDPR Strategy
+          </a>
+        )}
       </nav>
 
       {/* Right: theme + bell + avatar */}
