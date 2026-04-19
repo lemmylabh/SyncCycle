@@ -52,7 +52,8 @@
       "Bash(npm uninstall:*)",
       "Bash(grep -r \"router\\\\.push\\\\|redirect\\\\|href\" /c/Users/Lemmy/Music/synccycle/app/auth --include=*.tsx --include=*.ts -n)",
       "Bash(grep -r \"router\\\\.push\\\\|redirect\" /c/Users/Lemmy/Music/synccycle/components --include=*.tsx --include=*.ts -n)",
-      "Bash(grep -r \"window\\\\.location\\\\|NEXT_PUBLIC\" /c/Users/Lemmy/Music/synccycle --include=*.tsx --include=*.ts -n)"
+      "Bash(grep -r \"window\\\\.location\\\\|NEXT_PUBLIC\" /c/Users/Lemmy/Music/synccycle --include=*.tsx --include=*.ts -n)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")"
     ]
   }
 }
