@@ -56,7 +56,8 @@
       "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
       "Bash(npm install *)",
       "Bash(node -e ' *)",
-      "Bash(find /Users/lemmylabh/Projects/SyncCycle -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"ViewedUserContext\\\\|role.*partner\" {} \\\\;)"
+      "Bash(find /Users/lemmylabh/Projects/SyncCycle -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"ViewedUserContext\\\\|role.*partner\" {} \\\\;)",
+      "Bash(grep -E \"\\\\.\\(sql|toml\\)$\")"
     ]
   }
 }

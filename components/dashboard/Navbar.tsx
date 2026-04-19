@@ -24,6 +24,7 @@ const PAGE_NAMES: Record<string, string> = {
   "/dashboard/marketplace": "Marketplace",
   "/dashboard/whats-next": "What's Next",
   "/dashboard/gdpr": "GDPR Strategy",
+  "/dashboard/analytics": "Analytics",
 };
 
 interface NavbarProps {
@@ -100,16 +101,28 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
           </a>
         ))}
         {isAdmin && (
-          <a
-            href="/dashboard/gdpr"
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              pathname === "/dashboard/gdpr"
-                ? "text-amber-400 bg-amber-500/10"
-                : "text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10"
-            }`}
-          >
-            GDPR Strategy
-          </a>
+          <>
+            <a
+              href="/dashboard/gdpr"
+              className={`px-3.5 py-1.5 rounded-lg text-sm transition-colors ${
+                pathname === "/dashboard/gdpr"
+                  ? "text-amber-400 bg-amber-500/10"
+                  : "text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10"
+              }`}
+            >
+              GDPR Strategy
+            </a>
+            <a
+              href="/dashboard/analytics"
+              className={`px-3.5 py-1.5 rounded-lg text-sm transition-colors ${
+                pathname === "/dashboard/analytics"
+                  ? "text-amber-400 bg-amber-500/10"
+                  : "text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10"
+              }`}
+            >
+              Analytics
+            </a>
+          </>
         )}
       </nav>
 
@@ -146,7 +159,7 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
           href="/partner"
           target="_blank"
           rel="noopener noreferrer"
-          title="Partner View"
+          title="Partner Preview"
           className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
         >
           <Users size={18} />
