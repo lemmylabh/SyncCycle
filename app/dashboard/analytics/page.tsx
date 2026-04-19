@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from "recharts";
 import {
   UserCheck, Activity, BookOpen, Timer, Heart, LogOut, Globe, UserPlus,
-  Smartphone, Monitor, Tablet, Moon, Thermometer, Utensils, MessageCircle,
+  Smartphone, Monitor, Tablet, Moon, Thermometer, Utensils, MessageCircle, Droplets,
   X,
 } from "lucide-react";
 
@@ -26,7 +26,9 @@ interface ProductFeatureRow {
 }
 interface ProductUserRow {
   id: string; displayName: string; role: "primary" | "partner";
-  accountCreated: string; lastSignIn: string | null; totalLogs: number;
+  accountCreated: string; lastSignIn: string | null;
+  totalLogs: number; totalLogsAll: number;
+  daysLogged: number; daysLoggedAll: number;
 }
 interface ProductData {
   totalUsers: number; partnerAccounts: number; onboardingCompleted: number; totalEntries: number;
@@ -52,7 +54,7 @@ const DEVICE_ICONS: Record<string, React.ReactNode> = {
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
   mood: <Heart size={14} />, workout: <Activity size={14} />, nutrition: <Utensils size={14} />,
   sleep: <Moon size={14} />, symptoms: <Thermometer size={14} />,
-  journal: <BookOpen size={14} />, fiona: <MessageCircle size={14} />,
+  journal: <BookOpen size={14} />, period: <Droplets size={14} />, fiona: <MessageCircle size={14} />,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -126,6 +128,7 @@ export default function AnalyticsPage() {
   const [userDetail, setUserDetail] = useState<ProductUserDetail | null>(null);
   const [userDetailLoading, setUserDetailLoading] = useState(false);
   const [userSort, setUserSort] = useState<{ col: "logs" | "created" | "signin"; dir: "asc" | "desc" }>({ col: "logs", dir: "desc" });
+  const [userPeriod, setUserPeriod] = useState<"30d" | "all">("30d");
 
   useEffect(() => {
     fetch("/api/analytics")
@@ -310,17 +313,18 @@ export default function AnalyticsPage() {
 
                   {/* Users Table */}
                   {(() => {
-                    const COLS = "grid-cols-[36px_1fr_68px_44px_76px_76px]";
+                    const COLS = "grid-cols-[36px_1fr_48px_56px_76px_76px]";
+                    const logs = (u: ProductUserRow) => userPeriod === "all" ? u.totalLogsAll : u.totalLogs;
+                    const days = (u: ProductUserRow) => userPeriod === "all" ? u.daysLoggedAll : u.daysLogged;
                     const sorted = [...productData.users].sort((a, b) => {
                       const dir = userSort.dir === "desc" ? -1 : 1;
-                      if (userSort.col === "logs") return (b.totalLogs - a.totalLogs) * dir * -1;
+                      if (userSort.col === "logs") return (logs(b) - logs(a)) * dir * -1;
                       if (userSort.col === "created") return (new Date(a.accountCreated).getTime() - new Date(b.accountCreated).getTime()) * dir;
                       const aT = a.lastSignIn ? new Date(a.lastSignIn).getTime() : 0;
                       const bT = b.lastSignIn ? new Date(b.lastSignIn).getTime() : 0;
                       return (aT - bT) * dir;
                     });
-                    const logsByRank = [...productData.users].sort((a, b) => b.totalLogs - a.totalLogs);
-                    const rankMap = new Map(logsByRank.map((u, i) => [u.id, i]));
+                    const rankMap = new Map([...productData.users].sort((a, b) => logs(b) - logs(a)).map((u, i) => [u.id, i]));
                     const SortBtn = ({ col, label }: { col: typeof userSort.col; label: string }) => (
                       <button
                         onClick={() => setUserSort(s => s.col === col ? { col, dir: s.dir === "desc" ? "asc" : "desc" } : { col, dir: "desc" })}
@@ -334,21 +338,35 @@ export default function AnalyticsPage() {
                     );
                     return (
                       <div className="bg-[var(--card-bg)] card-glass rounded-2xl border border-[var(--border)] flex flex-col overflow-hidden">
-                        <div className="px-5 pt-5 pb-3 flex-shrink-0">
-                          <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Users</p>
-                          <h2 className="text-white text-sm font-semibold">All Accounts</h2>
+                        <div className="px-5 pt-5 pb-3 flex-shrink-0 flex items-start justify-between">
+                          <div>
+                            <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">Users</p>
+                            <h2 className="text-white text-sm font-semibold">All Accounts</h2>
+                          </div>
+                          <div className="flex items-center bg-white/5 rounded-lg p-0.5 gap-0.5 mt-1">
+                            {(["all", "30d"] as const).map((p) => (
+                              <button
+                                key={p}
+                                onClick={() => setUserPeriod(p)}
+                                className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-all"
+                                style={userPeriod === p ? { background: P.granite, color: "#fff" } : { color: "#6b7280" }}
+                              >
+                                {p === "all" ? "All Time" : "Last 30d"}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                         {/* Column headers — outside scroll, never overlaps */}
                         <div className={`grid ${COLS} px-5 pb-2 border-b border-white/5 flex-shrink-0 items-center gap-1`}>
                           <span className="text-gray-600 uppercase tracking-wider text-[10px] font-medium">#</span>
                           <span className="text-gray-600 uppercase tracking-wider text-[10px] font-medium">Name</span>
-                          <span className="text-gray-600 uppercase tracking-wider text-[10px] font-medium">Role</span>
                           <SortBtn col="logs" label="Logs" />
+                          <span className="text-gray-600 uppercase tracking-wider text-[10px] font-medium">Days</span>
                           <SortBtn col="created" label="Created" />
                           <SortBtn col="signin" label="Last In" />
                         </div>
                         {/* Scrollable rows */}
-                        <div className="overflow-y-auto max-h-[420px]">
+                        <div className="overflow-y-auto max-h-[510px]">
                           {sorted.map((u) => {
                             const rank = rankMap.get(u.id) ?? 0;
                             const medal = rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : null;
@@ -360,17 +378,11 @@ export default function AnalyticsPage() {
                               >
                                 <span className="text-gray-600">{rank + 1}</span>
                                 <span className="text-gray-200 truncate flex items-center gap-1.5 min-w-0" title={u.displayName}>
-                                  {medal && <span className="text-sm leading-none flex-shrink-0">{medal}</span>}
                                   <span className="truncate">{u.displayName}</span>
+                                  {medal && <span className="text-sm leading-none flex-shrink-0">{medal}</span>}
                                 </span>
-                                <span>
-                                  {u.role === "partner" ? (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-medium" style={{ background: P.almond + "22", color: P.almond }}>Partner</span>
-                                  ) : (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-white/5 text-gray-500">Primary</span>
-                                  )}
-                                </span>
-                                <span className="text-white font-semibold">{u.totalLogs}</span>
+                                <span className="text-white font-semibold">{logs(u)}</span>
+                                <span className="text-gray-400">{days(u)}</span>
                                 <span className="text-gray-500">{fmtDate(u.accountCreated)}</span>
                                 <span className="text-gray-500">{u.lastSignIn ? fmtDateShort(u.lastSignIn) : "—"}</span>
                               </div>

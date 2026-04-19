@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
 
   try {
-    const [mood, workout, nutrition, sleep, symptoms, journal, fionaSessions, fionaMessages, profileRes] =
+    const [mood, workout, nutrition, sleep, symptoms, journal, periodData, fionaSessions, fionaMessages, profileRes] =
       await Promise.all([
         admin.from("mood_logs").select("log_date").eq("user_id", id),
         admin.from("workout_logs").select("log_date").eq("user_id", id),
@@ -18,6 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         admin.from("sleep_logs").select("log_date").eq("user_id", id),
         admin.from("symptom_logs").select("log_date").eq("user_id", id),
         admin.from("daily_notes").select("log_date").eq("user_id", id),
+        admin.from("period_logs").select("log_date").eq("user_id", id),
         admin.from("fiona_sessions").select("id").eq("user_id", id),
         admin.from("fiona_messages").select("session_id").eq("user_id", id),
         admin.from("user_profiles").select("onboarding_completed").eq("id", id).maybeSingle(),
@@ -43,6 +44,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       { key: "sleep", label: "Sleep", entries: sleep.data?.length ?? 0 },
       { key: "symptoms", label: "Symptoms", entries: symptoms.data?.length ?? 0 },
       { key: "journal", label: "Journal", entries: journal.data?.length ?? 0 },
+      { key: "period", label: "Period Tracker", entries: periodData.data?.length ?? 0 },
       { key: "fiona", label: "Ask Fiona", entries: fionaSessions.data?.length ?? 0, avgMessagesPerSession },
     ];
 
@@ -56,6 +58,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     addDays(sleep.data ?? []);
     addDays(symptoms.data ?? []);
     addDays(journal.data ?? []);
+    addDays(periodData.data ?? []);
 
     const onboardingCompleted = (profileRes.data as { onboarding_completed: boolean } | null)?.onboarding_completed ?? false;
 
