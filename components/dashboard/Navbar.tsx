@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Settings, LogOut, Zap, Users } from "lucide-react";
+import { Settings, LogOut, Zap, Users, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/lib/themeContext";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
@@ -30,9 +30,10 @@ interface NavbarProps {
   userInitials: string;
   avatarUrl?: string | null;
   isDemo?: boolean;
+  isAdmin?: boolean;
 }
 
-export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: NavbarProps) {
+export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -147,6 +148,14 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: Navbar
           <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
         </button>
 
+        {/* Admin badge */}
+        {isAdmin && (
+          <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/15 border border-amber-500/30 text-amber-400">
+            <ShieldCheck size={11} />
+            Admin
+          </span>
+        )}
+
         {/* Avatar dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -177,7 +186,13 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo }: Navbar
                 </div>
                 <div className="min-w-0">
                   <p className="text-white text-xs font-medium truncate">My Account</p>
-                  <p className="text-gray-500 text-[11px] truncate">Signed in</p>
+                  <p className="text-[11px] truncate">
+                    {isAdmin ? (
+                      <span className="text-amber-400 font-medium">Admin</span>
+                    ) : (
+                      <span className="text-gray-500">Signed in</span>
+                    )}
+                  </p>
                 </div>
               </div>
 

@@ -53,7 +53,10 @@
       "Bash(grep -r \"router\\\\.push\\\\|redirect\\\\|href\" /c/Users/Lemmy/Music/synccycle/app/auth --include=*.tsx --include=*.ts -n)",
       "Bash(grep -r \"router\\\\.push\\\\|redirect\" /c/Users/Lemmy/Music/synccycle/components --include=*.tsx --include=*.ts -n)",
       "Bash(grep -r \"window\\\\.location\\\\|NEXT_PUBLIC\" /c/Users/Lemmy/Music/synccycle --include=*.tsx --include=*.ts -n)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)",
+      "Bash(find /Users/lemmylabh/Projects/SyncCycle -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"ViewedUserContext\\\\|role.*partner\" {} \\\\;)"
     ]
   }
 }

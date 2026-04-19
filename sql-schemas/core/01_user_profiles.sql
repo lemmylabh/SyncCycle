@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   -- System
   timezone               text NOT NULL DEFAULT 'UTC',
   onboarding_completed   boolean NOT NULL DEFAULT false,
+  is_admin               boolean NOT NULL DEFAULT false,
 
   created_at             timestamptz NOT NULL DEFAULT now(),
   updated_at             timestamptz NOT NULL DEFAULT now()

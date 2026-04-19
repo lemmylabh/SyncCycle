@@ -31,6 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [fionaOpen, setFionaOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const isMobileSwipeRoute =
     pathname === "/dashboard" || pathname === "/dashboard/insights";
@@ -89,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const { data: profile } = await supabase
           .from("user_profiles")
-          .select("onboarding_completed,avatar_url,role")
+          .select("onboarding_completed,avatar_url,role,is_admin")
           .eq("id", session.user.id)
           .single();
 
@@ -105,6 +106,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
         if (profile?.avatar_url) {
           setAvatarUrl(profile.avatar_url);
+        }
+        if (profile?.is_admin) {
+          setIsAdmin(true);
         }
       } finally {
         setReady(true);
@@ -200,6 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             userInitials={userInitials}
             avatarUrl={avatarUrl}
             isDemo={isDemo}
+            isAdmin={isAdmin}
           />
           <main className="flex-1 overflow-y-auto premium-scroll">
             {children}
