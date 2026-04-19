@@ -29,8 +29,24 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Use service role client to delete the user
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+  // If this user is a partner, revert their invite to pending so the
+  // main user's Connected list reflects the deletion.
+  const { data: profile } = await adminClient
+    .from("user_profiles")
+    .select("role, linked_to")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role === "partner" && user.email) {
+    await adminClient
+      .from("partner_invites")
+      .update({ used_at: null })
+      .eq("email", user.email.toLowerCase())
+      .not("used_at", "is", null);
+  }
+
   const { error } = await adminClient.auth.admin.deleteUser(user.id);
 
   if (error) {

@@ -32,8 +32,9 @@ export default function AccountSettingsPage() {
   const [newPasscode, setNewPasscode]         = useState<string | null>(null);
   const [newPasscodeEmail, setNewPasscodeEmail] = useState("");
   const [inviteError, setInviteError]         = useState("");
-  const [pendingPartners, setPendingPartners] = useState<{ email: string; created_at: string }[]>([]);
-  const [copiedPasscode, setCopiedPasscode]   = useState(false);
+  const [pendingPartners, setPendingPartners]     = useState<{ email: string; created_at: string }[]>([]);
+  const [connectedPartners, setConnectedPartners] = useState<{ email: string; used_at: string }[]>([]);
+  const [copiedPasscode, setCopiedPasscode]       = useState(false);
 
   // Danger zone
   const [deleteInput, setDeleteInput]             = useState("");
@@ -50,14 +51,18 @@ export default function AccountSettingsPage() {
           })
         );
         setUserId(session.user.id);
-        const [{ data: profileData }, { data: invitesData }] = await Promise.all([
+        const [{ data: profileData }, { data: pendingData }, { data: connectedData }] = await Promise.all([
           supabase.from("user_profiles").select("partner_enabled").eq("id", session.user.id).single(),
           supabase.from("partner_invites").select("email, created_at")
             .eq("inviter_id", session.user.id).is("used_at", null)
             .order("created_at", { ascending: false }),
+          supabase.from("partner_invites").select("email, used_at")
+            .eq("inviter_id", session.user.id).not("used_at", "is", null)
+            .order("used_at", { ascending: false }),
         ]);
         if (profileData) setPartnerEnabled(profileData.partner_enabled ?? true);
-        if (invitesData) setPendingPartners(invitesData);
+        if (pendingData) setPendingPartners(pendingData);
+        if (connectedData) setConnectedPartners(connectedData);
       }
       setLoading(false);
     });
@@ -301,17 +306,43 @@ export default function AccountSettingsPage() {
             </div>
           )}
 
+          {/* Connected partners */}
+          {connectedPartners.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Connected</p>
+              {connectedPartners.map(p => (
+                <div key={p.email} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20">
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-white/70 text-xs truncate">{p.email}</p>
+                      <p className="text-white/25 text-[10px] mt-0.5">
+                        Joined {new Date(p.used_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="flex-shrink-0 text-emerald-400 text-[10px] font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Pending partners list */}
           {pendingPartners.length > 0 && (
             <div className="space-y-1.5 pt-1">
               <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Pending</p>
               {pendingPartners.map(p => (
                 <div key={p.email} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                  <div className="min-w-0">
-                    <p className="text-white/60 text-xs truncate">{p.email}</p>
-                    <p className="text-white/25 text-[10px] mt-0.5">
-                      Added {new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-white/60 text-xs truncate">{p.email}</p>
+                      <p className="text-white/25 text-[10px] mt-0.5">
+                        Added {new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleRemovePartner(p.email)}
