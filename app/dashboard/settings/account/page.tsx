@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, LogOut, Trash2, AlertTriangle, Users, Copy, Check } from "lucide-react";
+import { Eye, EyeOff, LogOut, Trash2, AlertTriangle, Users, ShieldOff } from "lucide-react";
 
 const inputCls =
   "w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-white/80 text-sm focus:outline-none focus:border-violet-500/50 transition-colors placeholder:text-white/20";
@@ -21,12 +21,19 @@ export default function AccountSettingsPage() {
   const [pwError, setPwError]               = useState("");
   const [pwSaved, setPwSaved]               = useState(false);
 
+  // Partner access toggle
+  const [partnerEnabled, setPartnerEnabled]     = useState(true);
+  const [partnerToggling, setPartnerToggling]   = useState(false);
+  const [userId, setUserId]                     = useState<string | null>(null);
+
   // Invite partner
-  const [inviteEmail, setInviteEmail]     = useState("");
-  const [inviteSending, setInviteSending] = useState(false);
-  const [inviteLink, setInviteLink]       = useState<string | null>(null);
-  const [inviteError, setInviteError]     = useState("");
-  const [copied, setCopied]               = useState(false);
+  const [inviteEmail, setInviteEmail]         = useState("");
+  const [inviteSending, setInviteSending]     = useState(false);
+  const [newPasscode, setNewPasscode]         = useState<string | null>(null);
+  const [newPasscodeEmail, setNewPasscodeEmail] = useState("");
+  const [inviteError, setInviteError]         = useState("");
+  const [pendingPartners, setPendingPartners] = useState<{ email: string; created_at: string }[]>([]);
+  const [copiedPasscode, setCopiedPasscode]   = useState(false);
 
   // Danger zone
   const [deleteInput, setDeleteInput]             = useState("");
@@ -34,7 +41,7 @@ export default function AccountSettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         setEmail(session.user.email ?? "");
         setCreatedAt(
@@ -42,6 +49,15 @@ export default function AccountSettingsPage() {
             year: "numeric", month: "long", day: "numeric",
           })
         );
+        setUserId(session.user.id);
+        const [{ data: profileData }, { data: invitesData }] = await Promise.all([
+          supabase.from("user_profiles").select("partner_enabled").eq("id", session.user.id).single(),
+          supabase.from("partner_invites").select("email, created_at")
+            .eq("inviter_id", session.user.id).is("used_at", null)
+            .order("created_at", { ascending: false }),
+        ]);
+        if (profileData) setPartnerEnabled(profileData.partner_enabled ?? true);
+        if (invitesData) setPendingPartners(invitesData);
       }
       setLoading(false);
     });
@@ -70,6 +86,15 @@ export default function AccountSettingsPage() {
     setPwSaving(false);
   }
 
+  async function handleTogglePartner() {
+    if (!userId || partnerToggling) return;
+    setPartnerToggling(true);
+    const next = !partnerEnabled;
+    await supabase.from("user_profiles").update({ partner_enabled: next }).eq("id", userId);
+    setPartnerEnabled(next);
+    setPartnerToggling(false);
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut();
     window.location.href = "/";
@@ -77,7 +102,6 @@ export default function AccountSettingsPage() {
 
   async function handleSendInvite() {
     setInviteError("");
-    setInviteLink(null);
     if (!inviteEmail.trim()) return;
     setInviteSending(true);
     const { data: { session } } = await supabase.auth.getSession();
@@ -93,10 +117,13 @@ export default function AccountSettingsPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setInviteLink(data.inviteUrl);
+        const addedEmail = inviteEmail.trim().toLowerCase();
+        setPendingPartners(prev => [{ email: addedEmail, created_at: new Date().toISOString() }, ...prev]);
+        setNewPasscode(data.passcode);
+        setNewPasscodeEmail(addedEmail);
         setInviteEmail("");
       } else {
-        setInviteError(data.error || "Failed to create invite.");
+        setInviteError(data.error || "Failed to add partner.");
       }
     } catch {
       setInviteError("Something went wrong. Please try again.");
@@ -104,12 +131,14 @@ export default function AccountSettingsPage() {
     setInviteSending(false);
   }
 
-  function handleCopyLink() {
-    if (!inviteLink) return;
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  async function handleRemovePartner(email: string) {
+    if (!userId) return;
+    await supabase.from("partner_invites")
+      .update({ used_at: new Date().toISOString() })
+      .eq("inviter_id", userId)
+      .eq("email", email)
+      .is("used_at", null);
+    setPendingPartners(prev => prev.filter(p => p.email !== email));
   }
 
   async function handleDeleteAccount() {
@@ -163,6 +192,45 @@ export default function AccountSettingsPage() {
           </div>
         </div>
 
+        {/* Partner Access Toggle */}
+        <div className={`border rounded-xl p-5 transition-colors duration-300 ${
+          partnerEnabled
+            ? "bg-white/[0.03] border-white/[0.08]"
+            : "bg-rose-500/[0.04] border-rose-500/20"
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 p-1.5 rounded-lg transition-colors ${partnerEnabled ? "bg-violet-500/10" : "bg-rose-500/10"}`}>
+                {partnerEnabled
+                  ? <Users size={13} className="text-violet-400" />
+                  : <ShieldOff size={13} className="text-rose-400" />
+                }
+              </div>
+              <div>
+                <p className="text-white/70 text-sm font-medium">Partner Access</p>
+                <p className="text-white/35 text-xs mt-0.5 leading-relaxed">
+                  {partnerEnabled
+                    ? "Your partner account can view your dashboard and insights."
+                    : "Disabled — your partner will see a blank screen with a notice."
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleTogglePartner}
+              disabled={partnerToggling}
+              className={`relative inline-flex w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ml-4 ${
+                partnerToggling ? "opacity-50 cursor-wait" : "cursor-pointer"
+              } ${partnerEnabled ? "bg-violet-500" : "bg-white/10"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                partnerEnabled ? "translate-x-4" : "translate-x-0"
+              }`} />
+            </button>
+          </div>
+        </div>
+
         {/* Invite a Partner */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 space-y-4">
           <div className="flex items-center gap-2">
@@ -170,29 +238,40 @@ export default function AccountSettingsPage() {
             <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Invite a Partner</p>
           </div>
           <p className="text-white/40 text-xs leading-relaxed">
-            Give a partner read-only access to your dashboard and insights. They&apos;ll skip onboarding and get their own account.
+            Add your partner&apos;s email. When they sign up or log in with that address, they&apos;ll skip onboarding and go straight to your partner view.
           </p>
 
-          {inviteLink ? (
-            <div className="space-y-2">
-              <p className="text-white/50 text-xs">Share this link — it expires in 72 hours.</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-white/50 text-xs font-mono truncate">
-                  {inviteLink}
+          {newPasscode ? (
+            <div className="space-y-3">
+              <div className="bg-violet-500/[0.06] border border-violet-500/20 rounded-xl p-4 space-y-3">
+                <p className="text-white/50 text-xs">
+                  Share this code with <span className="text-white/70">{newPasscodeEmail}</span> — they&apos;ll enter it when joining as a partner.
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-black/30 border border-white/[0.08] rounded-lg px-4 py-2.5 text-center">
+                    <span className="text-white font-mono text-xl tracking-[0.3em] font-semibold select-all">
+                      {newPasscode}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(newPasscode).then(() => {
+                        setCopiedPasscode(true);
+                        setTimeout(() => setCopiedPasscode(false), 2000);
+                      });
+                    }}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs hover:bg-violet-500/30 transition-colors"
+                  >
+                    {copiedPasscode ? "Copied ✓" : "Copy"}
+                  </button>
                 </div>
-                <button
-                  onClick={handleCopyLink}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs hover:bg-violet-500/30 transition-colors"
-                >
-                  {copied ? <Check size={12} /> : <Copy size={12} />}
-                  {copied ? "Copied" : "Copy"}
-                </button>
+                <p className="text-white/25 text-[10px]">This code is shown once. Store it somewhere safe.</p>
               </div>
               <button
-                onClick={() => setInviteLink(null)}
+                onClick={() => { setNewPasscode(null); setNewPasscodeEmail(""); }}
                 className="text-white/30 text-xs hover:text-white/50 transition-colors"
               >
-                Send another invite
+                Add another partner
               </button>
             </div>
           ) : (
@@ -215,10 +294,36 @@ export default function AccountSettingsPage() {
                       : "bg-white/5 text-white/25 cursor-not-allowed"
                   }`}
                 >
-                  {inviteSending ? "Sending…" : "Send Invite"}
+                  {inviteSending ? "Adding…" : "Add Partner"}
                 </button>
               </div>
               {inviteError && <p className="text-rose-400 text-xs">{inviteError}</p>}
+            </div>
+          )}
+
+          {/* Pending partners list */}
+          {pendingPartners.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Pending</p>
+              {pendingPartners.map(p => (
+                <div key={p.email} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                  <div className="min-w-0">
+                    <p className="text-white/60 text-xs truncate">{p.email}</p>
+                    <p className="text-white/25 text-[10px] mt-0.5">
+                      Added {new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemovePartner(p.email)}
+                    className="flex-shrink-0 text-white/20 hover:text-rose-400 transition-colors p-1"
+                    title="Remove"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                      <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

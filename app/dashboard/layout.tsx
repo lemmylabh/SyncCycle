@@ -14,6 +14,7 @@ import { MobileSwipeWrapper } from "@/components/mobile/MobileSwipeWrapper";
 import { MobileFAB } from "@/components/mobile/MobileFAB";
 import { FionaPopup } from "@/components/mobile/FionaPopup";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { AccountTypeModal } from "@/components/AccountTypeModal";
 import { ThemeProvider } from "@/lib/themeContext";
 
 
@@ -30,6 +31,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isDemo, setIsDemo] = useState(false);
   const [fionaOpen, setFionaOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAccountTypeModal, setShowAccountTypeModal] = useState(false);
+  const [sessionAccessToken, setSessionAccessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -69,8 +72,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .toUpperCase();
       setUserInitials(initials || email[0]?.toUpperCase() || "U");
       setUserId(session.user.id);
+      setSessionAccessToken(session.access_token);
 
-      // Check for a pending partner invite token (from invite link flow)
+      // Check for a pending partner invite token (legacy link-based flow)
       const pendingToken = sessionStorage.getItem("pendingInviteToken");
       if (pendingToken) {
         sessionStorage.removeItem("pendingInviteToken");
@@ -102,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         if (!profile?.onboarding_completed) {
-          setShowOnboarding(true);
+          setShowAccountTypeModal(true);
         }
         if (profile?.avatar_url) {
           setAvatarUrl(profile.avatar_url);
@@ -211,6 +215,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      {/* ── Account type selection — shown to all new users before onboarding ── */}
+      {showAccountTypeModal && sessionAccessToken && (
+        <AccountTypeModal
+          accessToken={sessionAccessToken}
+          onMainAccount={() => {
+            setShowAccountTypeModal(false);
+            setShowOnboarding(true);
+          }}
+        />
+      )}
 
       {/* ── Onboarding modal — real users (saves to DB) or demo preview (fake save) ── */}
       {showOnboarding && (

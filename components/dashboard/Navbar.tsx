@@ -7,6 +7,7 @@ import { Settings, LogOut, Zap, Users, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/lib/themeContext";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
+import { PartnerModal } from "@/components/dashboard/PartnerModal";
 
 const PAGE_NAMES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -39,6 +40,7 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
   const router = useRouter();
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [partnerOpen, setPartnerOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const cellSize = useDashboardLayout();
   const { theme, setTheme } = useTheme();
@@ -155,15 +157,14 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
           </button>
         </div>
         {/* Partner View */}
-        <a
-          href="/partner"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => setPartnerOpen(true)}
           title="Partner Preview"
           className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
         >
           <Users size={18} />
-        </a>
+        </button>
+        {partnerOpen && <PartnerModal onClose={() => setPartnerOpen(false)} />}
 
         {/* Notification bell */}
         <button className="relative text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5">

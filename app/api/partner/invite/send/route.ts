@@ -1,32 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
+
+const PASSCODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function generatePasscode(): string {
+  const bytes = randomBytes(8);
+  return Array.from(bytes).map(b => PASSCODE_CHARS[b % PASSCODE_CHARS.length]).join("");
+}
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization") ?? "";
   const accessToken = authHeader.replace("Bearer ", "").trim();
-
-  if (!accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
 
-  if (!serviceRoleKey) {
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
-  }
-
-  // Verify the JWT and get the requesting user
   const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   });
   const { data: { user }, error: userError } = await userClient.auth.getUser();
-  if (userError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (userError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const email = (body.email as string | undefined)?.trim().toLowerCase();
@@ -34,38 +33,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A valid email address is required." }, { status: 400 });
   }
 
+  if (email === user.email?.toLowerCase()) {
+    return NextResponse.json({ error: "You cannot add yourself as a partner." }, { status: 400 });
+  }
+
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-  // Check for an existing pending invite (not expired, not used)
   const { data: existing } = await adminClient
     .from("partner_invites")
-    .select("id, expires_at")
+    .select("id")
     .eq("inviter_id", user.id)
     .eq("email", email)
     .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json(
-      { error: "An active invite for this email already exists. It will expire in 72 hours." },
-      { status: 409 }
-    );
+    return NextResponse.json({ error: "This email is already registered as a partner." }, { status: 409 });
   }
 
-  // Create the invite
-  const { data: invite, error: insertError } = await adminClient
+  const passcode = generatePasscode();
+  const expiresAt = new Date();
+  expiresAt.setFullYear(expiresAt.getFullYear() + 10);
+
+  const { error: insertError } = await adminClient
     .from("partner_invites")
-    .insert({ email, inviter_id: user.id })
-    .select("token")
-    .single();
+    .insert({ email, inviter_id: user.id, passcode, expires_at: expiresAt.toISOString() });
 
-  if (insertError || !invite) {
-    return NextResponse.json({ error: "Failed to create invite." }, { status: 500 });
+  if (insertError) {
+    return NextResponse.json({ error: "Failed to save partner." }, { status: 500 });
   }
 
-  const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "";
-  const inviteUrl = `${origin}/partner/invite?token=${invite.token}`;
-
-  return NextResponse.json({ success: true, inviteUrl });
+  return NextResponse.json({ success: true, passcode });
 }

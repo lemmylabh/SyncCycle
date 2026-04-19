@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ThemeProvider } from "@/lib/themeContext";
 import { ViewedUserContext } from "@/lib/viewedUserContext";
@@ -13,6 +13,7 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
   const [userInitials, setUserInitials] = useState("P");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [linkedToId, setLinkedToId] = useState<string | null>(null);
+  const [partnerDisabled, setPartnerDisabled] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -36,7 +37,17 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
       if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
       // Partner sees their inviter's data; primary user previews their own data
       if (profile.role === "partner" && profile.linked_to) {
-        setLinkedToId(profile.linked_to as string);
+        const primaryId = profile.linked_to as string;
+        setLinkedToId(primaryId);
+        // Check if primary user has disabled partner access
+        const { data: primaryProfile } = await supabase
+          .from("user_profiles")
+          .select("partner_enabled")
+          .eq("id", primaryId)
+          .single();
+        if (primaryProfile?.partner_enabled === false) {
+          setPartnerDisabled(true);
+        }
       } else {
         setLinkedToId(session.user.id);
       }
@@ -112,7 +123,19 @@ export default function PartnerLayout({ children }: { children: React.ReactNode 
         </header>
 
         <main className="flex-1 min-h-0">
-          {children}
+          {partnerDisabled ? (
+            <div className="h-full flex flex-col items-center justify-center gap-5 p-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                <ShieldOff size={24} className="text-rose-400" />
+              </div>
+              <div className="space-y-2 max-w-sm">
+                <p className="text-white font-semibold text-base">Partner Feature Disabled</p>
+                <p className="text-white/40 text-sm leading-relaxed">
+                  The user has disabled partner access. You won&apos;t be able to view their dashboard until they re-enable it from their settings.
+                </p>
+              </div>
+            </div>
+          ) : children}
         </main>
       </div>
     </ThemeProvider>
