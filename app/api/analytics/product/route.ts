@@ -18,7 +18,7 @@ async function fetchFeature(table: string, dateCol: string, cutoff: string) {
     .select("user_id, " + dateCol)
     .gte(dateCol, cutoff);
   if (error) throw error;
-  return data as { user_id: string; [key: string]: string }[];
+  return data as unknown as { user_id: string; [key: string]: string }[];
 }
 
 export async function GET() {
