@@ -21,9 +21,6 @@ const PAGE_NAMES: Record<string, string> = {
   "/dashboard/sleep": "Sleep",
   "/dashboard/settings": "Settings",
   "/dashboard/fiona": "Ask Fiona",
-  "/dashboard/community": "Community",
-  "/dashboard/marketplace": "Marketplace",
-  "/dashboard/whats-next": "What's Next",
   "/dashboard/gdpr": "GDPR Strategy",
   "/dashboard/analytics": "Analytics",
 };
@@ -86,9 +83,9 @@ export function Navbar({ onMenuToggle, userInitials, avatarUrl, isDemo, isAdmin 
       {/* Center: nav links */}
       <nav className="flex items-center gap-1 hidden md:flex">
         {[
-          { label: "Community",   href: "/dashboard/community" },
-          { label: "Marketplace", href: "/dashboard/marketplace" },
-          { label: "What's Next", href: "/dashboard/whats-next" },
+          { label: "Period",    href: "/dashboard/period" },
+          { label: "Insights",  href: "/dashboard/insights" },
+          { label: "Ask Fiona", href: "/dashboard/fiona" },
         ].map(({ label, href }) => (
           <a
             key={href}
