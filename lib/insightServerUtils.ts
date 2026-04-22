@@ -358,13 +358,18 @@ OUTPUT JSON:
       "id": "unique-short-id",
       "hashtags": ["sleep", "fitness"],
       "body": "2-3 sentence insight, warm and personal",
+      "summary": "🌙 Sleep: 7.2h avg — below your usual",
       "suggestion": "one actionable tip or null",
       "correlationKey": "fitness+sleep|sleep_avg_hours:6|workouts_logged:false",
       "isFallback": false,
       "cardType": "insight"
     }
   ]
-}`;
+}
+
+The "summary" field must follow this exact pattern: {emoji} {headline noun}: {1 key stat or short verdict}
+Max 60 characters. Use the primary hashtag's emoji: 🌙 sleep, ⚡ fitness, ✨ vibe, 🍃 nutrition, 🩺 symptoms, 🌸 period.
+Examples: "⚡ Fitness: lower intensity (2.7 avg)", "🍃 Nutrition: cravings likely this week", "✨ Vibe: mood dipping in luteal phase"`;
 
   return { system, user };
 }
@@ -392,6 +397,9 @@ export function parseInsightResponse(raw: string): InsightCardData[] {
         id: c.id as string,
         hashtags: (c.hashtags as InsightHashtag[]).slice(0, 3),
         body: (c.body as string).trim(),
+        summary: typeof c.summary === "string" && c.summary.trim().length > 0
+          ? c.summary.trim().slice(0, 80)
+          : undefined,
         suggestion: typeof c.suggestion === "string" && c.suggestion.trim().length > 0
           ? c.suggestion.trim()
           : null,

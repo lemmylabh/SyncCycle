@@ -9,6 +9,7 @@ export interface InsightCardData {
   id: string;
   hashtags: InsightHashtag[];
   body: string;
+  summary?: string;
   suggestion: string | null;
   correlationKey: string;
   isFallback: boolean;
@@ -38,6 +39,23 @@ export const HASHTAG_CONFIG: Record<InsightHashtag, {
   fitness:   { label: "#fitness",   bg: "bg-sky-500/20",     text: "text-sky-400",     border: "border-sky-500/30" },
   sleep:     { label: "#sleep",     bg: "bg-indigo-500/20",  text: "text-indigo-400",  border: "border-indigo-500/30" },
 };
+
+export const CATEGORY_CONFIG: Record<InsightHashtag, { emoji: string; color: string; softBg: string; label: string }> = {
+  sleep:     { emoji: "🌙", color: "#60a5fa", softBg: "rgba(96,165,250,0.12)",   label: "Sleep"     },
+  fitness:   { emoji: "⚡", color: "#34d399", softBg: "rgba(52,211,153,0.12)",   label: "Fitness"   },
+  vibe:      { emoji: "✨", color: "#c084fc", softBg: "rgba(192,132,252,0.12)",  label: "Vibe"      },
+  nutrition: { emoji: "🍃", color: "#fb923c", softBg: "rgba(251,146,60,0.12)",   label: "Nutrition" },
+  symptoms:  { emoji: "🩺", color: "#f87171", softBg: "rgba(248,113,113,0.12)",  label: "Symptoms"  },
+  period:    { emoji: "🌸", color: "#fb7185", softBg: "rgba(251,113,133,0.12)",  label: "Period"    },
+};
+
+export function deriveOneLiner(card: InsightCardData): string {
+  const primary = card.hashtags[0] ?? "vibe";
+  const cat = CATEGORY_CONFIG[primary];
+  const firstSentence = card.body.split(/[.!?]/)[0].trim();
+  const verdict = firstSentence.length > 45 ? firstSentence.slice(0, 44) + "…" : firstSentence;
+  return `${cat.emoji} ${cat.label}: ${verdict}`;
+}
 
 export const CARD_TYPE_CONFIG: Record<InsightCardType, { label: string; color: string }> = {
   insight:    { label: "Insight",    color: "text-gray-400" },

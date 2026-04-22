@@ -1,39 +1,96 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
   InsightCardData,
   HASHTAG_CONFIG,
-  CARD_TYPE_CONFIG,
+  CATEGORY_CONFIG,
+  deriveOneLiner,
   localDateStr,
 } from "@/lib/insightUtils";
-import { TrendingUp, ArrowRight, RefreshCw, Sparkles } from "lucide-react";
+import { TrendingUp, ArrowRight, RefreshCw, Sparkles, ChevronRight } from "lucide-react";
 
-// ── Mini card ─────────────────────────────────────────────────────────────────
+// ── Accordion row ──────────────────────────────────────────────────────────────
 
-function MiniInsightCard({ card }: { card: InsightCardData }) {
-  const typeConfig = CARD_TYPE_CONFIG[card.cardType];
+function InsightRow({
+  card,
+  open,
+  onToggle,
+}: {
+  card: InsightCardData;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const primary = card.hashtags[0] ?? "vibe";
+  const cat = CATEGORY_CONFIG[primary];
+  const summary = card.summary ?? deriveOneLiner(card);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-3 flex-shrink-0">
-      <div className="flex items-center gap-1.5 mb-1.5">
-        {card.hashtags.slice(0, 2).map(h => {
-          const cfg = HASHTAG_CONFIG[h];
-          return (
-            <span
-              key={h}
-              className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
-            >
-              {cfg.label}
-            </span>
-          );
-        })}
-        <span className={`ml-auto text-[9px] font-medium ${typeConfig.color}`}>
-          {typeConfig.label}
+    <div className="rounded-2xl overflow-hidden" style={{ background: open ? cat.softBg : undefined }}>
+      {/* Collapsed row */}
+      <button
+        onClick={onToggle}
+        className="w-full h-12 flex items-center gap-3 px-3 rounded-2xl hover:bg-white/[0.03] transition-colors cursor-pointer"
+      >
+        {/* Category color bar */}
+        <span
+          className="w-[3px] h-6 rounded-full flex-shrink-0"
+          style={{ background: cat.color }}
+        />
+        {/* Emoji */}
+        <span className="text-[18px] leading-none flex-shrink-0 w-5 text-center">
+          {cat.emoji}
         </span>
+        {/* Summary */}
+        <span className="text-[12px] text-white/70 truncate flex-1 text-left">
+          {summary}
+        </span>
+        {/* Chevron */}
+        <ChevronRight
+          size={14}
+          className="flex-shrink-0 text-white/30 transition-transform duration-200"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      {/* Expanded area */}
+      <div
+        ref={bodyRef}
+        className="overflow-hidden transition-all duration-200 ease-in-out"
+        style={{ maxHeight: open ? (bodyRef.current?.scrollHeight ?? 400) : 0 }}
+      >
+        <div className="px-4 pt-1 pb-3">
+          {/* Hashtag pills */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-2">
+            {card.hashtags.slice(0, 3).map(h => {
+              const cfg = HASHTAG_CONFIG[h];
+              return (
+                <span
+                  key={h}
+                  className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
+                >
+                  {cfg.label}
+                </span>
+              );
+            })}
+          </div>
+          {/* Body */}
+          <p className="text-white/55 text-[11px] leading-relaxed">{card.body}</p>
+          {/* Ask Fiona link */}
+          <div className="flex justify-end mt-2">
+            <Link
+              href="/dashboard/fiona"
+              className="text-[10px] text-violet-400/60 hover:text-violet-400 transition-colors"
+              onClick={e => e.stopPropagation()}
+            >
+              Ask Fiona ›
+            </Link>
+          </div>
+        </div>
       </div>
-      <p className="text-white/55 text-[11px] leading-relaxed line-clamp-2">{card.body}</p>
     </div>
   );
 }
@@ -42,15 +99,13 @@ function MiniInsightCard({ card }: { card: InsightCardData }) {
 
 function Skeleton() {
   return (
-    <div className="flex flex-col gap-2 animate-pulse">
-      {[1, 2].map(i => (
-        <div key={i} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-3">
-          <div className="flex gap-1.5 mb-2">
-            <div className="h-4 w-14 bg-white/10 rounded-full" />
-            <div className="h-4 w-10 bg-white/10 rounded-full" />
-          </div>
-          <div className="h-3 w-full bg-white/10 rounded mb-1" />
-          <div className="h-3 w-3/4 bg-white/10 rounded" />
+    <div className="flex flex-col gap-[4px] animate-pulse">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="h-12 rounded-2xl bg-white/[0.03] flex items-center gap-3 px-3">
+          <div className="w-[3px] h-6 rounded-full bg-white/10 flex-shrink-0" />
+          <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
+          <div className="h-3 flex-1 bg-white/10 rounded" />
+          <div className="w-3 h-3 rounded bg-white/10 flex-shrink-0" />
         </div>
       ))}
     </div>
@@ -64,6 +119,7 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [noFeed, setNoFeed] = useState(false);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -154,11 +210,18 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
         </div>
 
         {/* Body */}
-        <div className={`flex-1 min-h-0 ${maxCards > 2 ? "overflow-y-auto" : "overflow-hidden"} px-4 pb-4 flex flex-col gap-2`}>
+        <div className={`flex-1 min-h-0 ${maxCards > 2 ? "overflow-y-auto" : "overflow-hidden"} px-3 pb-3 flex flex-col gap-[4px]`}>
           {loading ? (
             <Skeleton />
           ) : cards.length > 0 ? (
-            cards.slice(0, maxCards).map((card, i) => <MiniInsightCard key={i} card={card} />)
+            cards.slice(0, maxCards).map((card, i) => (
+              <InsightRow
+                key={card.id}
+                card={card}
+                open={openIndex === i}
+                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+              />
+            ))
           ) : noFeed ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
               <Sparkles size={20} className="text-violet-400/30" />
