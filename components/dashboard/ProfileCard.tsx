@@ -2,13 +2,27 @@
 
 import { useState, useEffect, useCallback, useContext } from "react";
 import { supabase } from "@/lib/supabase";
-import { Pencil } from "lucide-react";
 import { ViewedUserContext } from "@/lib/viewedUserContext";
 import { EditProfileModal, type ProfileFields } from "./EditProfileModal";
+import { cycleDay, computePhase, type Phase } from "@/lib/cycleUtils";
 
 interface UserProfile extends ProfileFields {
   tracking_start_date: string | null;
 }
+
+const PHASE_EMOJI: Record<Phase, string> = {
+  menstrual: "🩸",
+  follicular: "🌱",
+  ovulatory: "✨",
+  luteal: "🌙",
+};
+
+const PHASE_LABEL: Record<Phase, string> = {
+  menstrual: "Menstrual",
+  follicular: "Follicular",
+  ovulatory: "Ovulatory",
+  luteal: "Luteal",
+};
 
 function computeAge(dob: string | null): number | null {
   if (!dob) return null;
@@ -40,6 +54,8 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [phase, setPhase] = useState<Phase | null>(null);
+  const [cycleDay_, setCycleDay] = useState<number | null>(null);
 
   const fetchProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -48,13 +64,33 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
     setUserId(targetId);
     setUserEmail(user?.email ?? null);
 
-    const { data } = await supabase
-      .from("user_profiles")
-      .select("display_name,avatar_url,date_of_birth,pronouns,about_me,interests,app_goal,average_cycle_length,average_period_length,tracking_start_date")
-      .eq("id", targetId)
-      .maybeSingle();
+    const today = new Date().toISOString().split("T")[0];
+    const [{ data: profileData }, { data: cycle }] = await Promise.all([
+      supabase
+        .from("user_profiles")
+        .select("display_name,avatar_url,date_of_birth,pronouns,about_me,interests,app_goal,average_cycle_length,average_period_length,tracking_start_date")
+        .eq("id", targetId)
+        .maybeSingle(),
+      supabase
+        .from("cycles")
+        .select("start_date,cycle_length")
+        .eq("user_id", targetId)
+        .lte("start_date", today)
+        .order("start_date", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-    setProfile(data ?? null);
+    setProfile(profileData ?? null);
+
+    if (cycle) {
+      const d = cycleDay(cycle.start_date);
+      const cl = profileData?.average_cycle_length ?? cycle.cycle_length ?? 28;
+      const pl = profileData?.average_period_length ?? 5;
+      setCycleDay(d);
+      setPhase(computePhase(d, pl, cl));
+    }
+
     setLoading(false);
   }, []);
 
@@ -72,17 +108,12 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
     avatar_url: profile?.avatar_url ?? null,
   };
 
-  const spanClass = size === "1x2" ? "row-span-2" : size === "2x1" ? "col-span-2" : "";
-
   if (loading) {
     return (
-      <div className={`${spanClass} rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden flex ${size === "2x1" ? "flex-row" : "flex-col"} h-full animate-pulse`}>
-        <div className={size === "2x1" ? "w-2/5 bg-white/5 flex-shrink-0" : "h-52 bg-white/5 flex-shrink-0"} />
-        <div className="p-5 flex flex-col gap-4 flex-1">
-          <div className="h-4 w-32 bg-white/10 rounded" />
-          <div className="h-3 w-full bg-white/10 rounded" />
-          <div className="h-3 w-3/4 bg-white/10 rounded" />
-        </div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass h-full flex flex-col items-center justify-center gap-3 p-5 animate-pulse">
+        <div className="w-20 h-20 rounded-full bg-white/10" />
+        <div className="h-4 w-28 bg-white/10 rounded" />
+        <div className="h-3 w-16 bg-white/10 rounded-full" />
       </div>
     );
   }
@@ -90,77 +121,6 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
   const name = profile?.display_name ?? userEmail?.split("@")[0] ?? "User";
   const age = computeAge(profile?.date_of_birth ?? null);
   const initials = getInitials(profile?.display_name ?? null, userEmail ?? undefined);
-  const isEmpty = !profile?.about_me && !profile?.interests?.length;
-
-  // ── Shared avatar/initials block ─────────────────────────────────────────
-  const avatarBlock = (extraClass = "") => (
-    <div className={`relative flex-shrink-0 ${extraClass}`}>
-      {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-rose-900/60 to-purple-900/60 flex items-center justify-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
-            <span className="text-white text-2xl font-bold">{initials}</span>
-          </div>
-        </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e2a] via-[#1e1e2a]/20 to-transparent pointer-events-none profile-overlay" />
-      <div className="absolute bottom-0 left-0 p-4">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-white text-lg font-bold leading-tight">{name}</h2>
-          {age !== null && <span className="text-gray-300 text-sm">· {age}</span>}
-        </div>
-        {profile?.pronouns && (
-          <span className="mt-1.5 inline-block px-2 py-0.5 rounded-full bg-white/15 text-white/80 text-xs">
-            {profile.pronouns}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-
-  // ── Edit button (hidden in partner/read-only view) ───────────────────────
-  const editBtn = !viewedUserId ? (
-    <button
-      onClick={() => setShowModal(true)}
-      className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm hover:bg-white/20 flex items-center justify-center transition-colors"
-      aria-label="Edit profile"
-    >
-      <Pencil size={12} className="text-white/80" />
-    </button>
-  ) : null;
-
-  // ── Bio + interests block (used in 1x2 and 2x1) ──────────────────────────
-  const bioBlock = (
-    <div className="flex-1 p-5 flex flex-col gap-3 overflow-hidden min-h-0 justify-center">
-      {profile?.about_me && (
-        <div>
-          <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1.5">About</p>
-          <p className="text-gray-300 text-xs leading-relaxed">{profile.about_me}</p>
-        </div>
-      )}
-      {profile?.interests && profile.interests.length > 0 && (
-        <div>
-          <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Interests</p>
-          <div className="flex flex-wrap gap-1.5">
-            {profile.interests.map((interest, i) => (
-              <span key={i} className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/5 text-gray-300 text-xs">
-                {interest}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      {isEmpty && (
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full py-2.5 rounded-xl border border-dashed border-white/10 hover:border-white/20 text-gray-500 hover:text-gray-400 text-xs transition-colors"
-        >
-          + Complete your profile
-        </button>
-      )}
-    </div>
-  );
 
   const modal = showModal && userId && (
     <EditProfileModal
@@ -173,40 +133,57 @@ export function ProfileCard({ size = "1x2" }: { size?: ProfileCardSize }) {
     />
   );
 
-  // ── 2×1 — horizontal layout ───────────────────────────────────────────────
-  if (size === "2x1") {
-    return (
-      <div className="col-span-2 h-full">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden flex flex-row h-full relative">
-          {editBtn}
-          {avatarBlock("w-2/5 h-full")}
-          {bioBlock}
-        </div>
-        {modal}
-      </div>
-    );
-  }
-
-  // ── 1×1 — compact layout (photo only, no bio) ─────────────────────────────
-  if (size === "1x1") {
-    return (
-      <div className="h-full">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden h-full relative">
-          {editBtn}
-          {avatarBlock("w-full h-full absolute inset-0")}
-        </div>
-        {modal}
-      </div>
-    );
-  }
-
-  // ── 1×2 — default layout ─────────────────────────────────────────────────
   return (
-    <div className="row-span-2 h-full">
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass overflow-hidden flex flex-col h-full relative">
-        {editBtn}
-        {avatarBlock("h-52")}
-        {bioBlock}
+    <div className="h-full">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] card-glass h-full flex flex-col items-center justify-center gap-3 p-5 text-center">
+
+        {/* Avatar */}
+        <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/10">
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center">
+              <span className="text-white text-2xl font-bold">{initials}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Name · Age */}
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-white text-[18px] font-semibold leading-tight">
+            {name}{age !== null && <span className="text-white/50 font-normal"> · {age}</span>}
+          </p>
+
+          {/* Pronouns */}
+          {profile?.pronouns && (
+            <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/60 text-xs">
+              {profile.pronouns}
+            </span>
+          )}
+        </div>
+
+        {/* Phase badge */}
+        {phase && cycleDay_ !== null && (
+          <span
+            className="px-[10px] py-1 rounded-full text-[12px] font-medium"
+            style={{ background: "rgba(139,92,246,0.18)", color: "#c084fc" }}
+          >
+            {PHASE_EMOJI[phase]} {PHASE_LABEL[phase]} · Day {cycleDay_}
+          </span>
+        )}
+
+        {/* View profile link */}
+        <button
+          onClick={() => {
+            // TODO: wire up to /profile page in follow-up PR
+            console.log("View profile clicked");
+            setShowModal(true);
+          }}
+          className="text-[14px] text-white/30 hover:text-white/60 transition-colors"
+        >
+          View profile ›
+        </button>
+
       </div>
       {modal}
     </div>

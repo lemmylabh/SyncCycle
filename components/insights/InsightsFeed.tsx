@@ -9,7 +9,7 @@ import { PHASE_CONFIG } from "@/lib/cycleUtils";
 import { InsightCard } from "./InsightCard";
 import { InsightFeedSkeleton } from "./InsightFeedSkeleton";
 import { InsightEmptyState } from "./InsightEmptyState";
-import { InsightLoadPrevious } from "./InsightLoadPrevious";
+import { InsightSparkline, DateEntry } from "./InsightSparkline";
 import { InsightFeedCountSelector, FeedCount } from "./InsightFeedCountSelector";
 
 export function InsightsFeed({ compact = false }: { compact?: boolean }) {
@@ -22,7 +22,7 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
   const [isTopingUp, setIsTopingUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => localDateStr(new Date()));
-  const [pastDates, setPastDates] = useState<string[]>([]);
+  const [dateEntries, setDateEntries] = useState<DateEntry[]>([]);
   const [feedCount, setFeedCount] = useState<FeedCount>(10);
   const [userId, setUserId] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState("");
@@ -46,7 +46,7 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
       setUserId(targetId);
       setAccessToken(session.access_token);
       loadFeed(targetId, session.access_token, today, true);
-      loadPastDates(targetId, session.access_token);
+      loadDateEntries(targetId, session.access_token);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -64,7 +64,7 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
       const data = await res.json();
       if (data.feed) {
         setFeed(data.feed);
-        setPastDates([today]);
+        setDateEntries([{ date: today, count: data.feed?.cards?.length ?? 0 }]);
       }
     } catch {
       setError("Could not load demo feed.");
@@ -120,8 +120,12 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
       const data = await res.json();
       if (data.feed) {
         setFeed(data.feed);
-        // Add today to pastDates if not present
-        setPastDates(prev => prev.includes(today) ? prev : [today, ...prev]);
+        // Add today to dateEntries if not present, with card count
+        setDateEntries(prev => {
+          const cardCount = data.feed?.cards?.length ?? 0;
+          if (prev.some(e => e.date === today)) return prev;
+          return [{ date: today, count: cardCount }, ...prev];
+        });
       } else {
         setError(data.error ?? "Failed to generate insights.");
       }
@@ -178,16 +182,16 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
     }
   }
 
-  // ── Load past dates ───────────────────────────────────────────────────────────
+  // ── Load past date entries ────────────────────────────────────────────────────
 
-  async function loadPastDates(uid: string, token: string) {
+  async function loadDateEntries(uid: string, token: string) {
     try {
       const res = await fetch(
         `/api/insights/feed?userId=${uid}&listDates=true`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();
-      if (data.dates) setPastDates(data.dates);
+      if (data.dates) setDateEntries(data.dates);
     } catch {
       // non-critical
     }
@@ -301,9 +305,9 @@ export function InsightsFeed({ compact = false }: { compact?: boolean }) {
         />
       </div>
 
-      {/* Date chips */}
-      <InsightLoadPrevious
-        dates={pastDates}
+      {/* Sparkline date navigator */}
+      <InsightSparkline
+        entries={dateEntries}
         selectedDate={selectedDate}
         onSelect={handleDateSelect}
       />

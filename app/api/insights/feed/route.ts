@@ -17,18 +17,21 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerSupabaseClient(accessToken);
 
-  // Return list of past feed dates (last 30 days)
+  // Return list of past feed dates (last 60 days) with card counts
   if (listDates) {
-    const thirtyDaysAgo = localDateStr(new Date(Date.now() - 30 * 86400000));
+    const sixtyDaysAgo = localDateStr(new Date(Date.now() - 60 * 86400000));
     const { data: datesData } = await supabase
       .from("insight_feeds")
-      .select("feed_date")
+      .select("feed_date, cards")
       .eq("user_id", userId)
-      .gte("feed_date", thirtyDaysAgo)
+      .gte("feed_date", sixtyDaysAgo)
       .order("feed_date", { ascending: false });
 
     return NextResponse.json({
-      dates: (datesData ?? []).map((r: Record<string, unknown>) => r.feed_date as string),
+      dates: (datesData ?? []).map((r: Record<string, unknown>) => ({
+        date: r.feed_date as string,
+        count: Array.isArray(r.cards) ? (r.cards as unknown[]).length : 0,
+      })),
     });
   }
 

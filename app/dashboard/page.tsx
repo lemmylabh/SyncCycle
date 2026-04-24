@@ -65,7 +65,7 @@ export default function DashboardPage() {
             return (
               <div key={k} className="h-full overflow-hidden" style={spanStyle}>
                 {k === "insights"
-                  ? <InsightsCard maxCards={insightsCardSize === "1x2" || insightsCardSize === "2x2" ? 5 : 2} />
+                  ? <InsightsCard maxCards={20} />
                   : renderCard(k)}
               </div>
             );

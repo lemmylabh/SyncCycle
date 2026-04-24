@@ -29,22 +29,15 @@ function InsightRow({
   const bodyRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: open ? cat.softBg : undefined }}>
+    <div className="rounded-2xl overflow-hidden">
       {/* Collapsed row */}
       <button
         onClick={onToggle}
         className="w-full h-12 flex items-center gap-3 px-3 rounded-2xl hover:bg-white/[0.03] transition-colors cursor-pointer"
       >
         {/* Category color bar */}
-        <span
-          className="w-[3px] h-6 rounded-full flex-shrink-0"
-          style={{ background: cat.color }}
-        />
-        {/* Emoji */}
-        <span className="text-[18px] leading-none flex-shrink-0 w-5 text-center">
-          {cat.emoji}
-        </span>
-        {/* Summary */}
+        <span className="w-[3px] h-6 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+        {/* Summary (includes emoji prefix) */}
         <span className="text-[12px] text-white/70 truncate flex-1 text-left">
           {summary}
         </span>
@@ -114,14 +107,28 @@ function Skeleton() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
+const ROW_H = 52; // 48px row + 4px gap
+
+export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
   const [cards, setCards] = useState<InsightCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [noFeed, setNoFeed] = useState(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [displayCount, setDisplayCount] = useState(3);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      setDisplayCount(Math.max(1, Math.floor(el.clientHeight / ROW_H)));
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -154,7 +161,14 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
         const data = await res.json();
         const feedCards: InsightCardData[] = data.feed?.cards ?? [];
         if (feedCards.length > 0) {
-          setCards(feedCards.slice(0, maxCards));
+          const sliced = feedCards.slice(0, maxCards);
+          setCards(sliced);
+          setLoading(false);
+          // Fire-and-forget: generate summaries for cards that don't have them
+          const missing = sliced.filter(c => !c.summary);
+          if (missing.length > 0) {
+            fetchSummaries(missing, session.access_token, session.user.id);
+          }
         } else {
           setNoFeed(true);
         }
@@ -165,6 +179,27 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
       setNoFeed(true);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchSummaries(missing: InsightCardData[], accessToken: string, userId: string) {
+    try {
+      const res = await fetch("/api/insights/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken,
+          userId,
+          cards: missing.map(c => ({ id: c.id, hashtags: c.hashtags, body: c.body })),
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const summaryMap: Record<string, string> = {};
+      for (const s of data.summaries ?? []) summaryMap[s.id] = s.summary;
+      setCards(prev => prev.map(c => summaryMap[c.id] ? { ...c, summary: summaryMap[c.id] } : c));
+    } catch {
+      // Silently fall back to deriveOneLiner
     }
   }
 
@@ -210,11 +245,11 @@ export function InsightsCard({ maxCards = 2 }: { maxCards?: number }) {
         </div>
 
         {/* Body */}
-        <div className={`flex-1 min-h-0 ${maxCards > 2 ? "overflow-y-auto" : "overflow-hidden"} px-3 pb-3 flex flex-col gap-[4px]`}>
+        <div ref={bodyRef} className="flex-1 min-h-0 overflow-hidden px-3 pb-3 flex flex-col gap-[4px]">
           {loading ? (
             <Skeleton />
           ) : cards.length > 0 ? (
-            cards.slice(0, maxCards).map((card, i) => (
+            cards.slice(0, displayCount).map((card, i) => (
               <InsightRow
                 key={card.id}
                 card={card}

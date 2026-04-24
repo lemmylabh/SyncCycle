@@ -49,11 +49,22 @@ export const CATEGORY_CONFIG: Record<InsightHashtag, { emoji: string; color: str
   period:    { emoji: "🌸", color: "#fb7185", softBg: "rgba(251,113,133,0.12)",  label: "Period"    },
 };
 
+const CATEGORY_PRECEDENCE: InsightHashtag[] = ["sleep", "symptoms", "fitness", "nutrition", "vibe", "period"];
+
+export function getInsightCategory(card: InsightCardData): InsightHashtag {
+  for (const h of CATEGORY_PRECEDENCE) {
+    if (card.hashtags.includes(h)) return h;
+  }
+  return card.hashtags[0] ?? "vibe";
+}
+
 export function deriveOneLiner(card: InsightCardData): string {
   const primary = card.hashtags[0] ?? "vibe";
   const cat = CATEGORY_CONFIG[primary];
-  const firstSentence = card.body.split(/[.!?]/)[0].trim();
-  const verdict = firstSentence.length > 45 ? firstSentence.slice(0, 44) + "…" : firstSentence;
+  // Extract a number stat if present, otherwise use a short phrase from the body
+  const numMatch = card.body.match(/(\d+(?:\.\d+)?)\s*(hours?|h\b|\/5|avg|%|kcal|kg|lbs|sessions?)/i);
+  const stat = numMatch ? numMatch[0] : card.body.split(/[.!?,]/)[0].trim().slice(0, 35);
+  const verdict = stat.length > 40 ? stat.slice(0, 39) + "…" : stat;
   return `${cat.emoji} ${cat.label}: ${verdict}`;
 }
 
@@ -143,6 +154,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-1",
       hashtags: ["sleep", "fitness"],
       body: "Your average sleep of 6 hours last week may be contributing to lower workout motivation. Research shows sleep under 7 hours reduces glycogen synthesis and raises cortisol, making exercise feel harder.",
+      summary: "🌙 Sleep: 6h avg — dragging down workout energy",
       suggestion: "Try aiming for 7–8 hours tonight and see if your energy for tomorrow's workout improves.",
       correlationKey: "fitness+sleep|sleep_avg_hours:6|workouts_logged:false",
       isFallback: false,
@@ -152,6 +164,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-2",
       hashtags: ["period", "symptoms"],
       body: "You are currently in your Luteal Phase. The hormonal shifts during this phase — particularly rising then dropping progesterone — are commonly linked to increased fatigue and bloating.",
+      summary: "🌸 Period: luteal phase — fatigue & bloating likely",
       suggestion: null,
       correlationKey: "period+symptoms|phase:luteal|symptoms:fatigue,bloating",
       isFallback: false,
@@ -159,8 +172,9 @@ export const DEMO_FEED: InsightFeed = {
     },
     {
       id: "demo-3",
-      hashtags: ["period", "fitness", "vibe"],
+      hashtags: ["fitness", "vibe"],
       body: "Last Luteal Phase you logged 3 yoga sessions and rated your mood 4/5 and energy 3.8/5. This cycle you've done 2 sessions so far — adding one more could help stabilise your mood as your period approaches.",
+      summary: "⚡ Fitness: 2 yoga sessions — add one to stabilise mood",
       suggestion: "A 30-minute yoga or stretching session today could replicate last cycle's calm energy.",
       correlationKey: "fitness+period+vibe|phase:luteal|workout_type:yoga|mood_avg:4",
       isFallback: false,
@@ -170,6 +184,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-4",
       hashtags: ["period", "symptoms"],
       body: "Your Menstrual Phase is approaching in approximately 4 days. Based on your history, you tend to experience cramps on days 1–2. It may help to prepare with anti-inflammatory foods and rest plans.",
+      summary: "🌸 Period: arriving in ~4 days — prep for cramps",
       suggestion: "Stock up on ginger tea, dark chocolate, and heating pads before your period arrives.",
       correlationKey: "period+symptoms|upcoming_phase:menstrual|days_until:4",
       isFallback: false,
@@ -179,6 +194,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-5",
       hashtags: ["nutrition", "symptoms"],
       body: "You haven't logged meals this week. During the Luteal Phase, magnesium-rich foods like dark chocolate, spinach, and pumpkin seeds are known to reduce cramp severity and bloating.",
+      summary: "🍃 Nutrition: no meals logged — cravings may peak",
       suggestion: "Try adding a handful of pumpkin seeds to your meals this week.",
       correlationKey: "nutrition+symptoms|nutrition_logged:false|phase:luteal",
       isFallback: true,
@@ -188,6 +204,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-6",
       hashtags: ["sleep", "vibe"],
       body: "Your energy scores trend lower on days when you log under 7 hours of sleep. With 3 nights under 6.5 hours last week, this likely explains the lower motivation scores you recorded mid-week.",
+      summary: "🌙 Sleep: 3 nights under 6.5h — mood taking a hit",
       suggestion: null,
       correlationKey: "sleep+vibe|sleep_avg_hours:6|energy_avg:3",
       isFallback: false,
@@ -197,6 +214,7 @@ export const DEMO_FEED: InsightFeed = {
       id: "demo-7",
       hashtags: ["fitness", "vibe"],
       body: "On days you logged a workout, your mood score averaged 0.8 points higher than rest days. Movement is clearly a strong mood regulator for you — even short sessions seem to help.",
+      summary: "⚡ Fitness: workouts boost your mood by +0.8 pts",
       suggestion: "Even a 20-minute walk counts. Your data suggests it'll lift your mood today.",
       correlationKey: "fitness+vibe|workouts_vs_rest_mood_diff:0.8",
       isFallback: false,
@@ -204,8 +222,9 @@ export const DEMO_FEED: InsightFeed = {
     },
     {
       id: "demo-8",
-      hashtags: ["period", "nutrition"],
+      hashtags: ["nutrition", "period"],
       body: "In your previous Luteal Phase, you logged meals on 6 out of 7 days and reported fewer cravings. This cycle, with meals unlogged, cravings may feel more intense as your period approaches.",
+      summary: "🍃 Nutrition: unlogged meals — cravings intensifying",
       suggestion: "Logging your meals doesn't have to be perfect — even noting your main meal helps spot patterns.",
       correlationKey: "nutrition+period|phase:luteal|meal_logs_prev:6|meal_logs_curr:0",
       isFallback: false,
