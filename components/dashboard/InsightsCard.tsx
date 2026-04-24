@@ -7,6 +7,7 @@ import {
   InsightCardData,
   HASHTAG_CONFIG,
   CATEGORY_CONFIG,
+  getInsightCategory,
   deriveOneLiner,
   localDateStr,
 } from "@/lib/insightUtils";
@@ -23,9 +24,11 @@ function InsightRow({
   open: boolean;
   onToggle: () => void;
 }) {
-  const primary = card.hashtags[0] ?? "vibe";
-  const cat = CATEGORY_CONFIG[primary];
-  const summary = card.summary ?? deriveOneLiner(card);
+  const cat = CATEGORY_CONFIG[getInsightCategory(card)];
+  const raw = card.summary?.trim() || deriveOneLiner(card);
+  // Always use the correct category emoji — strip any leading emoji the LLM may have added
+  const summaryText = raw.replace(/^\p{Emoji_Presentation}\s*/u, "").replace(/^\p{Emoji}️?\s*/u, "");
+  const summary = `${cat.emoji} ${summaryText}`;
   const bodyRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -33,18 +36,18 @@ function InsightRow({
       {/* Collapsed row */}
       <button
         onClick={onToggle}
-        className="w-full h-12 flex items-center gap-3 px-3 rounded-2xl hover:bg-white/[0.03] transition-colors cursor-pointer"
+        className="w-full min-h-[44px] flex items-start gap-3 px-3 py-3 rounded-2xl hover:bg-white/[0.03] transition-colors cursor-pointer"
       >
         {/* Category color bar */}
-        <span className="w-[3px] h-6 rounded-full flex-shrink-0" style={{ background: cat.color }} />
-        {/* Summary (includes emoji prefix) */}
-        <span className="text-[12px] text-white/70 truncate flex-1 text-left">
+        <span className="w-[3px] h-4 rounded-full flex-shrink-0 mt-0.5" style={{ background: cat.color }} />
+        {/* Summary (includes emoji prefix) — wraps onto multiple lines */}
+        <span className="text-[12px] text-white/70 flex-1 text-left leading-relaxed break-words">
           {summary}
         </span>
         {/* Chevron */}
         <ChevronRight
           size={14}
-          className="flex-shrink-0 text-white/30 transition-transform duration-200"
+          className="flex-shrink-0 text-white/30 transition-transform duration-200 mt-0.5"
           style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
         />
       </button>
@@ -107,28 +110,15 @@ function Skeleton() {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const ROW_H = 52; // 48px row + 4px gap
-
 export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
   const [cards, setCards] = useState<InsightCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [noFeed, setNoFeed] = useState(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [displayCount, setDisplayCount] = useState(3);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { load(); }, []);
-
-  useEffect(() => {
-    const el = bodyRef.current;
-    if (!el) return;
-    const obs = new ResizeObserver(() => {
-      setDisplayCount(Math.max(1, Math.floor(el.clientHeight / ROW_H)));
-    });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   async function load() {
     setLoading(true);
@@ -164,11 +154,7 @@ export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
           const sliced = feedCards.slice(0, maxCards);
           setCards(sliced);
           setLoading(false);
-          // Fire-and-forget: generate summaries for cards that don't have them
-          const missing = sliced.filter(c => !c.summary);
-          if (missing.length > 0) {
-            fetchSummaries(missing, session.access_token, session.user.id);
-          }
+          fetchSummaries(sliced, session.access_token, session.user.id);
         } else {
           setNoFeed(true);
         }
@@ -182,7 +168,7 @@ export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
     }
   }
 
-  async function fetchSummaries(missing: InsightCardData[], accessToken: string, userId: string) {
+  async function fetchSummaries(cards: InsightCardData[], accessToken: string, userId: string) {
     try {
       const res = await fetch("/api/insights/summarize", {
         method: "POST",
@@ -190,16 +176,16 @@ export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
         body: JSON.stringify({
           accessToken,
           userId,
-          cards: missing.map(c => ({ id: c.id, hashtags: c.hashtags, body: c.body })),
+          cards: cards.map(c => ({ id: c.id, hashtags: c.hashtags, body: c.body })),
         }),
       });
       if (!res.ok) return;
       const data = await res.json();
-      const summaryMap: Record<string, string> = {};
-      for (const s of data.summaries ?? []) summaryMap[s.id] = s.summary;
-      setCards(prev => prev.map(c => summaryMap[c.id] ? { ...c, summary: summaryMap[c.id] } : c));
+      const map: Record<string, string> = {};
+      for (const s of data.summaries ?? []) map[s.id] = s.summary;
+      setCards(prev => prev.map(c => map[c.id] ? { ...c, summary: map[c.id] } : c));
     } catch {
-      // Silently fall back to deriveOneLiner
+      // keep deriveOneLiner placeholder
     }
   }
 
@@ -245,11 +231,11 @@ export function InsightsCard({ maxCards = 20 }: { maxCards?: number }) {
         </div>
 
         {/* Body */}
-        <div ref={bodyRef} className="flex-1 min-h-0 overflow-hidden px-3 pb-3 flex flex-col gap-[4px]">
+        <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 flex flex-col gap-2 scrollbar-none">
           {loading ? (
             <Skeleton />
           ) : cards.length > 0 ? (
-            cards.slice(0, displayCount).map((card, i) => (
+            cards.slice(0, 5).map((card, i) => (
               <InsightRow
                 key={card.id}
                 card={card}

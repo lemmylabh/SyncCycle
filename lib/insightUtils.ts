@@ -58,14 +58,72 @@ export function getInsightCategory(card: InsightCardData): InsightHashtag {
   return card.hashtags[0] ?? "vibe";
 }
 
+// Ordered stat-extraction patterns — most specific first
+const STAT_PATTERNS: { re: RegExp; fmt: (m: RegExpMatchArray) => string }[] = [
+  { re: /(\d+\.?\d*)\s*hours?\s*(of\s+sleep)?/i,           fmt: m => `${m[1]}h avg`           },
+  { re: /(\d+\.?\d*)\s*out\s+of\s+5/i,                     fmt: m => `${m[1]}/5`              },
+  { re: /intensity\s+of\s+(\d+\.?\d*)/i,                   fmt: m => `${m[1]} avg intensity`  },
+  { re: /(\d+\.?\d*)\s*points?\s+higher/i,                 fmt: m => `+${m[1]} pts`           },
+  { re: /approximately\s+(\d+)\s+days?/i,                  fmt: m => `~${m[1]} days away`     },
+  { re: /average(?:d|ing)?\s+(?:of\s+)?(\d+\.?\d*)/i,     fmt: m => `${m[1]} avg`            },
+  { re: /(\d+\.?\d*)\s*\/\s*(\d+)/i,                      fmt: m => `${m[1]}/${m[2]}`        },
+  { re: /(\d+)\s*%/i,                                      fmt: m => `${m[1]}%`               },
+];
+
+// Human-readable noun derived from category + body context
+function contextNoun(cat: InsightHashtag, body: string): string {
+  const b = body.toLowerCase();
+  switch (cat) {
+    case "sleep":     return b.includes("quality") ? "Sleep quality" : "Sleep";
+    case "fitness":   return b.includes("yoga") || b.includes("stretch") ? "Movement" : "Fitness";
+    case "vibe":      return b.includes("energy") && !b.includes("mood") ? "Energy" : "Mood";
+    case "nutrition": return b.includes("craving") ? "Cravings" : "Nutrition";
+    case "symptoms":  return b.includes("cramp") ? "Cramps" : b.includes("fatigue") ? "Fatigue" : "Symptoms";
+    case "period":    return "Cycle";
+  }
+}
+
+// Strip filler openers and extract a compact verdict phrase
+function extractVerdict(body: string): string {
+  let s = body.split(/[.!?]/)[0].trim();
+
+  // Strip common filler sentence starters
+  s = s.replace(
+    /^(you (?:might|may|could|are|have|'ve|ve)\s+(?:be\s+)?|your (?:body\s+)?(?:is\s+|may\s+|might\s+)?|as you(?:r)?\s+|with your\s+|during (?:this\s+|the\s+)?|since you(?:'ve)?\s+|it(?:'s)?\s+(?:is\s+)?(?:common\s+)?(?:to\s+)?)/i,
+    ""
+  );
+
+  // Cut at first comma, " and ", " which ", " that ", " — ", " so "
+  s = s.split(/,|\s+and\s+|\s+which\s+|\s+that\s+|\s+—\s+|\s+so\s+/i)[0].trim();
+
+  // Strip trailing weak verbs mid-phrase: " may be", " might be", " can be"
+  s = s.replace(/\s+(?:may|might|can|could)\s+be.*$/i, "").trim();
+
+  // Capitalize first letter
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+
+  return s.length > 32 ? s.slice(0, 31) + "…" : s;
+}
+
 export function deriveOneLiner(card: InsightCardData): string {
-  const primary = card.hashtags[0] ?? "vibe";
-  const cat = CATEGORY_CONFIG[primary];
-  // Extract a number stat if present, otherwise use a short phrase from the body
-  const numMatch = card.body.match(/(\d+(?:\.\d+)?)\s*(hours?|h\b|\/5|avg|%|kcal|kg|lbs|sessions?)/i);
-  const stat = numMatch ? numMatch[0] : card.body.split(/[.!?,]/)[0].trim().slice(0, 35);
-  const verdict = stat.length > 40 ? stat.slice(0, 39) + "…" : stat;
-  return `${cat.emoji} ${cat.label}: ${verdict}`;
+  const cat = getInsightCategory(card);
+  const cfg = CATEGORY_CONFIG[cat];
+  const noun = contextNoun(cat, card.body);
+
+  // Try each stat pattern first
+  for (const { re, fmt } of STAT_PATTERNS) {
+    const m = card.body.match(re);
+    if (m) {
+      const verdict = fmt(m);
+      const full = `${cfg.emoji} ${noun}: ${verdict}`;
+      return full.length <= 60 ? full : full.slice(0, 59) + "…";
+    }
+  }
+
+  // No stat — extract compact phrase
+  const verdict = extractVerdict(card.body);
+  const full = `${cfg.emoji} ${noun}: ${verdict}`;
+  return full.length <= 60 ? full : full.slice(0, 59) + "…";
 }
 
 export const CARD_TYPE_CONFIG: Record<InsightCardType, { label: string; color: string }> = {
